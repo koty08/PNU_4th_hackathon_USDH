@@ -1,4 +1,4 @@
-## 1234
+## /lib/
 
 - firebase_provider.dart -> 인증과 관련된 여러 함수들 만들어놓은 파일
 - main.dart -> 메인화면
