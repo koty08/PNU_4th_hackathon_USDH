@@ -2,11 +2,15 @@ import 'package:flutter/cupertino.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 Logger logger = Logger();
 
 class FirebaseProvider with ChangeNotifier {
   final FirebaseAuth authIns = FirebaseAuth.instance; // Firebase 인증 플러그인의 인스턴스
+  FirebaseFirestore fs = FirebaseFirestore.instance; // 파이어베이스 db 인스턴스 생성
+
   late User? _user; // Firebase에 로그인 된 사용자
   String fbMsg = ""; // 
 
@@ -46,6 +50,7 @@ class FirebaseProvider with ChangeNotifier {
   // 로그인
   Future<bool> signInWithEmail(String email, String password) async {
     try {
+      authIns.setLanguageCode("ko");
       var result = await authIns.signInWithEmailAndPassword(
           email: email, password: password);
         setUser(result.user);
@@ -73,6 +78,8 @@ class FirebaseProvider with ChangeNotifier {
 
   // 회원 탈퇴
   withdrawalAccount() async {
+    // print(getUser()?.email);
+    await fs.collection('users').doc(getUser()?.email).delete();
     await getUser()?.delete();
     setUser(null);
   }

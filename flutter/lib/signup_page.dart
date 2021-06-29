@@ -17,6 +17,11 @@ class SignUpPage extends StatefulWidget {
 class SignUpPageState extends State<SignUpPage> {
   TextEditingController emailInput = TextEditingController();
   TextEditingController pwdInput = TextEditingController();
+  TextEditingController departInput = TextEditingController();
+  TextEditingController nameInput = TextEditingController();
+  TextEditingController stuIdInput = TextEditingController();
+  
+  FirebaseFirestore fs = FirebaseFirestore.instance; // 파이어베이스 db 인스턴스 생성
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   late FirebaseProvider fp;
@@ -67,16 +72,37 @@ class SignUpPageState extends State<SignUpPage> {
                           controller: emailInput,
                           decoration: InputDecoration(
                             prefixIcon: Icon(Icons.mail),
-                            hintText: "Email",
+                            hintText: "이메일(학교 이메일)",
                           ),
                         ),
                         TextField(
                           controller: pwdInput,
                           decoration: InputDecoration(
                             prefixIcon: Icon(Icons.lock),
-                            hintText: "Password",
+                            hintText: "비밀번호",
                           ),
                           obscureText: true,
+                        ),
+                        TextField(
+                          controller: nameInput,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.arrow_forward),
+                            hintText: "이름"
+                          ),
+                        ),
+                        TextField(
+                          controller: departInput,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.arrow_forward),
+                            hintText: "소속 학과(학부)"
+                          ),
+                        ),
+                        TextField(
+                          controller: stuIdInput,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.arrow_forward),
+                            hintText: "학번"
+                          ),
                         ),
                       ].map((c) {
                         return Padding(
@@ -126,6 +152,8 @@ class SignUpPageState extends State<SignUpPage> {
       ));
     bool result = await fp.signUpWithEmail(emailInput.text, pwdInput.text);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    fs.collection('users').doc(emailInput.text).set({'name': nameInput.text, 'depart' : departInput.text, 'stuid' : stuIdInput.text, 'email' : emailInput.text});
     if (result) {
       Navigator.pop(context);
     } else {
