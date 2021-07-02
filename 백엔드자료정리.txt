@@ -7,13 +7,14 @@
   firestore_auth : 0.20.1
   cloud_firestore: ^0.16.0+1
   firebase_storage : ...
+  image_picker : ...
   
 개발 진행상황 및 계획: firebase와 flutter를 연동하여 회원 관리 기능, 채팅 기능, 게시물 작성 기능 등을 구현
   현재 firestore database와의 연결은 완료됐고, 구체적인 기능들(챗, 게시물작성, 계좌등록??)에대해 각각 적당한
   데이터로 가공한 뒤 저장하는 기능을 구현하기만 하면 됨.
   
   
-  게시물 작성 및 채팅에서의 사진사용 -> firebase storage를 활용하여 firebase에 사진을 올려 업로드하고, 해당 파일을
-  불러와 출력하는 식으로 구현할 예정.
+  게시물 작성 및 채팅에서의 사진사용 -  사용자로부터 image picker로 카메라를 이용해 촬영하거나 갤러리에 있는 사진을
+  입력 받아서 이를 firebase storage에 업로드하고, 게시물 등에서 보여 줄때 해당 파일을 불러와 출력하는 식으로 구현할 예정.
   
   개발을 진행하면서 필요시 firestore 말고도 다른 데이터베이스를 사용할 계획이다.
