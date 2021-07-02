@@ -3,11 +3,11 @@
 사용 database: firestore database
 
 사용하는 패키지의 버전 정보:
-  firestore_core : 0.7.0
-  firestore_auth : 0.20.1
-  cloud_firestore: ^0.16.0+1
-  firebase_storage : ...
-  image_picker : ...
+  firebase_core: ^1.3.0
+  firebase_auth: ^2.0.0
+  cloud_firestore: ^2.3.0
+  firebase_storage : ^9.0.0
+  image_picker : ^0.8.1+3
   
 개발 진행상황 및 계획: firebase와 flutter를 연동하여 회원 관리 기능, 채팅 기능, 게시물 작성 기능 등을 구현
   현재 firestore database와의 연결은 완료됐고, 구체적인 기능들(챗, 게시물작성, 계좌등록??)에대해 각각 적당한
