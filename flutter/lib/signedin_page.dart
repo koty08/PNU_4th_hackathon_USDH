@@ -71,7 +71,7 @@ class SignedInPageState extends State<SignedInPage> {
                             child: Text("Email", style: tsItem),
                           ),
                           Expanded(
-                            child: Text(fp.getUser()!.email, style: tsContent),
+                            child: Text(fp.getUser()!.email.toString(), style: tsContent),
                           )
                         ],
                       ),

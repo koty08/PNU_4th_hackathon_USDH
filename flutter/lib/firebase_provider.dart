@@ -73,7 +73,7 @@ class FirebaseProvider with ChangeNotifier {
   // 비밀번호 재설정 메일 발송.
   sendPWResetEmail() async {
     await authIns.setLanguageCode("ko");
-    authIns.sendPasswordResetEmail(email: getUser()?.email);
+    authIns.sendPasswordResetEmail(email: getUser()!.email.toString());
   }
 
   // 회원 탈퇴
