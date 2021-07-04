@@ -152,10 +152,10 @@ class SignUpPageState extends State<SignUpPage> {
       ));
     bool result = await fp.signUpWithEmail(emailInput.text, pwdInput.text);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-    fs.collection('users').doc(emailInput.text).set({'name': nameInput.text, 'depart' : departInput.text, 'stuid' : stuIdInput.text, 'email' : emailInput.text});
+    
     if (result) {
       Navigator.pop(context);
+      fs.collection('users').doc(emailInput.text).set({'name': nameInput.text, 'depart' : departInput.text, 'stuid' : stuIdInput.text, 'email' : emailInput.text});
     } else {
       showLastFBMessage();
     }

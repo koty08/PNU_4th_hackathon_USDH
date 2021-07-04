@@ -31,6 +31,10 @@ class FirebaseProvider with ChangeNotifier {
   // 회원가입
   Future<bool> signUpWithEmail(String email, String password) async {
     try {
+      if (email.split("@")[1] != "pusan.ac.kr"){
+        setMessage("not-pusan");
+        return false;
+      }
       UserCredential result = await authIns.createUserWithEmailAndPassword(
           email: email, password: password);
       if (result.user != null) {
@@ -91,8 +95,21 @@ class FirebaseProvider with ChangeNotifier {
 
   // Firebase로부터 수신한 메시지를 반환
   getMessage() {
-    String returnValue = fbMsg;
+    String tmp = fbMsg.split(" ")[0];
     fbMsg = "";
-    return returnValue;
+    switch(tmp){
+      case "not-pusan":
+        return "부산대학교 이메일을 사용하셔야 합니다.";
+      case "[firebase_auth/user-not-found]":
+        return "해당 이메일로 가입한 사용자가 존재하지 않습니다.";
+      case "[firebase_auth/wrong-password":
+        return "비밀번호가 틀렸습니다.";
+      case "[firebase_auth/weak-password]":
+        return "비밀번호 강도가 너무 낮습니다.";
+      case "[firebase_auth/email-already-in-use]":
+        return "이미 가입한 이메일입니다.";
+      default:
+        return tmp; 
+    }
   }
 }
