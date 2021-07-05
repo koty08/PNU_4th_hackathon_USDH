@@ -151,17 +151,17 @@ class SignedInPageState extends State<SignedInPage> {
             ),
           ),
 
-          // Container(
-          //   margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
-          //   child: ElevatedButton(
-          //     child: Text(
-          //       "게시판 글쓰기",
-          //       style: TextStyle(color: Colors.black),
-          //     ),
-          //     onPressed: (){
-          //       Navigator.push(context, MaterialPageRoute(builder: (context) => WriteBoard()));
-          //     }),
-          // )
+          Container(
+            margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
+            child: ElevatedButton(
+              child: Text(
+                "게시판 글쓰기",
+                style: TextStyle(color: Colors.black),
+              ),
+              onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => WriteBoard()));
+              }),
+          )
         ],
       ),
     );
