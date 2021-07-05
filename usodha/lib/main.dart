@@ -1,96 +1,55 @@
 import 'package:flutter/material.dart';
-import 'appbar/appbar.dart';
+import 'package:provider/provider.dart';
+import 'firebase_provider.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:firebase_core/firebase_core.dart';
+import 'signedin_page.dart';
+import 'signin_page.dart';
 
-void main() {
-  runApp(MaterialApp(
-    title: 'USODHA', // used by the OS task switcher
-    home: HomePage(),
-  ));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
 }
 
-class App extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'USODHA',
-      home: HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    Widget buttonSection = Container(
-      child: Row(
-        // Row에서 Main은 Row지, spaceEvenly: 동일 공간 할당
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      ),
-    );
-
-    Widget roomSection = Container(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          BuildNewRoomButton(),
-        ],
-      ),
-    );
-
-    return Material(
-      child: Column(
-        children: <Widget>[
-          MyAppBar(
-            title: Text(
-              'USODHA',
-              style: Theme.of(context).primaryTextTheme.headline5,
-            ),
-          ),
-          buttonSection,
-          roomSection,
-        ],
-      ),
-    );
-  }
-}
-
-class BuildNewRoomButton extends StatefulWidget {
-  @override
-  _MakeRoomList createState() => _MakeRoomList();
-}
-
-class _MakeRoomList extends State<BuildNewRoomButton> {
-  List<Widget> roomList = <Widget>[];
-
-  @override
-  Widget build(BuildContext context) {
-    Color color = Theme.of(context).primaryColor;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: EdgeInsets.all(0),
-          child: IconButton(
-            padding: EdgeInsets.all(0),
-            alignment: Alignment.centerRight,
-            icon: Icon(Icons.upcoming_rounded),
-            color: color,
-            onPressed: null,
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          margin: const EdgeInsets.only(top: 8),
-          child: Text(
-            '새 방 만들기',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-              color: color,
-            ),
-          ),
-        ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<FirebaseProvider>(
+            create: (_) => FirebaseProvider())
       ],
+      child: MaterialApp(
+        title: "1234",
+        home: AuthPage(),
+      ),
     );
+  }
+}
+
+late AuthPageState pageState;
+
+class AuthPage extends StatefulWidget {
+  @override
+  AuthPageState createState() {
+    pageState = AuthPageState();
+    return pageState;
+  }
+}
+
+class AuthPageState extends State<AuthPage> {
+  late FirebaseProvider fp;
+
+  @override
+  Widget build(BuildContext context) {
+    fp = Provider.of<FirebaseProvider>(context);
+    logger.d("user: ${fp.getUser()}");
+
+    if (fp.getUser() != null && fp.getUser()?.emailVerified == true) {
+      return SignedInPage();
+    } else {
+      return SignInPage();
+    }
   }
 }
