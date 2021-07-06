@@ -14,7 +14,6 @@ class FirebaseProvider with ChangeNotifier {
 
   late User? _user; // Firebase에 로그인 된 사용자
   String fbMsg = ""; // 오류 띄워줄 메세지
-  static int piccount = 0;
 
   late Map<String, dynamic> info;
 
