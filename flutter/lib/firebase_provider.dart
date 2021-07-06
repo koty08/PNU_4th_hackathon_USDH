@@ -12,17 +12,20 @@ class FirebaseProvider with ChangeNotifier {
   FirebaseFirestore fs = FirebaseFirestore.instance; // 파이어베이스 db 인스턴스 생성
 
   late User? _user; // Firebase에 로그인 된 사용자
-  String fbMsg = ""; // 
+  String fbMsg = ""; // 오류 띄워줄 메세지
 
+  // 생성자
   FirebaseProvider() {
     logger.d("initializing...");
     setUser(authIns.currentUser);
   }
 
+  // 현재 접속한 사용자 가져오기
   User? getUser() {
     return _user;
   }
 
+  // 사용자 바꾸기
   void setUser(User? value) {
     _user = value;
     notifyListeners();
@@ -31,7 +34,7 @@ class FirebaseProvider with ChangeNotifier {
   // 회원가입
   Future<bool> signUpWithEmail(String email, String password) async {
     try {
-      if (email.split("@")[1] != "pusan.ac.kr"){
+      if (email.split("@")[1] != "pusan.ac.kr") {
         setMessage("not-pusan");
         return false;
       }
@@ -57,9 +60,9 @@ class FirebaseProvider with ChangeNotifier {
       authIns.setLanguageCode("ko");
       var result = await authIns.signInWithEmailAndPassword(
           email: email, password: password);
-        setUser(result.user);
-        logger.d(getUser());
-        return true;
+      setUser(result.user);
+      logger.d(getUser());
+      return true;
     } on Exception catch (e) {
       logger.e(e.toString());
       List<String> result = e.toString().split(", ");
@@ -88,28 +91,28 @@ class FirebaseProvider with ChangeNotifier {
     setUser(null);
   }
 
-  // Firebase로부터 수신한 메시지 설정
+  // 수신한 메시지 설정
   setMessage(String msg) {
     fbMsg = msg;
   }
 
-  // Firebase로부터 수신한 메시지를 반환
+  // 수신한 메시지를 반환
   getMessage() {
     String tmp = fbMsg.split(" ")[0];
     fbMsg = "";
-    switch(tmp){
+    switch (tmp) {
       case "not-pusan":
         return "부산대학교 이메일을 사용하셔야 합니다.";
       case "[firebase_auth/user-not-found]":
         return "해당 이메일로 가입한 사용자가 존재하지 않습니다.";
-      case "[firebase_auth/wrong-password":
+      case "[firebase_auth/wrong-password]":
         return "비밀번호가 틀렸습니다.";
       case "[firebase_auth/weak-password]":
         return "비밀번호 강도가 너무 낮습니다.";
       case "[firebase_auth/email-already-in-use]":
         return "이미 가입한 이메일입니다.";
       default:
-        return tmp; 
+        return tmp;
     }
   }
 }

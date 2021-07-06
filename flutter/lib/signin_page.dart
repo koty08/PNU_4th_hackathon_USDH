@@ -173,8 +173,7 @@ class SignInPageState extends State<SignInPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Text("계정이 필요한가요?",
-                    style: TextStyle(color: Colors.blueGrey)),
+                Text("계정이 필요한가요?", style: TextStyle(color: Colors.blueGrey)),
                 TextButton(
                   child: Text(
                     "계정 생성",
@@ -195,19 +194,15 @@ class SignInPageState extends State<SignInPage> {
 
   void _signIn() async {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: Duration(seconds: 10),
-        content: Row(
-          children: <Widget>[
-            CircularProgressIndicator(),
-            Text("   로그인 중...")
-          ],
-        ),
-      ));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: Duration(seconds: 10),
+      content: Row(
+        children: <Widget>[CircularProgressIndicator(), Text("   로그인 중...")],
+      ),
+    ));
     bool result = await fp.signInWithEmail(emailInput.text, pwdInput.text);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    if (result == false) showLastFBMessage();
+    if (result == false) showMessage();
   }
 
   getRememberInfo() async {
@@ -235,18 +230,17 @@ class SignInPageState extends State<SignInPage> {
     }
   }
 
-  showLastFBMessage() {
+  showMessage() {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Colors.red[400],
-        duration: Duration(seconds: 10),
-        content: Text(fp.getMessage()),
-        action: SnackBarAction(
-          label: "확인",
-          textColor: Colors.white,
-          onPressed: () {},
-        ),
-      ));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Colors.red[400],
+      duration: Duration(seconds: 10),
+      content: Text(fp.getMessage()),
+      action: SnackBarAction(
+        label: "확인",
+        textColor: Colors.white,
+        onPressed: () {},
+      ),
+    ));
   }
 }

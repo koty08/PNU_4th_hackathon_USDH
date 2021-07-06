@@ -7,9 +7,9 @@ import 'signedin_page.dart';
 import 'signin_page.dart';
 
 void main() async {
-   WidgetsFlutterBinding.ensureInitialized();
-   await Firebase.initializeApp();
-   runApp(MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -18,8 +18,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<FirebaseProvider>(
-          create: (_) => FirebaseProvider()
-        )
+            create: (_) => FirebaseProvider())
       ],
       child: MaterialApp(
         title: "1234",
@@ -30,6 +29,7 @@ class MyApp extends StatelessWidget {
 }
 
 late AuthPageState pageState;
+
 class AuthPage extends StatefulWidget {
   @override
   AuthPageState createState() {
