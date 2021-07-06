@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,6 +14,9 @@ class FirebaseProvider with ChangeNotifier {
 
   late User? _user; // Firebase에 로그인 된 사용자
   String fbMsg = ""; // 오류 띄워줄 메세지
+  static int piccount = 0;
+
+  late Map<String, dynamic> info;
 
   // 생성자
   FirebaseProvider() {
@@ -29,6 +33,27 @@ class FirebaseProvider with ChangeNotifier {
   void setUser(User? value) {
     _user = value;
     notifyListeners();
+  }
+
+  void setInfo() async {
+    await fs
+        .collection('users')
+        .doc(getUser()?.email)
+        .get()
+        .then((DocumentSnapshot snap) {
+      info = snap.data() as Map<String, dynamic>;
+    });
+  }
+
+  void updateIntInfo(String target, int value) async {
+    await fs
+        .collection('users')
+        .doc(getUser()?.email)
+        .update({target: getInfo()[target] += value});
+  }
+
+  Map<String, dynamic> getInfo() {
+    return info;
   }
 
   // 회원가입

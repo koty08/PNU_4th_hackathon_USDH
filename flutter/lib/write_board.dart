@@ -33,6 +33,7 @@ class WriteBoardState extends State<WriteBoard> {
   @override
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
 
     return Scaffold(
         resizeToAvoidBottomInset: false,
@@ -75,7 +76,7 @@ class WriteBoardState extends State<WriteBoard> {
                   children: <Widget>[
                     Row(
                       children: <Widget>[
-                        Text("올린 사진 확인"),
+                        Text("test"),
                       ],
                     ),
                     SizedBox(
@@ -126,9 +127,11 @@ class WriteBoardState extends State<WriteBoard> {
   }
 
   void uploadOnFS(String txt) async {
+    var tmp = fp.getInfo();
     await fs
         .collection('posts')
-        .doc(fp.getUser()!.uid)
-        .set({'contents': txt, 'pic': imageurl});
+        .doc(tmp['name'] + tmp['postcount'].toString())
+        .set({'writer': tmp['name'], 'contents': txt, 'pic': imageurl});
+    fp.updateIntInfo('postcount', 1);
   }
 }

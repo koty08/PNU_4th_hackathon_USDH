@@ -152,7 +152,9 @@ class SignUpPageState extends State<SignUpPage> {
         'name': nameInput.text,
         'depart': departInput.text,
         'stuid': stuIdInput.text,
-        'email': emailInput.text
+        'email': emailInput.text,
+        'postcount': 0,
+        'piccount': 0,
       });
     } else {
       showMessage();
