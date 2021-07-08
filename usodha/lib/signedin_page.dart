@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:login_test/small_group.dart';
 import 'firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'write_board.dart';
+import 'small_group.dart';
 
 late SignedInPageState pageState;
 
@@ -39,9 +41,8 @@ class SignedInPageState extends State<SignedInPage> {
                   child: Center(
                     child: Text(
                       "로그인된 사용자 정보",
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -72,7 +73,8 @@ class SignedInPageState extends State<SignedInPage> {
                             child: Text("Email", style: tsItem),
                           ),
                           Expanded(
-                            child: Text(fp.getUser()!.email.toString(), style: tsContent),
+                            child: Text(fp.getUser()!.email.toString(),
+                                style: tsContent),
                           )
                         ],
                       ),
@@ -154,13 +156,32 @@ class SignedInPageState extends State<SignedInPage> {
           Container(
             margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
             child: ElevatedButton(
-              child: Text(
-                "게시판 글쓰기",
-                style: TextStyle(color: Colors.black),
-              ),
-              onPressed: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => WriteBoard()));
-              }),
+                child: Text(
+                  "게시판 글쓰기",
+                  style: TextStyle(color: Colors.black),
+                ),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => WriteBoard()));
+                }),
+          ),
+
+          Container(
+            margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
+            child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.black12,
+                ),
+                child: Text(
+                  "소모임",
+                  style: TextStyle(color: Colors.black),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => SmallGroupList()));
+                }),
           )
         ],
       ),
