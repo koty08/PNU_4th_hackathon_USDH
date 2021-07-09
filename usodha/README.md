@@ -1,16 +1,6 @@
-# test
-
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# 소모임 기능 KKK
+1. 방 목록 초기화 시 한 번만 로드되게
+2. 방 이름 옆 아이콘 누르면 (내용수정/ 삭제) 나오게
+ -삭제 기능, 내용 수정 기능
+3. 검색 기능
+4. 인원 마감 기능.. 

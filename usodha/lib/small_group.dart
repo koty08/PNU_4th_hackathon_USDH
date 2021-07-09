@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'write_board.dart';
 
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -78,9 +79,11 @@ searchSmallGroup() {
   print('검색중...');
 }
 
+// 방 리스트 출력을 위한 list
 List<Room> roomList = <Room>[];
 StreamSubscription<QuerySnapshot>? _roomSubscription;
 
+// 각 방은 이름을 부여받음 - 수정 필요
 class Room {
   String roomName;
   Room(this.roomName);
@@ -96,14 +99,22 @@ class RoomListPage extends StatefulWidget {
 
 class _RoomListPage extends State<RoomListPage> {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final CollectionReference roomCollection =
+      FirebaseFirestore.instance.collection('posts');
+  Future updatePost(
+    String _contents,
+  ) async {
+    return await roomCollection.doc('aaa').set({
+      'contents': _contents,
+    });
+  }
 
-  // 생성된 방들 firebase에서 가져옴
+  // 생성된 방들 firebase에서 가져옴 - 초기화 한 번만 하게 어케 하지
   void initState() {
     super.initState();
-    _roomSubscription = FirebaseFirestore.instance
-        .collection('posts')
-        .snapshots()
-        .listen((snapshot) {
+    roomList = [];
+    _roomSubscription =
+        firestore.collection('posts').snapshots().listen((snapshot) {
       for (final document in snapshot.docs) {
         roomList.add(Room(document.data()['contents']));
       }
@@ -139,6 +150,10 @@ class _RoomListPage extends State<RoomListPage> {
                         builder: (context) => RoomPage(room: roomList[index])),
                   );
                 },
+                trailing: IconButton(
+                  icon: Icon(Icons.more_vert),
+                  onPressed: () async {},
+                ),
               );
             }));
   }
@@ -158,7 +173,7 @@ class RoomPage extends StatelessWidget {
       ),
       body: Padding(
           padding: EdgeInsets.all(16.0),
-          // 방 내부 - 수정
+          // 방 내부 - 수정 필요
           child: Center(
             child: Text(
               room.roomName,
@@ -177,12 +192,6 @@ class BuildNewRoomButton extends StatefulWidget {
 
 // 새로운 방 생성 동작
 class _MakeNewRoom extends State<BuildNewRoomButton> {
-  void makeNewRoom() {
-    // firebase에 방 추가하고 화면 새로 고침 하도록?
-    print('방 추가');
-    roomList.add(new Room('방 ${roomList.length}'));
-  }
-
   @override
   Widget build(BuildContext context) {
     Color color = Theme.of(context).primaryColor;
@@ -194,7 +203,10 @@ class _MakeNewRoom extends State<BuildNewRoomButton> {
           icon: Icon(Icons.upcoming_rounded),
           color: color,
           iconSize: 36,
-          onPressed: makeNewRoom,
+          onPressed: () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => WriteBoard()));
+          },
         ),
         Container(
           margin: const EdgeInsets.only(top: 8),
