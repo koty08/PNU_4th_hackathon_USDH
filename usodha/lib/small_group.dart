@@ -1,12 +1,9 @@
-import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:login_test/firebase_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+FirebaseFirestore firestore = FirebaseFirestore.instance;
 
 late SmallGroupListState pageState;
 
@@ -77,8 +74,12 @@ class SmallGroupListState extends State<SmallGroupList> {
   }
 }
 
+searchSmallGroup() {
+  print('검색중...');
+}
+
 List<Room> roomList = <Room>[];
-FirebaseFirestore firestore = FirebaseFirestore.instance;
+StreamSubscription<QuerySnapshot>? _roomSubscription;
 
 class Room {
   String roomName;
@@ -94,23 +95,22 @@ class RoomListPage extends StatefulWidget {
 }
 
 class _RoomListPage extends State<RoomListPage> {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
   // 생성된 방들 firebase에서 가져옴
   void initState() {
     super.initState();
-    Consumer<ApplicationState>(
-            builder: (context, appState, _) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Add from here
-                if (appState.attendees >= 2)
-                  Paragraph('${appState.attendees} people going')
-                else if (appState.attendees == 1)
-                  const Paragraph('1 person going')
-                else
-                  const Paragraph('No one going'),
-              ],
-            ),
-          ),
+    _roomSubscription = FirebaseFirestore.instance
+        .collection('posts')
+        .snapshots()
+        .listen((snapshot) {
+      for (final document in snapshot.docs) {
+        roomList.add(Room(document.data()['contents']));
+      }
+    });
+    for (var a in roomList) {
+      print(a.roomName);
+    }
     print('방 목록 초기화!');
   }
 
@@ -254,74 +254,3 @@ class _DeleteRoom extends State<BuildDeleteRoomButton> {
     );
   }
 }
-
-searchSmallGroup() {
-  print('검색중...');
-}
-
-class ApplicationState extends ChangeNotifier {
-  ApplicationState() {
-    init();
-  }
-
-  Future<void> init() async {
-    await Firebase.initializeApp();
-
-    // firestore 읽기
-    FirebaseFirestore.instance
-        .collection('attendees')
-        .where('attending', isEqualTo: true)
-        .snapshots()
-        .listen((snapshot) {
-      _attendees = snapshot.docs.length;
-      notifyListeners();
-    });
-
-    // 회원가입 / 로그인
-    FirebaseAuth.instance.userChanges().listen((user) {
-      // 기존 회원
-      if (user != null) {
-        _loginState = ApplicationLoginState.loggedIn;
-        _guestBookSubscription = FirebaseFirestore.instance
-            .collection('guestbook')
-            .orderBy('timestamp', descending: true)
-            .snapshots()
-            .listen((snapshot) {
-          _guestBookMessages = [];
-          for (final document in snapshot.docs) {
-            _guestBookMessages.add(
-              GuestBookMessage(
-                name: document.data()['name'] as String,
-                message: document.data()['text'] as String,
-              ),
-            );
-          }
-          notifyListeners();
-        });
-        _attendingSubscription = FirebaseFirestore.instance
-            .collection('attendees')
-            .doc(user.uid)
-            .snapshots()
-            .listen((snapshot) {
-          if (snapshot.data() != null) {
-            if (snapshot.data()!['attending'] as bool) {
-              _attending = Attending.yes;
-            } else {
-              _attending = Attending.no;
-            }
-          } else {
-            _attending = Attending.unknown;
-          }
-          notifyListeners();
-        });
-      }
-      // 신규 회원
-      else {
-        _loginState = ApplicationLoginState.loggedOut;
-        _guestBookMessages = [];
-        _guestBookSubscription?.cancel();
-        _attendingSubscription?.cancel();
-      }
-      notifyListeners();
-    });
-  }
