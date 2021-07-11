@@ -165,7 +165,18 @@ class SignedInPageState extends State<SignedInPage> {
                       MaterialPageRoute(builder: (context) => WriteBoard()));
                 }),
           ),
-
+          // Container(
+          //   margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
+          //   child: ElevatedButton(
+          //       child: Text(
+          //         "게시글 목록",
+          //         style: TextStyle(color: Colors.black),
+          //       ),
+          //       onPressed: () {
+          //         Navigator.push(context,
+          //             MaterialPageRoute(builder: (context) => WriteBoard()));
+          //       }),
+          // ),
           Container(
             margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
             child: ElevatedButton(
