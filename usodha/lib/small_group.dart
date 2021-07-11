@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'firebase_provider.dart';
 import 'write_board.dart';
-
-FirebaseFirestore firestore = FirebaseFirestore.instance;
 
 late SmallGroupListState pageState;
 
@@ -79,6 +79,11 @@ searchSmallGroup() {
   print('검색중...');
 }
 
+FirebaseFirestore firestore = FirebaseFirestore.instance;
+late Map<String, dynamic> info;
+final CollectionReference roomCollection =
+    FirebaseFirestore.instance.collection('posts');
+
 // 방 리스트 출력을 위한 list
 List<Room> roomList = <Room>[];
 StreamSubscription<QuerySnapshot>? _roomSubscription;
@@ -87,6 +92,10 @@ StreamSubscription<QuerySnapshot>? _roomSubscription;
 class Room {
   String roomName;
   Room(this.roomName);
+
+  void printName() {
+    print(this.roomName);
+  }
 }
 
 class RoomListPage extends StatefulWidget {
@@ -98,9 +107,6 @@ class RoomListPage extends StatefulWidget {
 }
 
 class _RoomListPage extends State<RoomListPage> {
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
-  final CollectionReference roomCollection =
-      FirebaseFirestore.instance.collection('posts');
   Future updatePost(
     String _contents,
   ) async {
@@ -113,14 +119,18 @@ class _RoomListPage extends State<RoomListPage> {
   void initState() {
     super.initState();
     roomList = [];
-    _roomSubscription =
-        firestore.collection('posts').snapshots().listen((snapshot) {
+    firestore.collection('posts').snapshots().listen((snapshot) {
       for (final document in snapshot.docs) {
-        roomList.add(Room(document.data()['contents']));
+        roomList.add(Room(document.data()['contents'] +
+            '[' +
+            document.data()['current member'] +
+            '/' +
+            document.data()['limited member'] +
+            ']'));
       }
     });
     for (var a in roomList) {
-      print(a.roomName);
+      a.printName();
     }
     print('방 목록 초기화!');
   }
@@ -144,15 +154,24 @@ class _RoomListPage extends State<RoomListPage> {
               return ListTile(
                 title: Text(roomList[index].roomName),
                 onTap: () {
+                  for (var room in roomList) {
+                    room.printName();
+                  }
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => RoomPage(room: roomList[index])),
                   );
                 },
-                trailing: IconButton(
-                  icon: Icon(Icons.more_vert),
-                  onPressed: () async {},
+                trailing: PopupMenuButton(
+                  itemBuilder: (BuildContext context) => [
+                    PopupMenuItem(
+                      child: Text('delete'),
+                    ),
+                    PopupMenuItem(
+                      child: Text('modify'),
+                    ),
+                  ],
                 ),
               );
             }));
@@ -162,11 +181,15 @@ class _RoomListPage extends State<RoomListPage> {
 // 각 방의 내용
 class RoomPage extends StatelessWidget {
   final Room room;
-
+  late FirebaseProvider fp;
   RoomPage({Key? key, required this.room}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
+    var tmp = fp.getInfo();
+
     return Scaffold(
       appBar: AppBar(
         title: Text(room.roomName),
@@ -174,11 +197,41 @@ class RoomPage extends StatelessWidget {
       body: Padding(
           padding: EdgeInsets.all(16.0),
           // 방 내부 - 수정 필요
-          child: Center(
-            child: Text(
-              room.roomName,
-              style: TextStyle(fontSize: 40),
-            ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
+                child: ElevatedButton(
+                    child: Text(
+                      "participate",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onPressed: () async {
+                      String currentMember = '';
+                      String limitedMember = '';
+                      await firestore
+                          .collection('posts')
+                          .doc('aaa6')
+                          .get()
+                          .then((value) {
+                        currentMember = value['current member'];
+                        limitedMember = value['limited member'];
+                      });
+                      // 제한 인원 꽉 찰 경우
+                      if (int.parse(currentMember) >=
+                          int.parse(limitedMember)) {
+                        print('This room is full!!');
+                      }
+                      // 인원이 남을 경우
+                      else {
+                        firestore.collection('posts').doc('aaa6').update({
+                          'current member':
+                              (int.parse(currentMember) + 1).toString()
+                        });
+                      }
+                    }),
+              ),
+            ],
           )),
     );
   }
@@ -233,9 +286,11 @@ class BuildDeleteRoomButton extends StatefulWidget {
 // 방 삭제 동작
 class _DeleteRoom extends State<BuildDeleteRoomButton> {
   void deleteRoom() {
-    // firebase에 방 삭제 후 새로고침
+    firestore.collection('posts').snapshots().listen((snapshot) {
+      for (final document in snapshot.docs) {}
+    });
+
     print('방 삭제');
-    roomList.remove(roomList[roomList.length - 1]);
   }
 
   @override
