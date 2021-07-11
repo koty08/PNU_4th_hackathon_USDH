@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 late WriteBoardState pageState;
+late ListBoardState pageState2;
 
 class WriteBoard extends StatefulWidget {
   @override
@@ -19,7 +20,8 @@ class WriteBoard extends StatefulWidget {
 class WriteBoardState extends State<WriteBoard> {
   late File img;
   late FirebaseProvider fp;
-  TextEditingController input = TextEditingController();
+  TextEditingController titleInput = TextEditingController();
+  TextEditingController contentInput = TextEditingController();
   String imageurl = "";
   final _picker = ImagePicker();
   FirebaseStorage storage = FirebaseStorage.instance;
@@ -32,7 +34,8 @@ class WriteBoardState extends State<WriteBoard> {
 
   @override
   void dispose() {
-    input.dispose();
+    titleInput.dispose();
+    contentInput.dispose();
     super.dispose();
   }
 
@@ -49,16 +52,24 @@ class WriteBoardState extends State<WriteBoard> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Container(
+                  height: 30,
                   margin:
                       const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
-                  child: Column(
-                    children: <Widget>[
-                      TextField(
-                        controller: input,
-                        decoration: InputDecoration(hintText: "내용을 입력하세요."),
+                  child: TextField(
+                        controller: titleInput,
+                        decoration: InputDecoration(hintText: "제목을 입력하세요."),
                       ),
-                    ],
-                  )),
+                  ),
+              Container(
+                  height: 50,
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
+                  child:
+                    TextField(
+                        controller: contentInput,
+                        decoration: InputDecoration(hintText: "내용을 입력하세요."),
+                    ),
+                  ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -80,20 +91,16 @@ class WriteBoardState extends State<WriteBoard> {
               Container(
                 child: Column(
                   children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Text("test"),
-                      ],
-                    ),
                     SizedBox(
-                      height: 250,
-                      width: 250,
+                      height: 200,
+                      width: 200,
                       child: Image.network(imageurl),
                     ),
                   ],
                 ),
               ),
               Container(
+                height: 30,
                   margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -105,7 +112,7 @@ class WriteBoardState extends State<WriteBoard> {
                     ),
                     onPressed: () {
                       FocusScope.of(context).requestFocus(new FocusNode());
-                      uploadOnFS(input.text);
+                      uploadOnFS(titleInput.text, contentInput.text);
                       Navigator.pop(context);
                     },
                   ))
@@ -129,19 +136,55 @@ class WriteBoardState extends State<WriteBoard> {
 
     fp.updateIntInfo('piccount', 1);
 
-    String URL = await ref.getDownloadURL();
+    String url = await ref.getDownloadURL();
 
     setState(() {
-      imageurl = URL;
+      imageurl = url;
     });
   }
 
-  void uploadOnFS(String txt) async {
+  void uploadOnFS(String txt1, String txt2) async {
     var tmp = fp.getInfo();
     await fs
         .collection('posts')
         .doc(tmp['name'] + tmp['postcount'].toString())
-        .set({'writer': tmp['name'], 'contents': txt, 'pic': imageurl});
+        .set({'title' : txt1, 'writer': tmp['name'], 'contents': txt2, 'pic': imageurl});
     fp.updateIntInfo('postcount', 1);
+  }
+}
+
+
+class ListBoard extends StatefulWidget{
+  @override
+  ListBoardState createState() {
+    pageState2 = ListBoardState();
+    return pageState2;
+  }
+}
+
+class ListBoardState extends State<ListBoard>{
+  final Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('posts').snapshots();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("게시글 목록")),
+      body: 
+        StreamBuilder<QuerySnapshot>(
+          stream: colstream,
+          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+            if(snapshot.connectionState == ConnectionState.waiting){
+              return Text("불러오는 중...");
+            }
+
+          return new ListView(
+
+            children: snapshot.data!.docs.map((doc) => new ListTile(
+              title: new Text(doc['title']),
+              subtitle: new Text(doc['writer']),
+            )).toList()
+          );
+        })
+    );
   }
 }

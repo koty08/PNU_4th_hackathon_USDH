@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'firebase_provider.dart';
 import 'package:provider/provider.dart';
-import 'write_board.dart';
+import 'board.dart';
 
 late SignedInPageState pageState;
 
@@ -102,7 +102,6 @@ class SignedInPageState extends State<SignedInPage> {
             ),
           ),
 
-          // Sign In Button
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: ElevatedButton(
@@ -160,6 +159,17 @@ class SignedInPageState extends State<SignedInPage> {
               ),
               onPressed: (){
                 Navigator.push(context, MaterialPageRoute(builder: (context) => WriteBoard()));
+              }),
+          ),
+          Container(
+            margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
+            child: ElevatedButton(
+              child: Text(
+                "게시글 목록",
+                style: TextStyle(color: Colors.black),
+              ),
+              onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ListBoard()));
               }),
           )
         ],
