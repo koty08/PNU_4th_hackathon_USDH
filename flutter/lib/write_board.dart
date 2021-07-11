@@ -31,6 +31,12 @@ class WriteBoardState extends State<WriteBoard> {
   }
 
   @override
+  void dispose() {
+    input.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
@@ -111,13 +117,17 @@ class WriteBoardState extends State<WriteBoard> {
   void uploadImage(ImageSource src) async {
     PickedFile? pickimg = await _picker.getImage(source: src);
 
+    var tmp = fp.getInfo();
+
     if (pickimg == null) return;
     setState(() {
       img = File(pickimg.path);
     });
 
-    Reference ref = storage.ref().child('board/${fp.getUser()!.uid}');
+    Reference ref = storage.ref().child('board/${fp.getUser()!.uid + tmp['piccount']}');
     await ref.putFile(img);
+
+    fp.updateIntInfo('piccount', 1);
 
     String URL = await ref.getDownloadURL();
 

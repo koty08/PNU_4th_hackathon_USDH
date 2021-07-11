@@ -130,7 +130,7 @@ class SignedInPageState extends State<SignedInPage> {
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
-                fp.sendPWResetEmail();
+                fp.PWReset();
               },
             ),
           ),
@@ -146,7 +146,7 @@ class SignedInPageState extends State<SignedInPage> {
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
-                fp.withdrawalAccount();
+                fp.withdraw();
               },
             ),
           ),

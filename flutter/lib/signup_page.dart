@@ -26,10 +26,15 @@ class SignUpPageState extends State<SignUpPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   late FirebaseProvider fp;
 
+  String gender = "";
+
   @override
   void dispose() {
     emailInput.dispose();
     pwdInput.dispose();
+    departInput.dispose();
+    nameInput.dispose();
+    stuIdInput.dispose();
     super.dispose();
   }
 
@@ -88,6 +93,24 @@ class SignUpPageState extends State<SignUpPage> {
                               prefixIcon: Icon(Icons.arrow_forward),
                               hintText: "이름"),
                         ),
+                        Radio(
+                          value: "남자", 
+                          groupValue: gender,
+                          onChanged: (String? value){
+                            setState(() {
+                              gender = value!;
+                            });
+                          }
+                        ),
+                        Radio(
+                          value: "여자", 
+                          groupValue: gender,
+                          onChanged: (String? value){
+                            setState(() {
+                              gender = value!;
+                            });
+                          }
+                        ),
                         TextField(
                           controller: departInput,
                           decoration: InputDecoration(
@@ -143,7 +166,7 @@ class SignUpPageState extends State<SignUpPage> {
         children: <Widget>[CircularProgressIndicator(), Text("   계정생성 중...")],
       ),
     ));
-    bool result = await fp.signUpWithEmail(emailInput.text, pwdInput.text);
+    bool result = await fp.signUp(emailInput.text, pwdInput.text);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     if (result) {
@@ -151,6 +174,7 @@ class SignUpPageState extends State<SignUpPage> {
       fs.collection('users').doc(emailInput.text).set({
         'name': nameInput.text,
         'depart': departInput.text,
+        'gender' : gender,
         'stuid': stuIdInput.text,
         'email': emailInput.text,
         'postcount': 0,

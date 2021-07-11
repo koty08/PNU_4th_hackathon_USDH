@@ -200,7 +200,7 @@ class SignInPageState extends State<SignInPage> {
         children: <Widget>[CircularProgressIndicator(), Text("   로그인 중...")],
       ),
     ));
-    bool result = await fp.signInWithEmail(emailInput.text, pwdInput.text);
+    bool result = await fp.signIn(emailInput.text, pwdInput.text);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     if (result == false) showMessage();
   }

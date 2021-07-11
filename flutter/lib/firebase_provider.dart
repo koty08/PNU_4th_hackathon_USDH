@@ -56,7 +56,7 @@ class FirebaseProvider with ChangeNotifier {
   }
 
   // 회원가입
-  Future<bool> signUpWithEmail(String email, String password) async {
+  Future<bool> signUp(String email, String password) async {
     try {
       if (email.split("@")[1] != "pusan.ac.kr") {
         setMessage("not-pusan");
@@ -79,7 +79,7 @@ class FirebaseProvider with ChangeNotifier {
   }
 
   // 로그인
-  Future<bool> signInWithEmail(String email, String password) async {
+  Future<bool> signIn(String email, String password) async {
     try {
       authIns.setLanguageCode("ko");
       var result = await authIns.signInWithEmailAndPassword(
@@ -102,13 +102,13 @@ class FirebaseProvider with ChangeNotifier {
   }
 
   // 비밀번호 재설정 메일 발송.
-  sendPWResetEmail() async {
+  PWReset() async {
     await authIns.setLanguageCode("ko");
     authIns.sendPasswordResetEmail(email: getUser()!.email.toString());
   }
 
   // 회원 탈퇴
-  withdrawalAccount() async {
+  withdraw() async {
     // print(getUser()?.email);
     await fs.collection('users').doc(getUser()?.email).delete();
     await getUser()?.delete();
