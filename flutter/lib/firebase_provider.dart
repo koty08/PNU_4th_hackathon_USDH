@@ -135,6 +135,10 @@ class FirebaseProvider with ChangeNotifier {
         return "비밀번호 강도가 너무 낮습니다.";
       case "[firebase_auth/email-already-in-use]":
         return "이미 가입한 이메일입니다.";
+      case "not-equal":
+        return "비밀번호가 일치하지 않습니다.";
+      case "not-agree":
+        return "필수 항목을 동의하지 않으셨습니다.";
       default:
         return tmp;
     }

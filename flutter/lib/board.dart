@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 late WriteBoardState pageState;
 late ListBoardState pageState2;
+late showBoardState pageState3;
 
 class WriteBoard extends StatefulWidget {
   @override
@@ -173,18 +174,88 @@ class ListBoardState extends State<ListBoard>{
         StreamBuilder<QuerySnapshot>(
           stream: colstream,
           builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
-            if(snapshot.connectionState == ConnectionState.waiting){
-              return Text("불러오는 중...");
+            if (!snapshot.hasData) {
+              return CircularProgressIndicator();
             }
-
-          return new ListView(
-
-            children: snapshot.data!.docs.map((doc) => new ListTile(
-              title: new Text(doc['title']),
-              subtitle: new Text(doc['writer']),
-            )).toList()
-          );
+            return new ListView(
+              children: snapshot.data!.docs.map((doc) => new ListTile(
+                title: new Text(doc['title']),
+                subtitle: new Text(doc['writer']),
+                onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => showBoard(doc.id))),
+              )).toList()
+            );
         })
     );
   }
+}
+
+class showBoard extends StatefulWidget{
+  showBoard(this.id);
+  final String id;
+
+  @override
+  showBoardState createState(){
+    pageState3 = showBoardState();
+    return pageState3;
+  }
+}
+
+class showBoardState extends State<showBoard>{
+  late FirebaseProvider fp;
+  final FirebaseStorage storage = FirebaseStorage.instance;
+  final FirebaseFirestore fs = FirebaseFirestore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
+
+    return Scaffold(
+      appBar: AppBar(title: Text("게시글 내용"),),
+      body:
+        StreamBuilder(
+          stream : fs.collection('posts').doc(widget.id).snapshots(),
+          builder: (context, AsyncSnapshot<DocumentSnapshot>snapshot){
+            if(snapshot.hasData){
+              return Column(
+                children: [
+                  Text(snapshot.data!['title']),
+                  Text(snapshot.data!['contents']),
+                  Text(snapshot.data!['writer']),
+
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.indigo[300],
+                      ),
+                      child: Text(
+                        "삭제",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () {
+                        FocusScope.of(context).requestFocus(new FocusNode());
+                        fs.collection('posts').doc(widget.id).delete().then((value) => 
+                        Navigator.pop(context));
+                        setState(() {
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }
+            return CircularProgressIndicator();
+          }
+        )
+    );
+  }
+
 }
