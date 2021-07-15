@@ -117,39 +117,6 @@ class SignInPageState extends State<SignInPage> {
             ),
           ),
 
-          // // Alert Box
-          // (fp.getUser() != null && fp.getUser()?.emailVerified == false)
-          //     ? Container(
-          //         margin:
-          //             const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-          //         decoration: BoxDecoration(color: Colors.red[300]),
-          //         child: Column(
-          //           children: <Widget>[
-          //             Padding(
-          //               padding: const EdgeInsets.all(10.0),
-          //               child: Text(
-          //                 "이메일 인증이 완료되지 않았습니다."
-          //                 "\n이메일을 확인하여 주시기 바랍니다.",
-          //                 style: TextStyle(color: Colors.white),
-          //               ),
-          //             ),
-          //             ElevatedButton(
-          //               style: ElevatedButton.styleFrom(
-          //                 primary: Colors.lightBlue[400],
-          //                 onPrimary: Colors.white,
-          //               ),
-          //               child: Text("이메일 인증 다시 보내기"),
-          //               onPressed: () {
-          //                 FocusScope.of(context)
-          //                     .requestFocus(new FocusNode()); // 키보드 감춤
-          //                 fp.getUser()?.sendEmailVerification();
-          //               },
-          //             )
-          //           ],
-          //         ),
-          //       )
-          //     : Container(),
-
           // Sign In Button
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),

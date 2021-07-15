@@ -1,8 +1,15 @@
-import 'package:flutter/material.dart';
-import 'firebase_provider.dart';
-import 'package:provider/provider.dart';
-// ignore: import_of_legacy_library_into_null_safe
+import 'dart:async';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'const.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'firebase_provider.dart';
 
 late SignUpPageState pageState;
 
@@ -17,8 +24,9 @@ class SignUpPage extends StatefulWidget {
 class SignUpPageState extends State<SignUpPage> {
   TextEditingController emailInput = TextEditingController();
   TextEditingController pwdInput = TextEditingController();
-  TextEditingController nameInput = TextEditingController();
   TextEditingController repwdInput = TextEditingController();
+  TextEditingController nameInput = TextEditingController();
+  TextEditingController nickname = TextEditingController();
 
   FirebaseFirestore fs = FirebaseFirestore.instance; // 파이어베이스 db 인스턴스 생성
 
@@ -26,10 +34,10 @@ class SignUpPageState extends State<SignUpPage> {
   late FirebaseProvider fp;
 
   String gender = "";
-  bool terms1 = false;
-  bool terms2 = false;
-  bool terms3 = false;
-  bool terms4 = false;
+  bool terms1 = false; // 서비스 이용 약관 동의(필수)
+  bool terms2 = false; // 개인 정보 수집 및 이용 동의(필수)
+  bool terms3 = false; // 위치 정보 이용 약관 동의(선택)
+  bool terms4 = false; // 알림 수신 동의(선택)
 
   @override
   void dispose() {
