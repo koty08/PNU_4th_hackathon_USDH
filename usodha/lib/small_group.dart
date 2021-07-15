@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'write_board.dart';
+import 'board.dart';
 import 'room_list.dart';
 
 late SmallGroupListState pageState;

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:login_test/small_group.dart';
 import 'firebase_provider.dart';
 import 'package:provider/provider.dart';
-import 'write_board.dart';
-import 'small_group.dart';
+import 'board.dart';
 
 late SignedInPageState pageState;
 
@@ -103,8 +101,6 @@ class SignedInPageState extends State<SignedInPage> {
               ],
             ),
           ),
-
-          // Sign In Button
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: ElevatedButton(
@@ -120,7 +116,6 @@ class SignedInPageState extends State<SignedInPage> {
               },
             ),
           ),
-
           Container(
             margin: const EdgeInsets.only(left: 20, right: 20, top: 0),
             child: ElevatedButton(
@@ -132,11 +127,10 @@ class SignedInPageState extends State<SignedInPage> {
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
-                fp.sendPWResetEmail();
+                fp.PWReset();
               },
             ),
           ),
-
           Container(
             margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
             child: ElevatedButton(
@@ -148,11 +142,10 @@ class SignedInPageState extends State<SignedInPage> {
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
-                fp.withdrawalAccount();
+                fp.withdraw();
               },
             ),
           ),
-
           Container(
             margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
             child: ElevatedButton(
@@ -165,33 +158,16 @@ class SignedInPageState extends State<SignedInPage> {
                       MaterialPageRoute(builder: (context) => WriteBoard()));
                 }),
           ),
-          // Container(
-          //   margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
-          //   child: ElevatedButton(
-          //       child: Text(
-          //         "게시글 목록",
-          //         style: TextStyle(color: Colors.black),
-          //       ),
-          //       onPressed: () {
-          //         Navigator.push(context,
-          //             MaterialPageRoute(builder: (context) => WriteBoard()));
-          //       }),
-          // ),
           Container(
             margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
             child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  primary: Colors.black12,
-                ),
                 child: Text(
-                  "소모임",
+                  "게시글 목록",
                   style: TextStyle(color: Colors.black),
                 ),
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => SmallGroupList()));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => ListBoard()));
                 }),
           )
         ],

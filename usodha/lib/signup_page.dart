@@ -17,19 +17,26 @@ class SignUpPage extends StatefulWidget {
 class SignUpPageState extends State<SignUpPage> {
   TextEditingController emailInput = TextEditingController();
   TextEditingController pwdInput = TextEditingController();
-  TextEditingController departInput = TextEditingController();
   TextEditingController nameInput = TextEditingController();
-  TextEditingController stuIdInput = TextEditingController();
+  TextEditingController repwdInput = TextEditingController();
 
   FirebaseFirestore fs = FirebaseFirestore.instance; // 파이어베이스 db 인스턴스 생성
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   late FirebaseProvider fp;
 
+  String gender = "";
+  bool terms1 = false;
+  bool terms2 = false;
+  bool terms3 = false;
+  bool terms4 = false;
+
   @override
   void dispose() {
     emailInput.dispose();
     pwdInput.dispose();
+    nameInput.dispose();
+    repwdInput.dispose();
     super.dispose();
   }
 
@@ -71,7 +78,7 @@ class SignUpPageState extends State<SignUpPage> {
                           controller: emailInput,
                           decoration: InputDecoration(
                             prefixIcon: Icon(Icons.mail),
-                            hintText: "이메일(학교 이메일)",
+                            hintText: "웹메일(학교 이메일)",
                           ),
                         ),
                         TextField(
@@ -83,22 +90,80 @@ class SignUpPageState extends State<SignUpPage> {
                           obscureText: true,
                         ),
                         TextField(
+                          controller: repwdInput,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.lock),
+                            hintText: "비밀번호 확인",
+                          ),
+                          obscureText: true,
+                        ),
+                        TextField(
                           controller: nameInput,
                           decoration: InputDecoration(
                               prefixIcon: Icon(Icons.arrow_forward),
-                              hintText: "이름"),
+                              hintText: "이름(실명입력)"),
                         ),
-                        TextField(
-                          controller: departInput,
-                          decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.arrow_forward),
-                              hintText: "소속 학과(학부)"),
+                        Row(
+                          children: [
+                            Radio(
+                                value: "여자",
+                                groupValue: gender,
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    gender = value!;
+                                  });
+                                }),
+                            Text("여자"),
+                            Radio(
+                                value: "남자",
+                                groupValue: gender,
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    gender = value!;
+                                  });
+                                }),
+                            Text("남자"),
+                          ],
                         ),
-                        TextField(
-                          controller: stuIdInput,
-                          decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.arrow_forward),
-                              hintText: "학번"),
+                        ListTile(
+                          title: Text("서비스 이용 약관 동의 (필수)"),
+                          leading: Checkbox(
+                              value: terms1,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  terms1 = value!;
+                                });
+                              }),
+                        ),
+                        ListTile(
+                          title: Text("개인 정보 수집 및 이용 동의 (필수)"),
+                          leading: Checkbox(
+                              value: terms2,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  terms2 = value!;
+                                });
+                              }),
+                        ),
+                        ListTile(
+                          title: Text("위치 정보 이용 약관 동의 (선택)"),
+                          leading: Checkbox(
+                              value: terms3,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  terms3 = value!;
+                                });
+                              }),
+                        ),
+                        ListTile(
+                          title: Text("알림 수신 동의 (선택)"),
+                          leading: Checkbox(
+                              value: terms4,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  terms4 = value!;
+                                });
+                              }),
                         ),
                       ].map((c) {
                         return Padding(
@@ -136,6 +201,18 @@ class SignUpPageState extends State<SignUpPage> {
   }
 
   void _signUp() async {
+    if (pwdInput.text != repwdInput.text) {
+      fp.setMessage("not-equal");
+      showMessage();
+      return;
+    }
+
+    if (!(terms1 && terms2)) {
+      fp.setMessage("not-agree");
+      showMessage();
+      return;
+    }
+
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       duration: Duration(seconds: 10),
@@ -143,15 +220,14 @@ class SignUpPageState extends State<SignUpPage> {
         children: <Widget>[CircularProgressIndicator(), Text("   계정생성 중...")],
       ),
     ));
-    bool result = await fp.signUpWithEmail(emailInput.text, pwdInput.text);
+    bool result = await fp.signUp(emailInput.text, pwdInput.text);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     if (result) {
       Navigator.pop(context);
       fs.collection('users').doc(emailInput.text).set({
         'name': nameInput.text,
-        'depart': departInput.text,
-        'stuid': stuIdInput.text,
+        'gender': gender,
         'email': emailInput.text,
         'postcount': 0,
         'piccount': 0,
