@@ -24,10 +24,10 @@ class WriteBoardState extends State<WriteBoard> {
   late FirebaseProvider fp;
   TextEditingController titleInput = TextEditingController();
   TextEditingController contentInput = TextEditingController();
-  String imageurl = "";
   final _picker = ImagePicker();
   FirebaseStorage storage = FirebaseStorage.instance;
   FirebaseFirestore fs = FirebaseFirestore.instance;
+  List urlList = [];
 
   @override
   void initState() {
@@ -55,8 +55,6 @@ class WriteBoardState extends State<WriteBoard> {
             children: <Widget>[
               Container(
                   height: 30,
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
                   child: TextField(
                         controller: titleInput,
                         decoration: InputDecoration(hintText: "제목을 입력하세요."),
@@ -64,8 +62,6 @@ class WriteBoardState extends State<WriteBoard> {
                   ),
               Container(
                   height: 50,
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
                   child:
                     TextField(
                         controller: contentInput,
@@ -76,29 +72,25 @@ class WriteBoardState extends State<WriteBoard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   ElevatedButton(
-                      child: Text("카메라로 촬영하기"),
-                      onPressed: () {
-                        uploadImage(ImageSource.camera);
-                      }),
-                  ElevatedButton(
                       child: Text("갤러리에서 불러오기"),
                       onPressed: () {
-                        uploadImage(ImageSource.gallery);
+                        uploadImage();
                       }),
                 ],
               ),
               Divider(
                 color: Colors.black,
               ),
+              urlList.isEmpty ?
+              Container():
               Container(
-                child: Column(
-                  children: <Widget>[
-                    SizedBox(
-                      height: 200,
-                      width: 200,
-                      child: Image.network(imageurl),
-                    ),
-                  ],
+                height : 300,
+                child:
+                  ListView.builder(
+                  itemCount: urlList.length,
+                  itemBuilder: (BuildContext context, int idx){
+                    return Image.network(urlList[idx]);
+                  }
                 ),
               ),
               Container(
@@ -117,31 +109,31 @@ class WriteBoardState extends State<WriteBoard> {
                       uploadOnFS(titleInput.text, contentInput.text);
                       Navigator.pop(context);
                     },
-                  ))
+                )
+              )
             ],
           ),
         ));
   }
 
-  void uploadImage(ImageSource src) async {
-    PickedFile? pickimg = await _picker.getImage(source: src);
+  void uploadImage() async {
+    final pickedImgList = await _picker.pickMultiImage();
+
+    List<String> pickUrlList = [];
 
     var tmp = fp.getInfo();
 
-    if (pickimg == null) return;
-    setState(() {
-      img = File(pickimg.path);
-    });
-
-    Reference ref = storage.ref().child('board/${fp.getUser()!.uid + tmp['piccount']}');
-    await ref.putFile(img);
-
-    fp.updateIntInfo('piccount', 1);
-
-    String url = await ref.getDownloadURL();
+    late Reference ref;
+    for(int i = 0; i < pickedImgList!.length; i++){
+      ref = storage.ref().child('board/${tmp['name'] + tmp['piccount'].toString()}');
+      await ref.putFile(File(pickedImgList[i].path));
+      fp.updateIntInfo('piccount', 1);
+      String url = await ref.getDownloadURL();
+      pickUrlList.add(url);
+    }
 
     setState(() {
-      imageurl = url;
+      urlList = pickUrlList;
     });
   }
 
@@ -150,7 +142,7 @@ class WriteBoardState extends State<WriteBoard> {
     await fs
         .collection('posts')
         .doc(tmp['name'] + tmp['postcount'].toString())
-        .set({'title' : txt1, 'writer': tmp['name'], 'contents': txt2, 'pic': imageurl});
+        .set({'title' : txt1, 'writer': tmp['name'], 'contents': txt2, 'pic': urlList});
     fp.updateIntInfo('postcount', 1);
   }
 }
@@ -236,7 +228,18 @@ class showBoardState extends State<showBoard>{
                   Text(snapshot.data!['title']),
                   Text(snapshot.data!['contents']),
                   Text(snapshot.data!['writer']),
-
+                  snapshot.data!['pic'].isEmpty ? 
+                    Container():
+                    Container(
+                      height : 300,
+                      child:
+                        ListView.builder(
+                        itemCount: snapshot.data!['pic'].length,
+                        itemBuilder: (BuildContext context, int idx){
+                          return Image.network(snapshot.data!['pic'][idx]);
+                        }
+                      ),
+                    ),
                   Row(
                   children: [
                     Container(
@@ -285,6 +288,18 @@ class showBoardState extends State<showBoard>{
                   Text(snapshot.data!['title']),
                   Text(snapshot.data!['contents']),
                   Text(snapshot.data!['writer']),
+                  snapshot.data!['pic'].isEmpty ? 
+                    Container():
+                    Container(
+                      height : 300,
+                      child:
+                        ListView.builder(
+                        itemCount: snapshot.data!['pic'].length,
+                        itemBuilder: (BuildContext context, int idx){
+                          return Image.network(snapshot.data!['pic'][idx]);
+                        }
+                      ),
+                    ),
                   ],
                 );
               }
@@ -337,7 +352,6 @@ class modifyBoardState extends State<modifyBoard>{
                         const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
                     child: TextField(
                           controller: titleInput,
-                          decoration: InputDecoration(hintText: "제목을 입력하세요."),
                         ),
                     ),
                 Container(
@@ -347,38 +361,11 @@ class modifyBoardState extends State<modifyBoard>{
                     child:
                       TextField(
                           controller: contentInput,
-                          decoration: InputDecoration(hintText: "내용을 입력하세요."),
                       ),
                     ),
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   children: <Widget>[
-                //     ElevatedButton(
-                //         child: Text("카메라로 촬영하기"),
-                //         onPressed: () {
-                //           uploadImage(ImageSource.camera);
-                //         }),
-                //     ElevatedButton(
-                //         child: Text("갤러리에서 불러오기"),
-                //         onPressed: () {
-                //           uploadImage(ImageSource.gallery);
-                //         }),
-                //   ],
-                // ),
                 Divider(
                   color: Colors.black,
                 ),
-                // Container(
-                //   child: Column(
-                //     children: <Widget>[
-                //       SizedBox(
-                //         height: 200,
-                //         width: 200,
-                //         child: Image.network(imageurl),
-                //       ),
-                //     ],
-                //   ),
-                // ),
                 Container(
                   height: 30,
                     margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
