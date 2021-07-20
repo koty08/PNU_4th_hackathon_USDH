@@ -109,7 +109,6 @@ class FirebaseProvider with ChangeNotifier {
 
   // 회원 탈퇴
   withdraw() async {
-    // print(getUser()?.email);
     await fs.collection('users').doc(getUser()?.email).delete();
     await getUser()?.delete();
     setUser(null);

@@ -1,7 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:login_test/home.dart';
 import 'firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'board.dart';
+import 'chatting.dart';
+
+FirebaseFirestore firestore = FirebaseFirestore.instance;
 
 late SignedInPageState pageState;
 
@@ -18,16 +23,56 @@ class SignedInPageState extends State<SignedInPage> {
   TextStyle tsItem = const TextStyle(
       color: Colors.blueGrey, fontSize: 13, fontWeight: FontWeight.bold);
   TextStyle tsContent = const TextStyle(color: Colors.blueGrey, fontSize: 12);
+  String userEmail = '';
 
   @override
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
 
     double propertyWith = 130;
     return Scaffold(
       appBar: AppBar(title: Text("로그인 완료 페이지")),
       body: ListView(
         children: <Widget>[
+          Container(
+            margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
+            child: ElevatedButton(
+                child: Text(
+                  "채팅방",
+                  style: TextStyle(color: Colors.black),
+                ),
+                onPressed: () async {
+                  var tmp = fp.getInfo();
+                  await firestore
+                      .collection('users')
+                      .doc(tmp['email'])
+                      .get()
+                      .then((value) => userEmail = value['email'].toString());
+
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              HomeScreen(currentUserId: userEmail)));
+                }),
+          ),
+          Container(
+            margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
+            child: ElevatedButton(
+              child: Text(
+                "채팅하기",
+                style: TextStyle(color: Colors.black),
+              ),
+              onPressed: () async {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => Chat(
+                            peerId: 'bbb@pusan.ac.kr', peerAvatar: '123')));
+              },
+            ),
+          ),
           Container(
             margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
             child: Column(
@@ -169,7 +214,7 @@ class SignedInPageState extends State<SignedInPage> {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => ListBoard()));
                 }),
-          )
+          ),
         ],
       ),
     );

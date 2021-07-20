@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'const.dart';
@@ -29,6 +30,7 @@ class SignUpPageState extends State<SignUpPage> {
   TextEditingController nickname = TextEditingController();
 
   FirebaseFirestore fs = FirebaseFirestore.instance; // 파이어베이스 db 인스턴스 생성
+  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   late FirebaseProvider fp;
@@ -239,6 +241,11 @@ class SignUpPageState extends State<SignUpPage> {
         'email': emailInput.text,
         'postcount': 0,
         'piccount': 0,
+        'nickname': fp.getUser()!.displayName,
+        'photoUrl': fp.getUser()!.photoURL,
+        'id': fp.getUser()!.uid,
+        'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
+        'chattingWith': null
       });
     } else {
       showMessage();
