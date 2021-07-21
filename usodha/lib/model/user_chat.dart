@@ -13,23 +13,11 @@ class UserChat {
       required this.aboutMe});
 
   factory UserChat.fromDocument(DocumentSnapshot doc) {
-    String aboutMe = "";
-    String photoUrl = "";
-    String nickname = "";
-    try {
-      aboutMe = doc.get('aboutMe');
-    } catch (e) {}
-    try {
-      photoUrl = doc.get('photoUrl');
-    } catch (e) {}
-    try {
-      nickname = doc.get('nickname');
-    } catch (e) {}
     return UserChat(
-      id: doc.id,
-      photoUrl: photoUrl,
-      nickname: nickname,
-      aboutMe: aboutMe,
+      id: doc['email'],
+      photoUrl: doc['photoUrl'],
+      nickname: doc['nickname'],
+      aboutMe: doc['aboutMe'],
     );
   }
 }

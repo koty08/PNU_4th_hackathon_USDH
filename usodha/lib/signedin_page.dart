@@ -48,7 +48,9 @@ class SignedInPageState extends State<SignedInPage> {
                       .collection('users')
                       .doc(tmp['email'])
                       .get()
-                      .then((value) => userEmail = value['email'].toString());
+                      .then((value) {
+                    userEmail = value['email'].toString();
+                  });
 
                   Navigator.push(
                       context,
@@ -56,22 +58,6 @@ class SignedInPageState extends State<SignedInPage> {
                           builder: (context) =>
                               HomeScreen(currentUserId: userEmail)));
                 }),
-          ),
-          Container(
-            margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
-            child: ElevatedButton(
-              child: Text(
-                "채팅하기",
-                style: TextStyle(color: Colors.black),
-              ),
-              onPressed: () async {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => Chat(
-                            peerId: 'bbb@pusan.ac.kr', peerAvatar: '123')));
-              },
-            ),
           ),
           Container(
             margin: const EdgeInsets.only(left: 20, right: 20, top: 10),

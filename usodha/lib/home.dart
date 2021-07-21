@@ -4,8 +4,10 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'chatting.dart';
 import 'const.dart';
+import 'firebase_provider.dart';
 import 'model/user_chat.dart';
 import 'widget/loading.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -39,6 +41,8 @@ class HomeScreenState extends State<HomeScreen> {
     const Choice(title: 'Log out', icon: Icons.exit_to_app),
   ];
 
+  late FirebaseProvider fp;
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +53,6 @@ class HomeScreenState extends State<HomeScreen> {
 
   // void registerNotification() {
   //   firebaseMessaging.requestPermission();
-
   //   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
   //     print('onMessage: $message');
   //     if (message.notification != null) {
@@ -57,7 +60,6 @@ class HomeScreenState extends State<HomeScreen> {
   //     }
   //     return;
   //   });
-
   //   firebaseMessaging.getToken().then((token) {
   //     print('token: $token');
   //     FirebaseFirestore.instance
@@ -69,6 +71,7 @@ class HomeScreenState extends State<HomeScreen> {
   //   });
   // }
 
+  // android, ios 초기화
   // void configLocalNotification() {
   //   AndroidInitializationSettings initializationSettingsAndroid =
   //       AndroidInitializationSettings('app_icon');
@@ -117,9 +120,7 @@ class HomeScreenState extends State<HomeScreen> {
   //   NotificationDetails platformChannelSpecifics = NotificationDetails(
   //       android: androidPlatformChannelSpecifics,
   //       iOS: iOSPlatformChannelSpecifics);
-
   //   print(remoteNotification);
-
   //   await flutterLocalNotificationsPlugin.show(
   //     0,
   //     remoteNotification.title,
@@ -134,7 +135,6 @@ class HomeScreenState extends State<HomeScreen> {
   //   openDialog();
   //   return Future.value(false);
   // }
-
   // Future<Null> openDialog() async {
   //   switch (await showDialog(
   //       context: context,
@@ -224,6 +224,10 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
+    var tmp = fp.getInfo();
+    print("여기는 채팅방");
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -231,8 +235,8 @@ class HomeScreenState extends State<HomeScreen> {
           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        // Appbar의 로그아웃, 설정 버튼
         actions: <Widget>[
-          // 로그아웃, 설정 버튼
           PopupMenuButton<Choice>(
             onSelected: onItemMenuPress,
             itemBuilder: (BuildContext context) {
@@ -303,13 +307,17 @@ class HomeScreenState extends State<HomeScreen> {
   Widget buildItem(BuildContext context, DocumentSnapshot? document) {
     if (document != null) {
       UserChat userChat = UserChat.fromDocument(document);
+      // 본인 정보는 제외
       if (userChat.id == currentUserId) {
         return SizedBox.shrink();
-      } else {
+      }
+      // 현재 본인이 가지고 있는 채팅방을 화면에 보여줌
+      else {
         return Container(
           child: TextButton(
             child: Row(
               children: <Widget>[
+                // 프로필 사진
                 Material(
                   child: userChat.photoUrl.isNotEmpty
                       ? Image.network(
@@ -353,6 +361,7 @@ class HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.all(Radius.circular(25.0)),
                   clipBehavior: Clip.hardEdge,
                 ),
+                // 닉네임과 간략한 자기 소개
                 Flexible(
                   child: Container(
                     child: Column(

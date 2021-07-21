@@ -7,5 +7,8 @@
 - model/userchat : 상대에게 보일 각 user의 정보
 - const : default 색 설정
 - widget/loading : loading중 표시 design
-- home : 현재 내가 포함된 채팅방들 리스트 정렬
-- chatting : 각 채팅방의 내용들 가져옴
+
+- home : 현재 내가 포함된 채팅방들 리스트 정렬 (채팅방)
+- chatting : 각 채팅방의 내용들 가져옴 (게시물 목록에서 오른쪽 채팅하기 버튼 누르면 채팅창이 열리도록)
+
+-

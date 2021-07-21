@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:login_test/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'chatting.dart';
 
 late WriteBoardState pageState;
 late ListBoardState pageState2;
@@ -187,6 +188,26 @@ class ListBoardState extends State<ListBoard> {
                       .map((doc) => new ListTile(
                             title: new Text(doc['title']),
                             subtitle: new Text(doc['writer']),
+                            trailing: PopupMenuButton(
+                              itemBuilder: (BuildContext context) => [
+                                PopupMenuItem(
+                                  child: TextButton(
+                                    child: Text(
+                                      "채팅시작",
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => Chat(
+                                                  peerId: 'bbb@pusan.ac.kr',
+                                                  peerAvatar: '123')));
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                             onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(

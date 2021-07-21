@@ -58,7 +58,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   String peerId;
   String peerAvatar;
-  String? id;
+  String? email;
 
   List<QueryDocumentSnapshot> listMessage = new List.from([]);
   int _limit = 20;
@@ -105,22 +105,22 @@ class ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  // 어플을 껐다 켜도 데이터 유지되도록
   void readLocal() async {
-    var tmp = fp.getInfo();
-
     prefs = await SharedPreferences.getInstance();
-    id = prefs?.getString('email') ?? '';
-    if (id.hashCode <= peerId.hashCode) {
-      groupChatId = '$id-$peerId';
+    email = prefs?.getString('email') ?? '';
+    if (email.hashCode <= peerId.hashCode) {
+      groupChatId = '$email-$peerId';
     } else {
-      groupChatId = '$peerId-$id';
+      groupChatId = '$peerId-$email';
     }
+    print('#########');
+    print(email);
 
     FirebaseFirestore.instance
         .collection('users')
-        .doc(tmp['email'])
+        .doc(email)
         .update({'chattingWith': peerId});
-    print(tmp['email']);
 
     setState(() {});
   }
@@ -185,7 +185,7 @@ class ChatScreenState extends State<ChatScreen> {
         transaction.set(
           documentReference,
           {
-            'idFrom': id,
+            'idFrom': email,
             'idTo': peerId,
             'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
             'content': content,
@@ -206,7 +206,7 @@ class ChatScreenState extends State<ChatScreen> {
   // 채팅방 내부 메세지 블럭 생성
   Widget buildItem(int index, DocumentSnapshot? document) {
     if (document != null) {
-      if (document.get('idFrom') == id) {
+      if (document.get('idFrom') == email) {
         // 내가 보낸 메세지는 오른쪽에
         return Row(
           children: <Widget>[
@@ -493,7 +493,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   // 내가 메시지 보낸 시간
   bool isLastMessageLeft(int index) {
-    if ((index > 0 && listMessage[index - 1].get('idFrom') == id) ||
+    if ((index > 0 && listMessage[index - 1].get('idFrom') == email) ||
         index == 0) {
       return true;
     } else {
@@ -503,7 +503,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   // 상대가 메시지 보낸 시간
   bool isLastMessageRight(int index) {
-    if ((index > 0 && listMessage[index - 1].get('idFrom') != id) ||
+    if ((index > 0 && listMessage[index - 1].get('idFrom') != email) ||
         index == 0) {
       return true;
     } else {
@@ -512,10 +512,7 @@ class ChatScreenState extends State<ChatScreen> {
   }
 
   Future<bool> onBackPress() {
-    fp = Provider.of<FirebaseProvider>(context, listen: false);
-    fp.setInfo();
     var tmp = fp.getInfo();
-
     if (isShowSticker) {
       setState(() {
         isShowSticker = false;

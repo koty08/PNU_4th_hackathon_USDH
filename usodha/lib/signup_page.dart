@@ -241,8 +241,9 @@ class SignUpPageState extends State<SignUpPage> {
         'email': emailInput.text,
         'postcount': 0,
         'piccount': 0,
-        'nickname': fp.getUser()!.displayName,
-        'photoUrl': fp.getUser()!.photoURL,
+        'nickname': 'bbb',
+        'photoUrl':
+            'https://firebasestorage.googleapis.com/v0/b/test-c2069.appspot.com/o/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202021-07-21%20113022.png?alt=media&token=1f57adbd-ab83-41b9-a76a-7e66c9c071a6',
         'id': fp.getUser()!.uid,
         'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
         'chattingWith': null
