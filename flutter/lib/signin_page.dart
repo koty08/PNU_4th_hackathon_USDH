@@ -40,175 +40,210 @@ class SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
+
     logger.d(fp.getUser());
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(title: Text("로그인 페이지")),
-      body: ListView(
-        children: <Widget>[
-          Container(
-            margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
-            child: Column(
-              children: <Widget>[
-                //Header
+      body: SingleChildScrollView(
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height,
+            maxWidth: MediaQuery.of(context).size.width,
+          ),
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              fit: BoxFit.fill,
+              image: AssetImage("assets/images/2.png"),
+            )
+          ),
+          child: Column(
+            children: [
                 Container(
-                  height: 50,
-                  decoration: BoxDecoration(color: Colors.amber),
-                  child: Center(
-                    child: Text(
-                      "로그인",
-                      style: TextStyle(
-                          color: Colors.blueGrey,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold),
+                  width: double.infinity,
+                  height: 487,
+                  margin: const EdgeInsets.only(left: 28, right: 28, top: 250),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(60),
+                      topRight: Radius.circular(60),
+                    )
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 20, right: 20, top: 60),
+                    child: Column(
+                      children: [
+                        // E-mail
+                        Container(
+                          padding: EdgeInsets.all(10.0),
+                          child: TextField(
+                            controller: emailInput,
+                            decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.mail),
+                              hintText: "이메일",
+                            ),
+                          ),
+                        ),
+
+                        // Password
+                        Container(
+                          padding: EdgeInsets.all(10.0),
+                          child: TextField(
+                            controller: pwdInput,
+                            decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.lock),
+                              hintText: "비밀번호",
+                            ),
+                            obscureText: true,
+                          ),
+                        ),
+
+                        // Auto Login(Remember Me)
+                        Container(
+                          padding: EdgeInsets.only(right: 20),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                SizedBox(
+                                  width: 25,
+                                  height: 30, // 비밀번호- 자동 로그인 간격 조절
+                                  child: Transform.scale(
+                                      scale: 0.8,
+                                      child: Theme(
+                                      data: ThemeData(unselectedWidgetColor: Color(0xff7FA6C2)),
+                                      child: Checkbox(
+                                        value: remember,
+                                        shape: CircleBorder(),
+                                        activeColor: Color(0xff7FA6C2),
+                                        onChanged: (newValue) {
+                                          setState(() {
+                                            remember = newValue ?? false;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 2,
+                                ),
+                                Text("자동 로그인",
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Color(0xff7FA6C2),
+                                  ),),
+                              ]
+                          ),
+                        ),
+                        SizedBox(
+                          height: 35.0,
+                        ),
+
+                        // Sign In Button
+                        Container(
+                          width: 270,
+                          height: 50,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              shape: new RoundedRectangleBorder(
+                                borderRadius: new BorderRadius.circular(30.0),
+                              ),
+                              primary: Color.fromRGBO(59, 119, 163, 1),
+                            ),
+                            child: Text(
+                              "로그인",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            ),
+                            onPressed: () {
+                              FocusScope.of(context).requestFocus(new FocusNode()); // 키보드 감춤
+                              _signIn();
+                            },
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10.0,
+                        ),
+
+                        // Sign Up Button
+                        Container(
+                          padding: EdgeInsets.only(right: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: <Widget>[
+                              TextButton(
+                                child: Text(
+                                  "비밀번호 찾기",
+                                  style: TextStyle(
+                                    color: Color(0xff326487), fontSize: 15,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) => findPWPage()));
+                                },
+                              ),
+                              SizedBox(
+                                width: 85,
+                              ),
+                              TextButton(
+                                child: Text(
+                                  "회원가입",
+                                  style: TextStyle(
+                                    color: Color(0xff326487), fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) => SignUpPage()));
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Alert Box
+                        (fp.getUser() != null && fp.getUser()?.emailVerified == false)
+                            ? Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                              decoration: BoxDecoration(color: Colors.red[300]),
+                              child: Column(
+                                children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Text(
+                                      "이메일 인증이 완료되지 않았습니다."
+                                          "\n이메일을 확인하여 주시기 바랍니다.",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      primary: Colors.lightBlue[400],
+                                      onPrimary: Colors.white,
+                                    ),
+                                    child: Text("이메일 인증 다시 보내기"),
+                                    onPressed: () {
+                                      FocusScope.of(context)
+                                          .requestFocus(new FocusNode()); // 키보드 감춤
+                                      fp.getUser()?.sendEmailVerification();
+                                    },
+                                  )
+                                ],
+                              ),
+                            )
+                            : Container(),
+                      ],
                     ),
                   ),
-                ),
-
-                // Input Area
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.amber, width: 1),
-                  ),
-                  child: Column(
-                    children: <Widget>[
-                      TextField(
-                        controller: emailInput,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.mail),
-                          hintText: "이메일",
-                        ),
-                      ),
-                      TextField(
-                        controller: pwdInput,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.lock),
-                          hintText: "비밀번호",
-                        ),
-                        obscureText: true,
-                      ),
-                    ].map((c) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 10),
-                        child: c,
-                      );
-                    }).toList(),
-                  ),
                 )
-              ],
-            ),
-          ),
-          // Remember Me
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: <Widget>[
-                Checkbox(
-                  value: remember,
-                  onChanged: (newValue) {
-                    setState(() {
-                      remember = newValue ?? false;
-                    });
-                  },
-                ),
-                Text("계정 저장")
-              ],
-            ),
-          ),
-
-          // Alert Box
-          (fp.getUser() != null && fp.getUser()?.emailVerified == false)
-              ? Container(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                  decoration: BoxDecoration(color: Colors.red[300]),
-                  child: Column(
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Text(
-                          "이메일 인증이 완료되지 않았습니다."
-                          "\n이메일을 확인하여 주시기 바랍니다.",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.lightBlue[400],
-                          onPrimary: Colors.white,
-                        ),
-                        child: Text("이메일 인증 다시 보내기"),
-                        onPressed: () {
-                          FocusScope.of(context)
-                              .requestFocus(new FocusNode()); // 키보드 감춤
-                          fp.getUser()?.sendEmailVerification();
-                        },
-                      )
-                    ],
-                  ),
-                )
-              : Container(),
-
-          // Sign In Button
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                primary: Colors.indigo[300],
-              ),
-              child: Text(
-                "로그인",
-                style: TextStyle(color: Colors.white),
-              ),
-              onPressed: () {
-                FocusScope.of(context).requestFocus(new FocusNode()); // 키보드 감춤
-                _signIn();
-              },
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            padding: const EdgeInsets.only(top: 50),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text("계정이 필요한가요?", style: TextStyle(color: Colors.blueGrey)),
-                TextButton(
-                  child: Text(
-                    "계정 생성",
-                    style: TextStyle(color: Colors.blue, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => SignUpPage()));
-                  },
-                )
-              ],
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            padding: const EdgeInsets.only(top: 50),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text("비밀번호를 까먹으셨나요?", style: TextStyle(color: Colors.blueGrey)),
-                TextButton(
-                  child: Text(
-                    "비밀번호 변경",
-                    style: TextStyle(color: Colors.blue, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => findPWPage()));
-                  },
-                )
-              ],
-            ),
+            ]
           )
-        ],
-      ),
+        )
+      )
     );
   }
 
@@ -265,6 +300,7 @@ class SignInPageState extends State<SignInPage> {
   }
 }
 
+
 class findPWPage extends StatefulWidget {
   @override
   findPWPageState createState() {
@@ -288,69 +324,69 @@ class findPWPageState extends State<findPWPage>{
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     return Scaffold(
-      appBar: AppBar(title: Text("비밀번호 찾기 페이지")),
-      body: ListView(
-        children: <Widget>[
-          Container(
-            margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
-            child: Column(
-              children: <Widget>[
-                Container(
-                  height: 50,
-                  child: Center(
-                    child: Text(
-                      "이메일과 이름을 입력하면 해당 이메일로 비밀번호 재설정 메세지를 보내드립니다.",
-                      style: TextStyle(
-                          color: Colors.blueGrey,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold),
+        appBar: AppBar(title: Text("비밀번호 찾기 페이지")),
+        body: ListView(
+            children: <Widget>[
+              Container(
+                margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      height: 50,
+                      child: Center(
+                        child: Text(
+                          "이메일과 이름을 입력하면 해당 이메일로 비밀번호 재설정 메세지를 보내드립니다.",
+                          style: TextStyle(
+                              color: Colors.blueGrey,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
-                  ),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.amber, width: 1),
+                      ),
+                      child: Column(
+                        children: <Widget>[
+                          TextField(
+                            controller: emailInput,
+                            decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.mail),
+                              hintText: "이메일",
+                            ),
+                          ),
+                          TextField(
+                            controller: nameInput,
+                            decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.people),
+                              hintText: "이름",
+                            ),
+                          ),
+                        ].map((c) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 10),
+                            child: c,
+                          );
+                        }).toList(),
+                      ),
+                    )
+                  ],
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.amber, width: 1),
-                  ),
-                  child: Column(
-                    children: <Widget>[
-                      TextField(
-                        controller: emailInput,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.mail),
-                          hintText: "이메일",
-                        ),
-                      ),
-                      TextField(
-                        controller: nameInput,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.people),
-                          hintText: "이름",
-                        ),
-                      ),
-                    ].map((c) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 10),
-                        child: c,
-                      );
-                    }).toList(),
-                  ),
-                )
-              ],
-            ),
-          ),
-          TextButton(
-            child: Text(
-              "비밀번호 변경 이메일 보내기",
-              style: TextStyle(color: Colors.blue, fontSize: 16),
-            ),
-            onPressed: () {
-              FocusScope.of(context).requestFocus(new FocusNode());
-              sendPWReset();
-            },
-          ),
-        ]
-      )
+              ),
+              TextButton(
+                child: Text(
+                  "비밀번호 변경 이메일 보내기",
+                  style: TextStyle(color: Colors.blue, fontSize: 16),
+                ),
+                onPressed: () {
+                  FocusScope.of(context).requestFocus(new FocusNode());
+                  sendPWReset();
+                },
+              ),
+            ]
+        )
     );
   }
   sendPWReset(){
