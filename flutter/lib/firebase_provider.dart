@@ -43,6 +43,15 @@ class FirebaseProvider with ChangeNotifier {
       info = snap.data() as Map<String, dynamic>;
     });
   }
+  void setInfo2(String email) async {
+    await fs
+        .collection('users')
+        .doc(email)
+        .get()
+        .then((DocumentSnapshot snap) {
+      info = snap.data() as Map<String, dynamic>;
+    });
+  }
 
   void updateIntInfo(String target, int value) async {
     await fs
@@ -107,6 +116,11 @@ class FirebaseProvider with ChangeNotifier {
     authIns.sendPasswordResetEmail(email: getUser()!.email.toString());
   }
 
+  PWReset2(String email) async{
+    await authIns.setLanguageCode("ko");
+    authIns.sendPasswordResetEmail(email: email);
+  }
+
   // 회원 탈퇴
   withdraw() async {
     // print(getUser()?.email);
@@ -139,6 +153,10 @@ class FirebaseProvider with ChangeNotifier {
         return "비밀번호가 일치하지 않습니다.";
       case "not-agree":
         return "필수 항목을 동의하지 않으셨습니다.";
+      case "reset-pw":
+        return "비밀번호 변경 링크를 이메일을 통해 보내드렸습니다. \n 이메일을 확인해주세요.";
+      case "not-match":
+        return "해당 입력한 정보를 가진 사용자를 찾을 수 없습니다. 이메일과 이름을 다시 한번 확인해주세요.";
       default:
         return tmp;
     }

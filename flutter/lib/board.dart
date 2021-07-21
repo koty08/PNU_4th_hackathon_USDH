@@ -196,19 +196,18 @@ class showBoard extends StatefulWidget{
 }
 
 class showBoardState extends State<showBoard>{
-  late FirebaseProvider fp;
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
 
   @override
   void initState() {
     super.initState();
-    
   }
 
   @override
   Widget build(BuildContext context) {
-    fp = Provider.of<FirebaseProvider>(context);
+    FirebaseProvider fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
 
     return Scaffold(
       appBar: AppBar(title: Text("게시글 내용"),),
@@ -216,6 +215,8 @@ class showBoardState extends State<showBoard>{
         StreamBuilder(
           stream : fs.collection('posts').doc(widget.id).snapshots(),
           builder: (context, AsyncSnapshot<DocumentSnapshot>snapshot){
+            fp.setInfo();
+
             if (snapshot.hasData && !snapshot.data!.exists) {
               return CircularProgressIndicator();
             }
