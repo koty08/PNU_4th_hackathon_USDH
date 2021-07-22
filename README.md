@@ -1,11 +1,9 @@
 # 백엔드 KKK
-채팅방 1ㄷ1 기능만 구현
+7/23 main과 병합.
 
-더 야 할거
-1. firestore가 굉장히 비효율적인 느낌
- -> 예를 들면 한 user의 email을 여러 번 저장함(users-user@pusan.ac.kr-email 을 유연하게 빼야하는데,,)
-2. 1과 비슷한데 users-user@pusan.ac.kr-email 정보를 유연하게 못 빼와서 chatting.dart의 readLocal 함수 내에서
-  email 설정을 못함
- -> sharedReference를 좀 공부하면 할 수 있을 듯
+1. 채팅은 지금 1ㄷ1 채팅 기능만 구현
+2. signedin_page.dart에 '채팅방' 기능 추가
+3. board.dart에 인원 제한 기능, 참가/탈퇴 기능 만들고 있음
+4. 3.이 되면 단체방 해야함
 
-3. board.dart에서 제한 인원, 참가 기능 구현해서 그룹방 기능 구현해야함
+현재 main에서 수정한거는 // 수정 처럼 주석 달아놈
