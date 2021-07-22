@@ -25,17 +25,19 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
+  // currentUserId : 현재 접속한 user Email
   HomeScreenState({Key? key, required this.currentUserId});
 
   final String currentUserId;
   //final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  //     FlutterLocalNotificationsPlugin();
   final ScrollController listScrollController = ScrollController();
 
   int _limit = 20; // 한 번에 불러오는 채팅 방 수
   int _limitIncrement = 20; // _limit을 넘길 경우 _limitIncrement만큼 추가
   bool isLoading = false;
+  // Choice class: 버튼 생성 클래스(title, icon)
   List<Choice> choices = const <Choice>[
     const Choice(title: 'Settings', icon: Icons.settings),
     const Choice(title: 'Log out', icon: Icons.exit_to_app),
@@ -271,6 +273,8 @@ class HomeScreenState extends State<HomeScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
+                  .doc(currentUserId)
+                  .collection('messageWith')
                   .limit(_limit)
                   .snapshots(),
               builder: (BuildContext context,
@@ -305,6 +309,8 @@ class HomeScreenState extends State<HomeScreen> {
 
   // 각각의 채팅 기록( 1 block )
   Widget buildItem(BuildContext context, DocumentSnapshot? document) {
+    print('##############');
+    print(document);
     if (document != null) {
       UserChat userChat = UserChat.fromDocument(document);
       // 본인 정보는 제외

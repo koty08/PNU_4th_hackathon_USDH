@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:login_test/firebase_provider.dart';
+import 'package:login_test/room_list.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'chatting.dart';
@@ -168,6 +169,8 @@ class ListBoard extends StatefulWidget {
   }
 }
 
+late FirebaseProvider fp;
+
 class ListBoardState extends State<ListBoard> {
   final Stream<QuerySnapshot> colstream =
       FirebaseFirestore.instance.collection('posts').snapshots();
@@ -201,8 +204,9 @@ class ListBoardState extends State<ListBoard> {
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) => Chat(
-                                                  peerId: 'bbb@pusan.ac.kr',
-                                                  peerAvatar: '123')));
+                                                    peerId: doc['email'],
+                                                    peerAvatar: doc['photoUrl'],
+                                                  )));
                                     },
                                   ),
                                 ),

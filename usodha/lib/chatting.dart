@@ -108,7 +108,8 @@ class ChatScreenState extends State<ChatScreen> {
   // 어플을 껐다 켜도 데이터 유지되도록
   void readLocal() async {
     prefs = await SharedPreferences.getInstance();
-    email = prefs?.getString('email') ?? '';
+    // email = prefs?.getString('email') ?? '';
+    email = 'bbb@pusan.ac.kr';
     if (email.hashCode <= peerId.hashCode) {
       groupChatId = '$email-$peerId';
     } else {
@@ -116,6 +117,8 @@ class ChatScreenState extends State<ChatScreen> {
     }
     print('#########');
     print(email);
+    print(peerId);
+    print(groupChatId);
 
     FirebaseFirestore.instance
         .collection('users')
@@ -176,9 +179,9 @@ class ChatScreenState extends State<ChatScreen> {
       textEditingController.clear();
 
       var documentReference = FirebaseFirestore.instance
-          .collection('messages')
-          .doc(groupChatId)
-          .collection(groupChatId)
+          .collection('users')
+          .doc(email)
+          .collection(peerId)
           .doc(DateTime.now().millisecondsSinceEpoch.toString());
 
       FirebaseFirestore.instance.runTransaction((transaction) async {
