@@ -6,15 +6,13 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:login_test/firebase_provider.dart';
+import 'package:login_test/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'const.dart';
-import 'model/user_chat.dart';
 import 'widget/loading.dart';
 import 'widget/full_photo.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:provider/provider.dart';
 
 class Chat extends StatelessWidget {
   final String peerId;
@@ -107,14 +105,14 @@ class ChatScreenState extends State<ChatScreen> {
 
   // 어플을 껐다 켜도 데이터 유지되도록
   void readLocal() async {
-    prefs = await SharedPreferences.getInstance();
-    // email = prefs?.getString('email') ?? '';
-    email = 'aaa@pusan.ac.kr';
+    email = 'jungse8609@pusan.ac.kr';
     if (email.hashCode <= peerId.hashCode) {
       groupChatId = '$email-$peerId';
     } else {
       groupChatId = '$peerId-$email';
     }
+    print('본인 이메일??');
+    print(email);
 
     // 본인 email is chattingWith 상대방 email
     FirebaseFirestore.instance

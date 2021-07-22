@@ -1,19 +1,11 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'chatting.dart';
 import 'const.dart';
-import 'firebase_provider.dart';
+import 'package:login_test/login/firebase_provider.dart';
 import 'model/user_chat.dart';
 import 'widget/loading.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-
-import 'main.dart';
 
 class HomeScreen extends StatefulWidget {
   final String currentUserId;
