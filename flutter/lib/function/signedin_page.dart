@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'firebase_provider.dart';
+import '../login/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'board.dart';
 
-late SignedInPageState pageState;
+  late SignedInPageState pageState;
 
 class SignedInPage extends StatefulWidget {
   @override
