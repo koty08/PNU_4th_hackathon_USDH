@@ -109,22 +109,45 @@ class ChatScreenState extends State<ChatScreen> {
   void readLocal() async {
     prefs = await SharedPreferences.getInstance();
     // email = prefs?.getString('email') ?? '';
-    email = 'bbb@pusan.ac.kr';
+    email = 'aaa@pusan.ac.kr';
     if (email.hashCode <= peerId.hashCode) {
       groupChatId = '$email-$peerId';
     } else {
       groupChatId = '$peerId-$email';
     }
-    print('#########');
-    print(email);
-    print(peerId);
-    print(groupChatId);
 
+    // 본인 email is chattingWith 상대방 email
     FirebaseFirestore.instance
         .collection('users')
         .doc(email)
         .update({'chattingWith': peerId});
 
+    var peerPhotoUrl;
+    var peerAboutMe;
+    var peerNickname;
+
+    // 본인 메세지 창에는 상대방이 있어야지
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(peerId)
+        .get()
+        .then((value) async {
+      peerPhotoUrl = value['photoUrl'].toString();
+      peerAboutMe = value['aboutMe'].toString();
+      peerNickname = value['nickname'].toString();
+    });
+
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(email)
+        .collection('messageWith')
+        .doc(peerId)
+        .set({
+      'email': peerId,
+      'photoUrl': peerPhotoUrl,
+      'aboutMe': peerAboutMe,
+      'nickname': peerNickname,
+    });
     setState(() {});
   }
 
@@ -178,15 +201,26 @@ class ChatScreenState extends State<ChatScreen> {
     if (content.trim() != '') {
       textEditingController.clear();
 
-      var documentReference = FirebaseFirestore.instance
+      var myDocumentReference = FirebaseFirestore.instance
           .collection('users')
           .doc(email)
-          .collection(peerId)
+          .collection('messageWith')
+          .doc(peerId)
+          .collection('messages')
           .doc(DateTime.now().millisecondsSinceEpoch.toString());
 
+      var peerDocumentReference = FirebaseFirestore.instance
+          .collection('users')
+          .doc(peerId)
+          .collection('messageWith')
+          .doc(email)
+          .collection('messages')
+          .doc(DateTime.now().millisecondsSinceEpoch.toString());
+
+      // 나와 상대의 메세지를 firestore에 동시에 저장
       FirebaseFirestore.instance.runTransaction((transaction) async {
         transaction.set(
-          documentReference,
+          myDocumentReference,
           {
             'idFrom': email,
             'idTo': peerId,
@@ -195,6 +229,41 @@ class ChatScreenState extends State<ChatScreen> {
             'type': type
           },
         );
+        transaction.set(
+          peerDocumentReference,
+          {
+            'idFrom': email,
+            'idTo': peerId,
+            'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
+            'content': content,
+            'type': type
+          },
+        );
+        var myPhotoUrl;
+        var myAboutMe;
+        var myNickname;
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(email)
+            .get()
+            .then((value) async {
+          myPhotoUrl = value['photoUrl'].toString();
+          myAboutMe = value['aboutMe'].toString();
+          myNickname = value['nickname'].toString();
+        });
+
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(peerId)
+            .collection('messageWith')
+            .doc(email)
+            .set({
+          'email': email,
+          'photoUrl': myPhotoUrl,
+          'aboutMe': myAboutMe,
+          'nickname': myNickname,
+        });
       });
       listScrollController.animateTo(0.0,
           duration: Duration(milliseconds: 300), curve: Curves.easeOut);
@@ -214,7 +283,7 @@ class ChatScreenState extends State<ChatScreen> {
         return Row(
           children: <Widget>[
             document.get('type') == 0
-                // 내가 보낸 메세지- type == 1
+                // 내가 보낸 메세지- type == 0
                 ? Container(
                     child: Text(
                       document.get('content'),
@@ -323,7 +392,7 @@ class ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.end,
         );
       } else {
-        // 상대방 메세지 표시- type == 0
+        // 상대방 메세지의 type == 1
         return Container(
           child: Column(
             children: <Widget>[
@@ -514,6 +583,7 @@ class ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  // 뒤로 가기 누르면 chattingWith를 다시 null 상태로
   Future<bool> onBackPress() {
     var tmp = fp.getInfo();
     if (isShowSticker) {
@@ -543,7 +613,7 @@ class ChatScreenState extends State<ChatScreen> {
               // List of messages
               buildListMessage(),
 
-              // Sticker
+              // Sticker(이모티콘 창 누르면 타자기는 내려가게)
               isShowSticker ? buildSticker() : Container(),
 
               // Input content
@@ -755,9 +825,11 @@ class ChatScreenState extends State<ChatScreen> {
       child: groupChatId.isNotEmpty
           ? StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(email)
+                  .collection('messageWith')
+                  .doc(peerId)
                   .collection('messages')
-                  .doc(groupChatId)
-                  .collection(groupChatId)
                   .orderBy('timestamp', descending: true)
                   .limit(_limit)
                   .snapshots(),

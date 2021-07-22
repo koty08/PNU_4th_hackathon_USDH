@@ -155,7 +155,9 @@ class WriteBoardState extends State<WriteBoard> {
       'title': txt1,
       'writer': tmp['name'],
       'contents': txt2,
-      'pic': imageurl
+      'pic': imageurl,
+      'email': tmp['email'],
+      'photoUrl': tmp['photoUrl'],
     });
     fp.updateIntInfo('postcount', 1);
   }

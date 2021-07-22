@@ -226,9 +226,6 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    fp = Provider.of<FirebaseProvider>(context);
-    fp.setInfo();
-    var tmp = fp.getInfo();
     print("여기는 채팅방");
     return Scaffold(
       appBar: AppBar(
@@ -309,8 +306,6 @@ class HomeScreenState extends State<HomeScreen> {
 
   // 각각의 채팅 기록( 1 block )
   Widget buildItem(BuildContext context, DocumentSnapshot? document) {
-    print('##############');
-    print(document);
     if (document != null) {
       UserChat userChat = UserChat.fromDocument(document);
       // 본인 정보는 제외
