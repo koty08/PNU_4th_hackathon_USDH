@@ -30,6 +30,16 @@ class SignUpPageState extends State<SignUpPage> {
   bool terms2 = false;
   bool terms3 = false;
   bool terms4 = false;
+  bool validate1 = false, validate2 = false, validate3= false, validate4 = false;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    setState(() {
+      gender = "여자";
+    });
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -51,8 +61,10 @@ class SignUpPageState extends State<SignUpPage> {
           children: <Widget>[
             Container(
               margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
-              child: Column(
-                children: <Widget>[
+              child: Form(
+                key: _formKey,      
+                child: Column(
+                  children: <Widget>[
                   Container(
                     height: 50,
                     decoration: BoxDecoration(color: Colors.amber),
@@ -74,36 +86,74 @@ class SignUpPageState extends State<SignUpPage> {
                     ),
                     child: Column(
                       children: <Widget>[
-                        TextField(
+                        TextFormField(
                           controller: emailInput,
                           decoration: InputDecoration(
                             prefixIcon: Icon(Icons.mail),
                             hintText: "웹메일(학교 이메일)",
                           ),
+                          validator: (text){
+                            if(text == null || text.isEmpty){
+                              return "이메일은 필수 입력 사항입니다.";
+                            }
+                            else if(!text.contains("@")){
+                              return "부산대학교 웹메일을 사용하셔야 합니다.";
+                            }
+                            else if(text.contains("@") && text.split("@")[1] != "pusan.ac.kr"){
+                              return "부산대학교 웹메일을 사용하셔야 합니다.";
+                            }
+                            return null;
+                          },
                         ),
-                        TextField(
+                        TextFormField(
                           controller: pwdInput,
                           decoration: InputDecoration(
                             prefixIcon: Icon(Icons.lock),
                             hintText: "비밀번호",
                           ),
                           obscureText: true,
+                          validator: (text){
+                            if(text == null || text.isEmpty){
+                              return "비밀번호는 필수 입력 사항입니다.";
+                            }
+                            else if(text.length < 6){
+                              return "비밀번호는 6자 이상이어야 합니다.";
+                            }
+                            return null;
+                          },
                         ),
-                        TextField(
+                        TextFormField(
                           controller: repwdInput,
                           decoration: InputDecoration(
                             prefixIcon: Icon(Icons.lock),
                             hintText: "비밀번호 확인",
                           ),
                           obscureText: true,
+                          validator : (text){
+                            if(text == null || text.isEmpty){
+                              return "비밀번호를 한번 더 입력 해주세요.";
+                            }
+                            else if(pwdInput.text != text){
+                              return "비밀번호가 일치하지 않습니다.";
+                            }
+                            return null;
+                          }
                         ),
-                        TextField(
+                        TextFormField(
                           controller: nameInput,
                           decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.arrow_forward),
-                              hintText: "이름(실명입력)"),
+                            prefixIcon: Icon(Icons.arrow_forward),
+                            hintText: "이름(실명입력)",
+                          ),
+                          validator : (text){
+                            if(text == null || text.isEmpty){
+                              return "이름은 필수 입력 사항입니다.";
+                            }
+                            return null;
+                          }
                         ),
-                        Row(children: [
+                        Row(
+                          children: [
                           Radio(
                             value: "여자", 
                             groupValue: gender,
@@ -178,11 +228,10 @@ class SignUpPageState extends State<SignUpPage> {
                         );
                       }).toList(),
                     ),
-                  )
-                ],
+                    )
+                ])
               ),
             ),
-
             // 생성 버튼
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -196,9 +245,11 @@ class SignUpPageState extends State<SignUpPage> {
                 ),
                 onPressed: () {
                   FocusScope.of(context)
-                      .requestFocus(new FocusNode()); // 키보드 감춤
-                  _signUp();
-                },
+                      .requestFocus(new FocusNode());
+                  if(_formKey.currentState!.validate()){
+                    _signUp();
+                  }
+                }
               ),
             ),
           ],
@@ -206,11 +257,6 @@ class SignUpPageState extends State<SignUpPage> {
   }
 
   void _signUp() async {
-    if (pwdInput.text != repwdInput.text){
-      fp.setMessage("not-equal");
-      showMessage();
-      return;
-    }
 
     if(!(terms1 && terms2)){
       fp.setMessage("not-agree");

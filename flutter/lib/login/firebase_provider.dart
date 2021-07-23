@@ -15,7 +15,7 @@ class FirebaseProvider with ChangeNotifier {
   late User? _user; // Firebase에 로그인 된 사용자
   String fbMsg = ""; // 오류 띄워줄 메세지
 
-  late Map<String, dynamic> info;
+  Map<String, dynamic> info = {};
 
   // 생성자
   FirebaseProvider() {
@@ -67,10 +67,6 @@ class FirebaseProvider with ChangeNotifier {
   // 회원가입
   Future<bool> signUp(String email, String password) async {
     try {
-      if (email.split("@")[1] != "pusan.ac.kr") {
-        setMessage("not-pusan");
-        return false;
-      }
       UserCredential result = await authIns.createUserWithEmailAndPassword(
           email: email, password: password);
       if (result.user != null) {
@@ -139,8 +135,6 @@ class FirebaseProvider with ChangeNotifier {
     String tmp = fbMsg.split(" ")[0];
     fbMsg = "";
     switch (tmp) {
-      case "not-pusan":
-        return "부산대학교 이메일을 사용하셔야 합니다.";
       case "[firebase_auth/user-not-found]":
         return "해당 이메일로 가입한 사용자가 존재하지 않습니다.";
       case "[firebase_auth/wrong-password]":
@@ -149,14 +143,14 @@ class FirebaseProvider with ChangeNotifier {
         return "비밀번호 강도가 너무 낮습니다.";
       case "[firebase_auth/email-already-in-use]":
         return "이미 가입한 이메일입니다.";
-      case "not-equal":
-        return "비밀번호가 일치하지 않습니다.";
       case "not-agree":
         return "필수 항목을 동의하지 않으셨습니다.";
       case "reset-pw":
         return "비밀번호 변경 링크를 이메일을 통해 보내드렸습니다. \n 이메일을 확인해주세요.";
       case "not-match":
         return "해당 입력한 정보를 가진 사용자를 찾을 수 없습니다. 이메일과 이름을 다시 한번 확인해주세요.";
+      case "not-submit":
+        return "필수 입력란을 전부 입력하지 않으셨습니다. 다시 한번 확인해주세요.";
       default:
         return tmp;
     }

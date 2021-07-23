@@ -29,6 +29,8 @@ class WriteBoardState extends State<WriteBoard> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
   List urlList = [];
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
@@ -50,69 +52,87 @@ class WriteBoardState extends State<WriteBoard> {
         resizeToAvoidBottomInset: false,
         appBar: AppBar(title: Text("게시판 글쓰기")),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                  height: 30,
-                  child: TextField(
-                        controller: titleInput,
-                        decoration: InputDecoration(hintText: "제목을 입력하세요."),
-                      ),
-                  ),
-              Container(
-                  height: 50,
-                  child:
-                    TextField(
-                        controller: contentInput,
-                        decoration: InputDecoration(hintText: "내용을 입력하세요."),
-                    ),
-                  ),
-              Row(
+          child: Form(
+            key: _formKey,
+            child: 
+              Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  ElevatedButton(
-                      child: Text("갤러리에서 불러오기"),
-                      onPressed: () {
-                        uploadImage();
-                      }),
+                  Container(
+                      height: 30,
+                      child: TextFormField(
+                            controller: titleInput,
+                            decoration: InputDecoration(hintText: "제목을 입력하세요."),
+                            validator : (text){
+                            if(text == null || text.isEmpty){
+                              return "제목은 필수 입력 사항입니다.";
+                            }
+                            return null;
+                            }
+                          ),
+                      ),
+                  Container(
+                      height: 50,
+                      child:
+                        TextFormField(
+                            controller: contentInput,
+                            decoration: InputDecoration(hintText: "내용을 입력하세요."),
+                            validator : (text){
+                            if(text == null || text.isEmpty){
+                              return "내용은 필수 입력 사항입니다.";
+                            }
+                            return null;
+                          }
+                        ),
+                      ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      ElevatedButton(
+                          child: Text("갤러리에서 불러오기"),
+                          onPressed: () {
+                            uploadImage();
+                          }),
+                    ],
+                  ),
+                  Divider(
+                    color: Colors.black,
+                  ),
+                  urlList.isEmpty ?
+                  Container():
+                  Container(
+                    height : 300,
+                    child:
+                      ListView.builder(
+                      itemCount: urlList.length,
+                      itemBuilder: (BuildContext context, int idx){
+                        return Image.network(urlList[idx]);
+                      }
+                    ),
+                  ),
+                  Container(
+                    height: 30,
+                      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.blueAccent[200],
+                        ),
+                        child: Text(
+                          "게시글 쓰기",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                        onPressed: () {
+                          FocusScope.of(context).requestFocus(new FocusNode());
+                          if(_formKey.currentState!.validate()){
+                            uploadOnFS(titleInput.text, contentInput.text);
+                            Navigator.pop(context);
+                          }
+                        },
+                    )
+                  )
                 ],
               ),
-              Divider(
-                color: Colors.black,
-              ),
-              urlList.isEmpty ?
-              Container():
-              Container(
-                height : 300,
-                child:
-                  ListView.builder(
-                  itemCount: urlList.length,
-                  itemBuilder: (BuildContext context, int idx){
-                    return Image.network(urlList[idx]);
-                  }
-                ),
-              ),
-              Container(
-                height: 30,
-                  margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.blueAccent[200],
-                    ),
-                    child: Text(
-                      "게시글 쓰기",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    onPressed: () {
-                      FocusScope.of(context).requestFocus(new FocusNode());
-                      uploadOnFS(titleInput.text, contentInput.text);
-                      Navigator.pop(context);
-                    },
-                )
-              )
-            ],
-          ),
+          )
         ));
   }
 
@@ -221,7 +241,7 @@ class showBoardState extends State<showBoard>{
               return CircularProgressIndicator();
             }
 
-            if(snapshot.hasData){
+            else if(snapshot.hasData){
               fp.setInfo();
               if(fp.getInfo()['name'] == snapshot.data!['writer']){
                 return Column(

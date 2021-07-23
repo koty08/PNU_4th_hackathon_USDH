@@ -16,6 +16,7 @@ class findPWPageState extends State<findPWPage>{
   late FirebaseProvider fp;
   TextEditingController emailInput = TextEditingController();
   TextEditingController nameInput = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   void dispose() {
     emailInput.dispose();
@@ -50,30 +51,46 @@ class findPWPageState extends State<findPWPage>{
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.amber, width: 1),
                   ),
-                  child: Column(
-                    children: <Widget>[
-                      TextField(
-                        controller: emailInput,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.mail),
-                          hintText: "이메일",
+                  child: Form(
+                    key: _formKey,
+                    child:
+                      Column(
+                      children: <Widget>[
+                        TextFormField(
+                          controller: emailInput,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.mail),
+                            hintText: "이메일",
+                          ),
+                          validator : (text){
+                            if(text == null || text.isEmpty){
+                              return "이메일은 필수 입력 사항입니다.";
+                            }
+                            return null;
+                          }
                         ),
-                      ),
-                      TextField(
-                        controller: nameInput,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.people),
-                          hintText: "이름",
+                        TextFormField(
+                          controller: nameInput,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.people),
+                            hintText: "이름",
+                          ),
+                          validator : (text){
+                            if(text == null || text.isEmpty){
+                              return "이름은 필수 입력 사항입니다.";
+                            }
+                            return null;
+                          }
                         ),
-                      ),
-                    ].map((c) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 10),
-                        child: c,
-                      );
-                    }).toList(),
-                  ),
+                      ].map((c) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 10),
+                          child: c,
+                        );
+                      }).toList(),
+                    ),
+                  )
                 )
               ],
             ),
@@ -85,7 +102,9 @@ class findPWPageState extends State<findPWPage>{
             ),
             onPressed: () {
               FocusScope.of(context).requestFocus(new FocusNode());
-              sendPWReset();
+              if(_formKey.currentState!.validate()){
+                sendPWReset();
+              }
             },
           ),
         ]
