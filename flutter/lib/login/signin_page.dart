@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'findpw_page.dart';
+import 'package:page_transition/page_transition.dart';
 import 'firebase_provider.dart';
 import 'signup_page.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +20,7 @@ class SignInPage extends StatefulWidget {
 class SignInPageState extends State<SignInPage> {
   TextEditingController emailInput = TextEditingController();
   TextEditingController pwdInput = TextEditingController();
+
   bool remember = false;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -45,6 +48,7 @@ class SignInPageState extends State<SignInPage> {
     return Scaffold(
       key: _scaffoldKey,
       body: SingleChildScrollView(
+        // background
         child: Container(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height,
@@ -58,192 +62,220 @@ class SignInPageState extends State<SignInPage> {
           ),
           child: Column(
             children: [
-                Container(
-                  width: double.infinity,
-                  height: 487,
-                  margin: const EdgeInsets.only(left: 28, right: 28, top: 250),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(60),
-                      topRight: Radius.circular(60),
-                    )
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 20, right: 20, top: 60),
-                    child: Column(
-                      children: [
-                        // E-mail
-                        Container(
-                          padding: EdgeInsets.all(10.0),
-                          child: TextField(
-                            controller: emailInput,
-                            decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.mail),
-                              hintText: "이메일",
-                            ),
+              // white container
+              Container(
+                width: double.infinity,
+                height: 487,
+                margin: const EdgeInsets.only(top: 250),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(60),
+                    topRight: Radius.circular(60),
+                  )
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(left: 30, right: 30, top: 60),
+                  child: Column(
+                    children: [
+                      // E-mail
+                      Container(
+                        padding: EdgeInsets.only(left: 30, right: 30, top: 10, bottom: 10),
+                        child: TextField(
+                          controller: emailInput,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.mail),
+                            hintText: "이메일",
                           ),
                         ),
+                      ),
 
-                        // Password
-                        Container(
-                          padding: EdgeInsets.all(10.0),
-                          child: TextField(
-                            controller: pwdInput,
-                            decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.lock),
-                              hintText: "비밀번호",
-                            ),
-                            obscureText: true,
+                      // Password
+                      Container(
+                        padding: EdgeInsets.only(left: 30, right: 30, top: 10, bottom: 10),
+                        child: TextField(
+                          controller: pwdInput,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.lock),
+                            hintText: "비밀번호",
                           ),
+                          obscureText: true,
                         ),
+                      ),
 
-                        // Auto Login(Remember Me)
-                        Container(
-                          padding: EdgeInsets.only(right: 20),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                SizedBox(
-                                  width: 25,
-                                  height: 30, // 비밀번호- 자동 로그인 간격 조절
-                                  child: Transform.scale(
-                                      scale: 0.8,
-                                      child: Theme(
-                                      data: ThemeData(unselectedWidgetColor: Color(0xff7FA6C2)),
-                                      child: Checkbox(
-                                        value: remember,
-                                        shape: CircleBorder(),
-                                        activeColor: Color(0xff7FA6C2),
-                                        onChanged: (newValue) {
-                                          setState(() {
-                                            remember = newValue ?? false;
-                                          });
-                                        },
-                                      ),
+                      // Remember Me
+                      Container(
+                        padding: EdgeInsets.only(right: 30),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              SizedBox(
+                                width: 25,
+                                height: 30, // PW - RM 간격 조절
+                                child: Transform.scale(
+                                    scale: 0.8,
+                                    child: Theme(
+                                    data: ThemeData(unselectedWidgetColor: Colors.indigo.shade300),
+                                    child: Checkbox(
+                                      value: remember,
+                                      shape: CircleBorder(),
+                                      activeColor: Colors.indigo.shade300,
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          remember = newValue ?? false;
+                                        });
+                                      },
                                     ),
                                   ),
                                 ),
-                                SizedBox(
-                                  width: 2,
-                                ),
-                                Text("자동 로그인",
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: Color(0xff7FA6C2),
-                                  ),),
-                              ]
-                          ),
-                        ),
-                        SizedBox(
-                          height: 35.0,
-                        ),
-
-                        // Sign In Button
-                        Container(
-                          width: 270,
-                          height: 50,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              shape: new RoundedRectangleBorder(
-                                borderRadius: new BorderRadius.circular(30.0),
                               ),
-                              primary: Color.fromRGBO(59, 119, 163, 1),
+                              cSizedBox(2, 0),
+                              Text("계정 저장",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.indigo.shade300,
+                                ),),
+                            ]
+                        ),
+                      ),
+                      cSizedBox(25, 0),
+
+                      // Sign In Button
+                      Container(
+                        width: 270,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black26, offset: Offset(0, 3), blurRadius: 5.0)
+                          ],
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            stops: [0.0, 1.0],
+                            colors: [
+                              Colors.blue.shade200,
+                              Colors.deepPurple.shade200,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
                             ),
+                            primary: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                          ),
+                          child: Text(
+                            "로그인",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                          ),
+                          onPressed: () {
+                            FocusScope.of(context).requestFocus(new FocusNode()); // 키보드 감춤
+                            _signIn();
+                          },
+                        ),
+                      ),
+                      cSizedBox(10, 0),
+
+                      // Find PW & Sign Up Button
+                      Wrap(
+                        direction: Axis.horizontal,
+                        alignment: WrapAlignment.center,
+                        spacing: 75,
+                        children: <Widget>[
+                          // Find PW
+                          TextButton(
                             child: Text(
-                              "로그인",
+                              "비밀번호 찾기",
                               style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
+                                color: Colors.indigo.shade300, fontSize: 15,
                               ),
                             ),
                             onPressed: () {
-                              FocusScope.of(context).requestFocus(new FocusNode()); // 키보드 감춤
-                              _signIn();
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) => findPWPage()));
                             },
                           ),
-                        ),
-                        SizedBox(
-                          height: 10.0,
-                        ),
 
-                        // Sign Up Button
-                        Container(
-                          padding: EdgeInsets.only(right: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: <Widget>[
-                              TextButton(
-                                child: Text(
-                                  "비밀번호 찾기",
-                                  style: TextStyle(
-                                    color: Color(0xff326487), fontSize: 15,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.push(context,
-                                      MaterialPageRoute(builder: (context) => findPWPage()));
-                                },
+                          // Sign Up Button
+                          TextButton(
+                            child: Text(
+                              "회원가입",
+                              style: TextStyle(
+                                color: Colors.indigo.shade400, fontSize: 15,
+                                fontWeight: FontWeight.bold,
                               ),
-                              SizedBox(
-                                width: 85,
-                              ),
-                              TextButton(
-                                child: Text(
-                                  "회원가입",
-                                  style: TextStyle(
-                                    color: Color(0xff326487), fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.push(context,
-                                      MaterialPageRoute(builder: (context) => SignUpPage()));
-                                },
-                              ),
-                            ],
+                            ),
+                            onPressed: () {
+                              Navigator.push(context,
+                                  PageTransition(type: PageTransitionType.bottomToTop,
+                                      child: SignUpPage()));
+                            },
+                          ),
+                          AnimatedPositioned(
+                            right: 0,
+                            left: 0,
+                            duration: Duration(milliseconds: 300),
+                            child: Container(
+                              color: Colors.white,
+                            )
+                          )
+                        ],
+                      ),
+
+
+                  // Alert Box
+                  (fp.getUser() != null && fp.getUser()?.emailVerified == false)
+                      ? Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                    decoration: BoxDecoration(color: Colors.red[300]),
+                    child: Column(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text(
+                            "이메일 인증이 완료되지 않았습니다."
+                                "\n이메일을 확인하여 주시기 바랍니다.",
+                            style: TextStyle(color: Colors.white),
                           ),
                         ),
-
-                        // Alert Box
-                        (fp.getUser() != null && fp.getUser()?.emailVerified == false)
-                            ? Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                              decoration: BoxDecoration(color: Colors.red[300]),
-                              child: Column(
-                                children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Text(
-                                      "이메일 인증이 완료되지 않았습니다."
-                                          "\n이메일을 확인하여 주시기 바랍니다.",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      primary: Colors.lightBlue[400],
-                                      onPrimary: Colors.white,
-                                    ),
-                                    child: Text("이메일 인증 다시 보내기"),
-                                    onPressed: () {
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode()); // 키보드 감춤
-                                      fp.getUser()?.sendEmailVerification();
-                                    },
-                                  )
-                                ],
-                              ),
-                            )
-                            : Container(),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.lightBlue[400],
+                            onPrimary: Colors.white,
+                          ),
+                          child: Text("이메일 인증 다시 보내기"),
+                          onPressed: () {
+                            FocusScope.of(context)
+                                .requestFocus(new FocusNode()); // 키보드 감춤
+                            fp.getUser()?.sendEmailVerification();
+                          },
+                        )
                       ],
                     ),
+                  )
+                      : Container(),
+                    ]
                   ),
-                )
+                ),
+              )
             ]
-          )
+          ),
         )
       )
+    );
+  }
+
+  Widget cSizedBox(double h, double w){
+    return SizedBox(
+      height: h,
+      width: w,
     );
   }
 

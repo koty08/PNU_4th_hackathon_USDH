@@ -32,6 +32,8 @@ dependencies:
   firebase_storage : ^9.0.0
   image_picker : ^0.8.2
   permission_handler : ^8.1.2
+  animations: ^2.0.1
+  page_transition: ^2.0.2
 
 
   # The following adds the Cupertino Icons font to your application.

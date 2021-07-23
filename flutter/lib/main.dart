@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: "1234",
         home: AuthPage(),
+        theme: ThemeData(errorColor: Colors.indigo.shade200),
       ),
     );
   }
