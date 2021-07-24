@@ -373,6 +373,9 @@ class SignUpPageState extends State<SignUpPage> {
 
 
   void _signUp() async {
+    QuerySnapshot tmp = await fs.collection('users').get();
+    int nick = tmp.size;
+
 
     if(!(terms1 && terms2)){
       fp.setMessage("not-agree");
@@ -415,6 +418,7 @@ class SignUpPageState extends State<SignUpPage> {
       Navigator.pop(context);
       fs.collection('users').doc(emailInput.text).set({
         'name': nameInput.text,
+        'nick' : nick,
         'gender' : gender,
         'email': emailInput.text,
         'postcount': 0,

@@ -291,9 +291,12 @@ class showBoardState extends State<showBoard>{
                           "삭제",
                           style: TextStyle(color: Colors.white),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.pop(context);
-                          fs.collection('posts').doc(widget.id).delete();
+                          for(int i = 0; i < snapshot.data!['pic'].length; i++){
+                            await storage.refFromURL(snapshot.data!['pic'][i]).delete();
+                          }
+                          await fs.collection('posts').doc(widget.id).delete();
                         },
                       ),
                     ),
@@ -387,6 +390,18 @@ class modifyBoardState extends State<modifyBoard>{
                 Divider(
                   color: Colors.black,
                 ),
+                snapshot.data!['pic'].isEmpty ? 
+                  Container():
+                  Container(
+                    height : 300,
+                    child:
+                      ListView.builder(
+                      itemCount: snapshot.data!['pic'].length,
+                      itemBuilder: (BuildContext context, int idx){
+                        return Image.network(snapshot.data!['pic'][idx]);
+                      }
+                    ),
+                  ),
                 Container(
                   height: 30,
                     margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -403,7 +418,8 @@ class modifyBoardState extends State<modifyBoard>{
                         updateOnFS(titleInput.text, contentInput.text);
                         Navigator.pop(context);
                       },
-                    ))
+                    )
+                ),
               ],
             );
           }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:login_test/login/signin_page.dart';
 import '../login/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'board.dart';
@@ -112,7 +113,8 @@ class MyPageState extends State<MyPage> {
                 "로그아웃",
                 style: TextStyle(color: Colors.white),
               ),
-              onPressed: () {
+              onPressed: () async {
+                await Navigator.push(context, MaterialPageRoute(builder: (context) => SignInPage()));
                 fp.signOut();
               },
             ),
