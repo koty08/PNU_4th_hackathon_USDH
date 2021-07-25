@@ -57,7 +57,7 @@ class SignInPageState extends State<SignInPage> {
           decoration: BoxDecoration(
             image: DecorationImage(
               fit: BoxFit.fill,
-              image: AssetImage("assets/images/2.png"),
+              image: AssetImage("assets/images/belogin.png"),
             )
           ),
           child: Column(

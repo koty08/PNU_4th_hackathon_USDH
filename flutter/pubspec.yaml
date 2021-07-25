@@ -67,6 +67,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/images/icon/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
@@ -91,7 +92,22 @@ flutter:
   fonts:
     - family: SCDream
       fonts:
+        - asset: assets/fonts/SCDream/SCDream1.otf
+          weight: 100
+        - asset: assets/fonts/SCDream/SCDream2.otf
+          weight: 200
+        - asset: assets/fonts/SCDream/SCDream3.otf
+          weight: 300
         - asset: assets/fonts/SCDream/SCDream4.otf
+          weight: 400
+        - asset: assets/fonts/SCDream/SCDream5.otf
+          weight: 500
+        - asset: assets/fonts/SCDream/SCDream6.otf
+          weight: 600
+        - asset: assets/fonts/SCDream/SCDream7.otf
+          weight: 700
+        - asset: assets/fonts/SCDream/SCDream8.otf
+          weight: 800
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
