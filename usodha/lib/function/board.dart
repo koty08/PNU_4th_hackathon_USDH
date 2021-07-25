@@ -154,11 +154,12 @@ class WriteBoardState extends State<WriteBoard> {
       'writer': tmp['name'],
       'contents': txt2,
       'pic': urlList,
-      // 수정 - 본인 글 정보에 limitedMeber, email, photoUrl 추가
+      // 수정 - currentMember, limitedMeber, email, photoUrl, postName 추가
       'currentMember': 1,
       'limitedMember': int.parse(limitedMember.text),
       'email': tmp['email'],
       'photoUrl': tmp['photoUrl'],
+      'postName': tmp['name'] + tmp['postcount'].toString(),
     });
     fp.updateIntInfo('postcount', 1);
   }
@@ -189,37 +190,44 @@ class ListBoardState extends State<ListBoard> {
               }
 
               return new ListView(
-                  children: snapshot.data!.docs
-                      .map((doc) => new ListTile(
-                            title: new Text(doc['title']),
-                            subtitle: new Text(doc['writer']),
-                            trailing: PopupMenuButton(
-                              itemBuilder: (BuildContext context) => [
-                                PopupMenuItem(
-                                  child: TextButton(
-                                    child: Text(
-                                      "채팅시작",
-                                      style: TextStyle(color: Colors.black),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => Chat(
-                                                    peerId: doc['email'],
-                                                    peerAvatar: doc['photoUrl'],
-                                                  )));
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                            onTap: () => Navigator.push(
+                  children: snapshot.data!.docs.map((doc) {
+                String _title = doc['title'] +
+                    '[' +
+                    doc['currentMember'].toString() +
+                    '/' +
+                    doc['limitedMember'].toString() +
+                    ']';
+                String _subtitle = doc['writer'];
+                return new ListTile(
+                  title: new Text(_title),
+                  subtitle: new Text(_subtitle),
+                  trailing: PopupMenuButton(
+                    itemBuilder: (BuildContext context) => [
+                      PopupMenuItem(
+                        child: TextButton(
+                          child: Text(
+                            "채팅시작",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => showBoard(doc.id))),
-                          ))
-                      .toList());
+                                    builder: (context) => Chat(
+                                          peerId: doc['email'],
+                                          peerAvatar: doc['photoUrl'],
+                                        )));
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => showBoard(doc.id))),
+                );
+              }).toList());
             }));
   }
 }
@@ -339,8 +347,26 @@ class showBoardState extends State<showBoard> {
                                 "참가",
                                 style: TextStyle(color: Colors.white),
                               ),
-                              onPressed: () {
-                                setState(() {});
+                              onPressed: () async {
+                                int _currentMember =
+                                    snapshot.data!['currentMember'];
+                                int _limitedMember =
+                                    snapshot.data!['limitedMember'];
+
+                                // 제한 인원 꽉 찰 경우
+                                if (_currentMember >= _limitedMember) {
+                                  print('This room is full');
+                                }
+                                // 인원이 남을 경우
+                                else {
+                                  await FirebaseFirestore.instance
+                                      .collection('posts')
+                                      .doc(snapshot.data!['postName'])
+                                      .update({
+                                    'currentMember': _currentMember + 1
+                                  });
+                                  print('참가!!');
+                                }
                               },
                             ),
                           ),
@@ -355,9 +381,36 @@ class showBoardState extends State<showBoard> {
                                 "손절",
                                 style: TextStyle(color: Colors.white),
                               ),
-                              onPressed: () {
-                                Navigator.pop(context);
-                                fs.collection('posts').doc(widget.id).delete();
+                              onPressed: () async {
+                                int _currentMember =
+                                    snapshot.data!['currentMember'];
+                                int _limitedMember =
+                                    snapshot.data!['limitedMember'];
+
+                                // 모임에 2명 이상, 제한 인원 이하로 남을 경우
+                                if (_currentMember >= 2 &&
+                                    _currentMember <= _limitedMember) {
+                                  await FirebaseFirestore.instance
+                                      .collection('posts')
+                                      .doc(snapshot.data!['postName'])
+                                      .update({
+                                    'currentMember': _currentMember - 1
+                                  });
+                                  print('손절!!');
+                                }
+                                // 남은 인원이 1명일 경우
+                                else if (_currentMember == 1) {
+                                  Navigator.pop(context);
+                                  fs
+                                      .collection('posts')
+                                      .doc(widget.id)
+                                      .delete();
+                                  print('사람이 0명이 되어 방 파괴!!');
+                                }
+                                // 남은 인원이 제한 인원 초과 또는 0명 이하일 경우
+                                else {
+                                  print('The current member has a error!!');
+                                }
                               },
                             ),
                           ),

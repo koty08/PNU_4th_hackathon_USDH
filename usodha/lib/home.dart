@@ -64,7 +64,6 @@ class HomeScreenState extends State<HomeScreen> {
   //     Fluttertoast.showToast(msg: err.message.toString());
   //   });
   // }
-
   // android, ios 초기화
   // void configLocalNotification() {
   //   AndroidInitializationSettings initializationSettingsAndroid =
