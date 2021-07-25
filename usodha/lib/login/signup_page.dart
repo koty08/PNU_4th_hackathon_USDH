@@ -235,7 +235,6 @@ class SignUpPageState extends State<SignUpPage> {
         'piccount': 0,
         // 추가- 이걸 회원가입에 넣으면 될듯
         'aboutMe': '한 줄 자기소개', // 이건 없어도 됨
-        'chattingWith': '채팅 상대',
         'nickname': '사용할 닉네임',
         'photoUrl': '프로필 사진'
       });

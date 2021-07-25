@@ -111,8 +111,6 @@ class ChatScreenState extends State<ChatScreen> {
     } else {
       groupChatId = '$peerId-$email';
     }
-    print('본인 이메일??');
-    print(email);
 
     // 본인 email is chattingWith 상대방 email
     FirebaseFirestore.instance
@@ -120,11 +118,11 @@ class ChatScreenState extends State<ChatScreen> {
         .doc(email)
         .update({'chattingWith': peerId});
 
+    // 본인 메세지 창에는 상대방이 있어야지
+    // 1. 상대방 정보 local에 저장
     var peerPhotoUrl;
     var peerAboutMe;
     var peerNickname;
-
-    // 본인 메세지 창에는 상대방이 있어야지
     await FirebaseFirestore.instance
         .collection('users')
         .doc(peerId)
@@ -134,7 +132,7 @@ class ChatScreenState extends State<ChatScreen> {
       peerAboutMe = value['aboutMe'].toString();
       peerNickname = value['nickname'].toString();
     });
-
+    // 2. 내 messageWith에 추가
     FirebaseFirestore.instance
         .collection('users')
         .doc(email)
@@ -207,7 +205,7 @@ class ChatScreenState extends State<ChatScreen> {
           .collection('messages')
           .doc(DateTime.now().millisecondsSinceEpoch.toString());
 
-      var peerDocumentReference = FirebaseFirestore.instance
+      var peersDocumentReference = FirebaseFirestore.instance
           .collection('users')
           .doc(peerId)
           .collection('messageWith')
@@ -228,7 +226,7 @@ class ChatScreenState extends State<ChatScreen> {
           },
         );
         transaction.set(
-          peerDocumentReference,
+          peersDocumentReference,
           {
             'idFrom': email,
             'idTo': peerId,
@@ -237,10 +235,12 @@ class ChatScreenState extends State<ChatScreen> {
             'type': type
           },
         );
+
+        // 내 정보를 상대방 messageWith에 저장
+        // 1. local에 내 정보 저장
         var myPhotoUrl;
         var myAboutMe;
         var myNickname;
-
         await FirebaseFirestore.instance
             .collection('users')
             .doc(email)
@@ -250,7 +250,7 @@ class ChatScreenState extends State<ChatScreen> {
           myAboutMe = value['aboutMe'].toString();
           myNickname = value['nickname'].toString();
         });
-
+        // 2. 상대방 messageWith에 저장
         FirebaseFirestore.instance
             .collection('users')
             .doc(peerId)

@@ -162,6 +162,12 @@ class WriteBoardState extends State<WriteBoard> {
       'postName': tmp['name'] + tmp['postcount'].toString(),
     });
     fp.updateIntInfo('postcount', 1);
+
+    List<String> roomName = [txt1];
+    await fs
+        .collection('users')
+        .doc(tmp['email'])
+        .update({'joiningIn': FieldValue.arrayUnion(roomName)});
   }
 }
 
@@ -348,13 +354,29 @@ class showBoardState extends State<showBoard> {
                                 style: TextStyle(color: Colors.white),
                               ),
                               onPressed: () async {
+                                var tmp = fp.getInfo();
                                 int _currentMember =
                                     snapshot.data!['currentMember'];
                                 int _limitedMember =
                                     snapshot.data!['limitedMember'];
+                                String _roomName = snapshot.data!['title'];
 
+                                List<String> _joiningRoom = [];
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(tmp['email'])
+                                    .get()
+                                    .then((value) {
+                                  for (String room in value['joiningIn']) {
+                                    _joiningRoom.add(room);
+                                  }
+                                });
+                                // 이미 참가한 방인 경우
+                                if (_joiningRoom.contains(_roomName)) {
+                                  print('이미 참가한 방입니다!!');
+                                }
                                 // 제한 인원 꽉 찰 경우
-                                if (_currentMember >= _limitedMember) {
+                                else if (_currentMember >= _limitedMember) {
                                   print('This room is full');
                                 }
                                 // 인원이 남을 경우
@@ -365,7 +387,15 @@ class showBoardState extends State<showBoard> {
                                       .update({
                                     'currentMember': _currentMember + 1
                                   });
-                                  print('참가!!');
+                                  List<String> roomName = [_roomName];
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(tmp['email'])
+                                      .update({
+                                    'joiningIn': FieldValue.arrayUnion(roomName)
+                                  });
+                                  Navigator.pop(context);
+                                  print(_roomName + ' 참가!!');
                                 }
                               },
                             ),
@@ -382,10 +412,12 @@ class showBoardState extends State<showBoard> {
                                 style: TextStyle(color: Colors.white),
                               ),
                               onPressed: () async {
+                                var tmp = fp.getInfo();
                                 int _currentMember =
                                     snapshot.data!['currentMember'];
                                 int _limitedMember =
                                     snapshot.data!['limitedMember'];
+                                String _roomName = snapshot.data!['title'];
 
                                 // 모임에 2명 이상, 제한 인원 이하로 남을 경우
                                 if (_currentMember >= 2 &&
@@ -396,7 +428,16 @@ class showBoardState extends State<showBoard> {
                                       .update({
                                     'currentMember': _currentMember - 1
                                   });
-                                  print('손절!!');
+                                  List<String> roomName = [_roomName];
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(tmp['email'])
+                                      .update({
+                                    'joiningIn':
+                                        FieldValue.arrayRemove(roomName)
+                                  });
+                                  Navigator.pop(context);
+                                  print(_roomName + ' 손절!!');
                                 }
                                 // 남은 인원이 1명일 경우
                                 else if (_currentMember == 1) {
