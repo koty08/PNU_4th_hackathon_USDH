@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -183,23 +184,89 @@ class ListBoardState extends State<ListBoard>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("게시글 목록")),
-      body: 
-        StreamBuilder<QuerySnapshot>(
-          stream: colstream,
-          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
-            if (!snapshot.hasData) {
-              return CircularProgressIndicator();
-            }
-        
-            return new ListView(
-              children: snapshot.data!.docs.map((doc) => new ListTile(
-                title: new Text(doc['title']),
-                subtitle: new Text(doc['writer']),
-                onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => showBoard(doc.id))),
-              )).toList()
-            );
-        })
+      body: ListView(
+        children: <Widget>[
+          Container(
+            padding: EdgeInsets.fromLTRB(0, 15, 25, 0),
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    width: 25, height: 30,
+                    child: Icon(Icons.check_box),
+                  ),
+                  cSizedBox(2, 0),
+                  Text("모집완료 보기",
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.indigo.shade300,
+                    ),
+                  ),
+                ]
+            ),
+          ),
+        Container(
+          height: MediaQuery.of(context).size.height,
+          child: StreamBuilder<QuerySnapshot>(
+            stream: colstream,
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+              if (!snapshot.hasData) {
+                return CircularProgressIndicator();
+              }
+              switch (snapshot.connectionState) {
+                case ConnectionState.waiting:
+                  return Text("Loading...");
+                default:
+                  return ListView(
+                    children: snapshot.data!.docs.map((doc){
+                      String title = doc['title'];
+                      String writer = doc['writer'];
+                      return Column(
+                        children: [
+                          Padding(padding: EdgeInsets.fromLTRB(10, 15, 10, 15)),
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(
+                                  builder: (context) => showBoard(doc.id)));
+                            },
+                            child: Container(
+                              margin: EdgeInsets.fromLTRB(50, 10, 10, 10),
+                              child: Row(
+                              children: [
+                                Text(title.toString(),
+                                    style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w600, fontSize: 20)),
+                                SizedBox(width: 20,),
+                                Text(writer.toString(),
+                                    style: TextStyle(fontSize: 19, color: Colors.blueGrey)),
+                              ],
+                              ),
+                            ),
+                          ),
+                          Divider(
+                            thickness: 2,
+                            color: Colors.blue[200],
+                          ),
+                        ]
+                      );
+                    }).toList(),
+                  );
+              }},),),
+        ]
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: (){
+          Navigator.push(context, MaterialPageRoute(builder: (context) => WriteBoard()));
+        }
+      ),
+    );
+  }
+
+  Widget cSizedBox(double h, double w){
+    return SizedBox(
+      height: h,
+      width: w,
     );
   }
 }
