@@ -19,6 +19,7 @@ class SignUpPageState extends State<SignUpPage> {
   TextEditingController pwdInput = TextEditingController();
   TextEditingController nameInput = TextEditingController();
   TextEditingController repwdInput = TextEditingController();
+  TextEditingController nickInput = TextEditingController();
 
   FirebaseFirestore fs = FirebaseFirestore.instance; // 파이어베이스 db 인스턴스 생성
 
@@ -47,6 +48,7 @@ class SignUpPageState extends State<SignUpPage> {
     pwdInput.dispose();
     nameInput.dispose();
     repwdInput.dispose();
+    nickInput.dispose();
     super.dispose();
   }
 
@@ -215,12 +217,12 @@ class SignUpPageState extends State<SignUpPage> {
                           ),
                           cSizedBox(25, 0),
 
-                          /*// nickname
+                          // nickname
                           inputNav(Icons.arrow_forward, "  닉네임"),
                           Container(
                               padding: EdgeInsets.fromLTRB(60, 0, 60, 0),
                               child: TextFormField(
-                                  controller: pwdInput,
+                                  controller: nickInput,
                                   decoration: InputDecoration(
                                     hintText: "   닉네임",
                                   ),
@@ -233,7 +235,7 @@ class SignUpPageState extends State<SignUpPage> {
                                   }
                               )
                           ),
-                          cSizedBox(25, 0),*/
+                          cSizedBox(25, 0),
 
                           // gender
                           inputNav(Icons.face, "  성별"),
@@ -374,7 +376,7 @@ class SignUpPageState extends State<SignUpPage> {
 
   void _signUp() async {
     QuerySnapshot tmp = await fs.collection('users').get();
-    int nick = tmp.size;
+    int num = tmp.size;
 
 
     if(!(terms1 && terms2)){
@@ -418,7 +420,8 @@ class SignUpPageState extends State<SignUpPage> {
       Navigator.pop(context);
       fs.collection('users').doc(emailInput.text).set({
         'name': nameInput.text,
-        'nick' : nick,
+        'num' : num,
+        'nick' : nickInput.text,
         'gender' : gender,
         'email': emailInput.text,
         'postcount': 0,
