@@ -146,6 +146,12 @@ class WriteBoardState extends State<WriteBoard> {
 
   void uploadOnFS(String txt1, String txt2) async {
     var tmp = fp.getInfo();
+    List<String> roomName = [tmp['name'] + tmp['postcount'].toString()];
+    await fs
+        .collection('users')
+        .doc(tmp['email'])
+        .update({'joiningIn': FieldValue.arrayUnion(roomName)});
+
     await fs
         .collection('posts')
         .doc(tmp['name'] + tmp['postcount'].toString())
@@ -162,12 +168,6 @@ class WriteBoardState extends State<WriteBoard> {
       'postName': tmp['name'] + tmp['postcount'].toString(),
     });
     fp.updateIntInfo('postcount', 1);
-
-    List<String> roomName = [txt1];
-    await fs
-        .collection('users')
-        .doc(tmp['email'])
-        .update({'joiningIn': FieldValue.arrayUnion(roomName)});
   }
 }
 
@@ -359,7 +359,7 @@ class showBoardState extends State<showBoard> {
                                     snapshot.data!['currentMember'];
                                 int _limitedMember =
                                     snapshot.data!['limitedMember'];
-                                String _roomName = snapshot.data!['title'];
+                                String _roomName = snapshot.data!['postName'];
 
                                 List<String> _joiningRoom = [];
                                 await FirebaseFirestore.instance
@@ -417,7 +417,7 @@ class showBoardState extends State<showBoard> {
                                     snapshot.data!['currentMember'];
                                 int _limitedMember =
                                     snapshot.data!['limitedMember'];
-                                String _roomName = snapshot.data!['title'];
+                                String _roomName = snapshot.data!['postName'];
 
                                 // 모임에 2명 이상, 제한 인원 이하로 남을 경우
                                 if (_currentMember >= 2 &&
@@ -446,6 +446,14 @@ class showBoardState extends State<showBoard> {
                                       .collection('posts')
                                       .doc(widget.id)
                                       .delete();
+                                  List<String> roomName = [_roomName];
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(tmp['email'])
+                                      .update({
+                                    'joiningIn':
+                                        FieldValue.arrayRemove(roomName)
+                                  });
                                   print('사람이 0명이 되어 방 파괴!!');
                                 }
                                 // 남은 인원이 제한 인원 초과 또는 0명 이하일 경우
