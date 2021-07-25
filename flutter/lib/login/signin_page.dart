@@ -218,14 +218,6 @@ class SignInPageState extends State<SignInPage> {
                                       child: SignUpPage()));
                             },
                           ),
-                          AnimatedPositioned(
-                            right: 0,
-                            left: 0,
-                            duration: Duration(milliseconds: 300),
-                            child: Container(
-                              color: Colors.white,
-                            )
-                          )
                         ],
                       ),
 
