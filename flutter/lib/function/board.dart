@@ -372,7 +372,7 @@ class showBoardState extends State<showBoard> {
                                         snapshot.data!['pic'][idx]);
                                   }),
                             ),
-                      // 수정, 삭제 버튼
+                      // 수정, 삭제
                       Row(
                         children: [
                           Container(
@@ -444,7 +444,7 @@ class showBoardState extends State<showBoard> {
                                         snapshot.data!['pic'][idx]);
                                   }),
                             ),
-                      // 참가, 손절 버튼
+                      // 참가, 손절
                       Row(
                         children: [
                           // 참가 버튼을 누르면 currentMember+1, 제한 넘으면 불가

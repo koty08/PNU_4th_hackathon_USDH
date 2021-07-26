@@ -14,6 +14,7 @@ import 'widget/full_photo.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// 채팅방 내부
 class Chat extends StatelessWidget {
   final String peerId;
   final String peerAvatar;

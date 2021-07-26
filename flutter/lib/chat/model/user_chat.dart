@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// user 정보 저장
 class UserChat {
   String id;
   String photoUrl;

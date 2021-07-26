@@ -31,6 +31,7 @@ class SignedInPageState extends State<SignedInPage> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // 채팅방 버튼
               IconButton(
                 icon: Icon(Icons.message),
                 onPressed: () {

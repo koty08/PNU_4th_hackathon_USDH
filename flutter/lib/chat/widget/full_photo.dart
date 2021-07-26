@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../const.dart';
 import 'package:photo_view/photo_view.dart';
 
+// photo widget 관리
 class FullPhoto extends StatelessWidget {
   final String url;
 
