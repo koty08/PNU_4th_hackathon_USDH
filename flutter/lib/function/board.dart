@@ -360,10 +360,13 @@ class showBoardState extends State<showBoard>{
                         ),
                         onPressed: () async {
                           Navigator.pop(context);
+                          
                           for(int i = 0; i < snapshot.data!['pic'].length; i++){
                             await storage.refFromURL(snapshot.data!['pic'][i]).delete();
+                            fp.updateIntInfo('piccount', -1);
                           }
                           await fs.collection('posts').doc(widget.id).delete();
+                          fp.updateIntInfo('postcount', -1);
                         },
                       ),
                     ),

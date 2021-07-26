@@ -29,7 +29,6 @@ class SignUpPageState extends State<SignUpPage> {
 
   String gender = "";
   List<bool> listBool = [false, false, false, false];
-  bool validate1 = false, validate2 = false, validate3= false, validate4 = false;
   final _formKey = GlobalKey<FormState>();
 
   @override
