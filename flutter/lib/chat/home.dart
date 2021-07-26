@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'chatting.dart';
 import 'const.dart';
-import 'package:login_test/login/firebase_provider.dart';
+import 'package:usdh/login/firebase_provider.dart';
 import 'model/user_chat.dart';
 import 'widget/loading.dart';
 

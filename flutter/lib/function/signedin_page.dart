@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:login_test/chat/home.dart';
-import 'package:login_test/login/firebase_provider.dart';
+import 'package:usdh/chat/home.dart';
+import 'package:usdh/login/firebase_provider.dart';
 import 'board.dart';
 import 'mypage.dart';
+import 'package:usdh/boards/delivery_board.dart';
 
 late SignedInPageState pageState;
 
@@ -73,7 +74,7 @@ class SignedInPageState extends State<SignedInPage> {
             children: [
               cSizedBox(0, 15),
               imageAndText('assets/images/icon/group.png', "택시", ListBoard()),
-              imageAndText('assets/images/icon/group.png', "배달", ListBoard()),
+              imageAndText('assets/images/icon/group.png', "배달", deliveryList()),
               imageAndText('assets/images/icon/group.png', "공구", ListBoard()),
               imageAndText('assets/images/icon/group.png', "팀빌딩", ListBoard()),
               cSizedBox(0, 15),

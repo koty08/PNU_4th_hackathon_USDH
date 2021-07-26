@@ -3,8 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:login_test/login/firebase_provider.dart';
-import 'package:login_test/chat/chatting.dart';
+import 'package:usdh/login/firebase_provider.dart';
+import 'package:usdh/chat/chatting.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -414,11 +414,13 @@ class showBoardState extends State<showBoard> {
                                   await storage
                                       .refFromURL(snapshot.data!['pic'][i])
                                       .delete();
+                                    fp.updateIntInfo('piccount', -1);
                                 }
                                 await fs
                                     .collection('posts')
                                     .doc(widget.id)
                                     .delete();
+                                fp.updateIntInfo('postcount', -1);
                               },
                             ),
                           ),

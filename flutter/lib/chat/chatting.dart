@@ -6,7 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:login_test/login/firebase_provider.dart';
+import 'package:usdh/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'const.dart';
 import 'widget/loading.dart';

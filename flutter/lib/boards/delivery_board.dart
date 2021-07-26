@@ -1,25 +1,42 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:login_test/login/firebase_provider.dart';
+import 'package:usdh/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
+import 'package:usdh/chat/chatting.dart';
 
-late WriteBoardState pageState;
-late ListBoardState pageState2;
-late showBoardState pageState3;
-late modifyBoardState pageState4;
+late deliveryWriteState pageState;
+late deliveryListState pageState2;
+late deliveryShowState pageState3;
+late deliveryModifyState pageState4;
 
-class WriteBoard extends StatefulWidget {
+bool is_available(String time, int n1, int n2){
+    if(n1 >= n2){
+      return false;
+    }
+    String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
+    DateTime d1 = DateTime.parse(now);
+    DateTime d2 = DateTime.parse(time);
+    Duration diff = d1.difference(d2);
+    if(diff.isNegative){
+      return true;
+    }
+    else{
+      return false;
+    }
+}
+
+class deliveryWrite extends StatefulWidget {
   @override
-  WriteBoardState createState() {
-    pageState = WriteBoardState();
+  deliveryWriteState createState() {
+    pageState = deliveryWriteState();
     return pageState;
   }
 }
 
-class WriteBoardState extends State<WriteBoard> {
+class deliveryWriteState extends State<deliveryWrite> {
   late File img;
   late FirebaseProvider fp;
   TextEditingController titleInput = TextEditingController();
@@ -28,6 +45,7 @@ class WriteBoardState extends State<WriteBoard> {
   TextEditingController memberInput = TextEditingController();
   TextEditingController foodInput = TextEditingController();
   TextEditingController locationInput = TextEditingController();
+  TextEditingController tagInput = TextEditingController();
   FirebaseStorage storage = FirebaseStorage.instance;
   FirebaseFirestore fs = FirebaseFirestore.instance;
   List urlList = [];
@@ -38,7 +56,7 @@ class WriteBoardState extends State<WriteBoard> {
   @override
   void initState() {
     setState(() {
-      gender = "여자";
+      gender = "상관없음";
     });
     super.initState();
   }
@@ -51,6 +69,7 @@ class WriteBoardState extends State<WriteBoard> {
     memberInput.dispose();
     foodInput.dispose();
     locationInput.dispose();
+    tagInput.dispose();
     super.dispose();
   }
 
@@ -92,7 +111,7 @@ class WriteBoardState extends State<WriteBoard> {
                         Text("모집조건"),
 
                         TextFormField(
-                            controller: titleInput,
+                            controller: timeInput,
                             decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)"),
                             validator : (text){
                             if(text == null || text.isEmpty){
@@ -102,7 +121,7 @@ class WriteBoardState extends State<WriteBoard> {
                             }
                         ),
                         TextFormField(
-                            controller: titleInput,
+                            controller: memberInput,
                             decoration: InputDecoration(hintText: "인원을 입력하세요. (숫자 형태)"),
                             validator : (text){
                             if(text == null || text.isEmpty){
@@ -112,7 +131,7 @@ class WriteBoardState extends State<WriteBoard> {
                             }
                         ),
                         TextFormField(
-                            controller: titleInput,
+                            controller: foodInput,
                             decoration: InputDecoration(hintText: "음식 종류를 입력하세요."),
                             validator : (text){
                             if(text == null || text.isEmpty){
@@ -122,11 +141,21 @@ class WriteBoardState extends State<WriteBoard> {
                             }
                         ),
                         TextFormField(
-                            controller: titleInput,
+                            controller: locationInput,
                             decoration: InputDecoration(hintText: "위치를 입력하세요."),
                             validator : (text){
                             if(text == null || text.isEmpty){
                               return "위치는 필수 입력 사항입니다.";
+                            }
+                            return null;
+                            }
+                        ),
+                        TextFormField(
+                            controller: tagInput,
+                            decoration: InputDecoration(hintText: "태그를 입력하세요."),
+                            validator : (text){
+                            if(text == null || text.isEmpty){
+                              return "태그는 필수 입력 사항입니다.";
                             }
                             return null;
                             }
@@ -218,21 +247,21 @@ class WriteBoardState extends State<WriteBoard> {
         .collection('delivery_board')
         .doc(tmp['name'] + tmp['postcount'].toString())
         .set({'title' : titleInput.text, 'writer': tmp['name'], 'contents': contentInput.text, 'time' : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd])+" "+timeInput.text+":00",
-        'now' : 0, 'limit' : int.parse(memberInput.text), 'food' : foodInput.text, 'location' : locationInput.text, 'gender' : gender});
+        'currentMember' : 1, 'limitedMember' : int.parse(memberInput.text), 'food' : foodInput.text, 'location' : locationInput.text, 'tags' : tagInput.text, 'gender' : gender});
     fp.updateIntInfo('postcount', 1);
   }
 }
 
 
-class ListBoard extends StatefulWidget{
+class deliveryList extends StatefulWidget{
   @override
-  ListBoardState createState() {
-    pageState2 = ListBoardState();
+  deliveryListState createState() {
+    pageState2 = deliveryListState();
     return pageState2;
   }
 }
 
-class ListBoardState extends State<ListBoard>{
+class deliveryListState extends State<deliveryList>{
   final Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
 
   @override
@@ -247,49 +276,96 @@ class ListBoardState extends State<ListBoard>{
               return CircularProgressIndicator();
             }
         
-            return new ListView(
-              children: snapshot.data!.docs.map((doc) => new ListTile(
-                title: new Text(doc['title']),
-                // subtitle: new Text(doc['writer']),
-                onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => showBoard(doc.id))),
-                trailing: is_available(doc['time'], doc['now'], doc['limit']) ? Text("모집중") : Text("모집완료"),
-              )).toList()
+            return ListView(
+              children: snapshot.data!.docs.map((doc) {
+                String title = doc['title'];
+                String tags = doc['tags'];
+                return Column(children: [
+                  Padding(padding: EdgeInsets.fromLTRB(10, 15, 10, 15)),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => deliveryShow(doc.id)));
+                    },
+                    child: Container(
+                      margin: EdgeInsets.fromLTRB(50, 10, 10, 10),
+                      child: Row(
+                        children: [
+                          //제목
+                          Text(title.toString(),
+                              style: TextStyle(
+                                  fontFamily: "SCDream",
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 20)),
+                          SizedBox(
+                            width: 20,
+                          ),
+
+                          //모집중, 모집완료 표시
+                          is_available(doc['time'], doc['currentMember'], doc['limitedMember']) ? Text("모집중") : Text("모집완료"),
+
+                          PopupMenuButton(
+                            itemBuilder: (BuildContext context) => [
+                              PopupMenuItem(
+                                child: TextButton(
+                                  child: Text(
+                                    "채팅시작",
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => Chat(
+                                                  peerId: doc['email'],
+                                                  peerAvatar:
+                                                      doc['photoUrl'],
+                                            )));
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  //태그
+                  Text(tags.toString(),
+                    style: TextStyle(
+                    fontSize: 19, color: Colors.blueGrey)),
+                  Divider(
+                    thickness: 2,
+                    color: Colors.blue[200],
+                  ),
+                ]);
+              }).toList()
             );
-        })
+        }),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => deliveryWrite()));
+          }),
     );
-  }
-
-  bool is_available(String time, int n1, int n2){
-    if(n1 < n2){
-      return true;
-    }
-
-    String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
-    DateTime d1 = DateTime.parse(now);
-    DateTime d2 = DateTime.parse(time);
-    Duration diff = d1.difference(d2);
-    if(diff.isNegative){
-      return true;
-    }
-    else{
-      return false;
-    }
   }
 }
 
-class showBoard extends StatefulWidget{
-  showBoard(this.id);
+class deliveryShow extends StatefulWidget{
+  deliveryShow(this.id);
   final String id;
 
   @override
-  showBoardState createState(){
-    pageState3 = showBoardState();
+  deliveryShowState createState(){
+    pageState3 = deliveryShowState();
     return pageState3;
   }
 }
 
-class showBoardState extends State<showBoard>{
+class deliveryShowState extends State<deliveryShow>{
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
 
@@ -320,12 +396,15 @@ class showBoardState extends State<showBoard>{
               if(fp.getInfo()['name'] == snapshot.data!['writer']){
                 return Column(
                   children: [
+                  Text(snapshot.data!['tags']),
                   Text(snapshot.data!['title']),
+                  Text("마감 " + formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
                   Divider(color: Colors.black,),
-                  Text(snapshot.data!['time']),
-                  Text(snapshot.data!['time']),
-                  Text(snapshot.data!['time']),
-                  Text(snapshot.data!['time']), //07-25 20:16
+                  Text(formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
+                  Text(snapshot.data!['currentMember'].toString()+"/"+snapshot.data!['limitedMember'].toString()),
+                  Text(snapshot.data!['food']),
+                  Text(snapshot.data!['location']),
+                  Text(snapshot.data!['gender']),
                   Divider(color: Colors.black,),
                   Text(snapshot.data!['contents']),
                   Row(
@@ -341,7 +420,10 @@ class showBoardState extends State<showBoard>{
                           style: TextStyle(color: Colors.white),
                         ),
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => modifyBoard(widget.id)));
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => deliveryModify(widget.id)));
+                          setState(() {
+                            
+                          });
                         },
                       ),
                     ),
@@ -357,10 +439,8 @@ class showBoardState extends State<showBoard>{
                         ),
                         onPressed: () async {
                           Navigator.pop(context);
-                          for(int i = 0; i < snapshot.data!['pic'].length; i++){
-                            await storage.refFromURL(snapshot.data!['pic'][i]).delete();
-                          }
                           await fs.collection('delivery_board').doc(widget.id).delete();
+                          fp.updateIntInfo('postcount', -1);
                         },
                       ),
                     ),
@@ -372,13 +452,160 @@ class showBoardState extends State<showBoard>{
 
               else{
                 return Column(
-                  children: [
-                  Text(snapshot.data!['title']),
-                  Divider(color: Colors.black,),
+                    children: [
+                      Text(snapshot.data!['tags']),
+                      Text(snapshot.data!['title']),
+                      Text("마감 " + formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
+                      Divider(color: Colors.black,),
+                      Text(formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
+                      Text(snapshot.data!['currentMember'].toString()+"/"+snapshot.data!['limitedMember'].toString()),
+                      Text(snapshot.data!['food']),
+                      Text(snapshot.data!['location']),
+                      Text(snapshot.data!['gender']),
+                      Divider(color: Colors.black,),
+                      Text(snapshot.data!['contents']),
+                      // 참가, 손절
+                      Row(
+                        children: [
+                          // 참가 버튼을 누르면 currentMember+1, 제한 넘으면 불가
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                primary: Colors.purple[300],
+                              ),
+                              child: Text(
+                                "참가",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: () async {
+                                var tmp = fp.getInfo();
+                                int _currentMember =
+                                    snapshot.data!['currentMember'];
+                                int _limitedMember =
+                                    snapshot.data!['limitedMember'];
+                                String _roomName = snapshot.data!['postName'];
 
-                  Divider(color: Colors.black,),
-                  Text(snapshot.data!['contents']),
-                  ],
+                                List<String> _joiningRoom = [];
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(tmp['email'])
+                                    .get()
+                                    .then((value) {
+                                  for (String room in value['joiningIn']) {
+                                    _joiningRoom.add(room);
+                                  }
+                                });
+                                // 이미 참가한 방인 경우
+                                if (_joiningRoom.contains(_roomName)) {
+                                  print('이미 참가한 방입니다!!');
+                                }
+                                // 제한 인원 꽉 찰 경우
+                                else if (_currentMember >= _limitedMember) {
+                                  print('This room is full');
+                                }
+                                // 인원이 남을 경우
+                                else {
+                                  await FirebaseFirestore.instance
+                                      .collection('posts')
+                                      .doc(snapshot.data!['postName'])
+                                      .update({
+                                    'currentMember': _currentMember + 1
+                                  });
+                                  List<String> roomName = [_roomName];
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(tmp['email'])
+                                      .update({
+                                    'joiningIn': FieldValue.arrayUnion(roomName)
+                                  });
+                                  Navigator.pop(context);
+                                  print(_roomName + ' 참가!!');
+                                }
+                              },
+                            ),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                primary: Colors.indigo[300],
+                              ),
+                              child: Text(
+                                "손절",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: () async {
+                                var tmp = fp.getInfo();
+                                int _currentMember =
+                                    snapshot.data!['currentMember'];
+                                int _limitedMember =
+                                    snapshot.data!['limitedMember'];
+                                String _roomName = snapshot.data!['postName'];
+
+                                List<String> _joiningRoom = [];
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(tmp['email'])
+                                    .get()
+                                    .then((value) {
+                                  for (String room in value['joiningIn']) {
+                                    _joiningRoom.add(room);
+                                  }
+                                });
+                                // 방에 참가하지 않은 경우
+                                if (!_joiningRoom.contains(_roomName)) {
+                                  print('참가하지 않은 방입니다!!');
+                                }
+                                // 모임에 2명 이상, 제한 인원 이하로 남을 경우
+                                else if (_currentMember >= 2 &&
+                                    _currentMember <= _limitedMember) {
+                                  await FirebaseFirestore.instance
+                                      .collection('posts')
+                                      .doc(snapshot.data!['postName'])
+                                      .update({
+                                    'currentMember': _currentMember - 1
+                                  });
+                                  List<String> roomName = [_roomName];
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(tmp['email'])
+                                      .update({
+                                    'joiningIn':
+                                        FieldValue.arrayRemove(roomName)
+                                  });
+                                  Navigator.pop(context);
+                                  print(_roomName + ' 손절!!');
+                                }
+                                // 남은 인원이 1명일 경우
+                                else if (_currentMember == 1) {
+                                  Navigator.pop(context);
+                                  fs
+                                      .collection('posts')
+                                      .doc(widget.id)
+                                      .delete();
+                                  List<String> roomName = [_roomName];
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(tmp['email'])
+                                      .update({
+                                    'joiningIn':
+                                        FieldValue.arrayRemove(roomName)
+                                  });
+                                  print('사람이 0명이 되어 방 파괴!!');
+                                }
+                                // 남은 인원이 제한 인원 초과 또는 0명 이하일 경우
+                                else {
+                                  print('The current member has a error!!');
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                 );
               }
             }
@@ -390,20 +617,46 @@ class showBoardState extends State<showBoard>{
 
 }
 
-class modifyBoard extends StatefulWidget{
-  modifyBoard(this.id);
+class deliveryModify extends StatefulWidget{
+  deliveryModify(this.id);
   final String id;
   @override
   State<StatefulWidget> createState() {
-    pageState4 = modifyBoardState();
+    pageState4 = deliveryModifyState();
     return pageState4;
   }
 }
 
-class modifyBoardState extends State<modifyBoard>{
+class deliveryModifyState extends State<deliveryModify>{
   final FirebaseFirestore fs = FirebaseFirestore.instance;
   late TextEditingController titleInput;
   late TextEditingController contentInput;
+  late TextEditingController timeInput;
+  late TextEditingController memberInput;
+  late TextEditingController foodInput;
+  late TextEditingController locationInput;
+  late TextEditingController tagInput;
+  String gender = "";
+
+  @override
+  void initState() {
+    setState(() {
+      gender = "상관없음";
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    titleInput.dispose();
+    contentInput.dispose();
+    timeInput.dispose();
+    memberInput.dispose();
+    foodInput.dispose();
+    locationInput.dispose();
+    tagInput.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -421,9 +674,19 @@ class modifyBoardState extends State<modifyBoard>{
           if(snapshot.hasData){
             titleInput = TextEditingController(text: snapshot.data!['title']);
             contentInput = TextEditingController(text: snapshot.data!['contents']);
+            timeInput = TextEditingController(text : formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn]));
+            memberInput = TextEditingController(text: snapshot.data!['limitedMember'].toString());
+            foodInput = TextEditingController(text: snapshot.data!['food']);
+            locationInput = TextEditingController(text: snapshot.data!['location']);
+            tagInput = TextEditingController(text: snapshot.data!['tags']);
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                //태그 수정
+                TextField(
+                  controller: tagInput,
+                ),
+                //제목 수정
                 Container(
                     height: 30,
                     margin:
@@ -432,6 +695,59 @@ class modifyBoardState extends State<modifyBoard>{
                           controller: titleInput,
                         ),
                     ),
+                //시간 수정
+                TextField(
+                  controller: timeInput,
+                ),
+                //사람수 수정
+                TextField(
+                  controller: memberInput,
+                ),
+                //음식 수정
+                TextField(
+                  controller: foodInput,
+                ),
+                //위치 수정
+                TextField(
+                  controller: locationInput,
+                ),
+                //성별 수정
+                Row(
+                  children: [
+                    Padding(padding: EdgeInsets.fromLTRB(0, 60, 0, 0)),
+                    Radio(
+                        value: "여자만",
+                        groupValue: gender,
+                        onChanged: (String? value){
+                          setState(() {
+                            gender = value!;
+                          });
+                        }
+                    ),
+                    Text("여자만"),
+                    Radio(
+                        value: "남자만",
+                        groupValue: gender,
+                        onChanged: (String? value){
+                          setState(() {
+                            gender = value!;
+                          });
+                        }
+                    ),
+                    Text("남자만"),
+                    Radio(
+                        value: "상관없음",
+                        groupValue: gender,
+                        onChanged: (String? value){
+                          setState(() {
+                            gender = value!;
+                          });
+                        }
+                    ),
+                    Text("상관없음"),
+                  ],
+                ),
+                //내용 수정
                 Container(
                     height: 50,
                     margin:
@@ -440,22 +756,10 @@ class modifyBoardState extends State<modifyBoard>{
                       TextField(
                           controller: contentInput,
                       ),
-                    ),
+                ),
                 Divider(
                   color: Colors.black,
                 ),
-                snapshot.data!['pic'].isEmpty ? 
-                  Container():
-                  Container(
-                    height : 300,
-                    child:
-                      ListView.builder(
-                      itemCount: snapshot.data!['pic'].length,
-                      itemBuilder: (BuildContext context, int idx){
-                        return Image.network(snapshot.data!['pic'][idx]);
-                      }
-                    ),
-                  ),
                 Container(
                   height: 30,
                     margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -469,7 +773,7 @@ class modifyBoardState extends State<modifyBoard>{
                       ),
                       onPressed: () {
                         FocusScope.of(context).requestFocus(new FocusNode());
-                        updateOnFS(titleInput.text, contentInput.text);
+                        updateOnFS();
                         Navigator.pop(context);
                       },
                     )
@@ -482,8 +786,8 @@ class modifyBoardState extends State<modifyBoard>{
     ));
   }
 
-  void updateOnFS(String txt1, String txt2) async {
-    await fs.collection('delivery_board').doc(widget.id).update({'title' : txt1,
-    'contents' : txt2});
+  void updateOnFS() async {
+    await fs.collection('delivery_board').doc(widget.id).update({'title' : titleInput.text, 'contents': contentInput.text, 'time' : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd])+" "+timeInput.text+":00",
+      'limitedMember' : int.parse(memberInput.text), 'food' : foodInput.text, 'location' : locationInput.text, 'tags' : tagInput.text, 'gender' : gender});
   }
 }
