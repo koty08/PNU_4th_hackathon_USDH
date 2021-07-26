@@ -485,7 +485,7 @@ class deliveryShowState extends State<deliveryShow>{
                                     snapshot.data!['currentMember'];
                                 int _limitedMember =
                                     snapshot.data!['limitedMember'];
-                                String _roomName = snapshot.data!['postName'];
+                                String _roomName = widget.id;
 
                                 List<String> _joiningRoom = [];
                                 await FirebaseFirestore.instance
@@ -508,8 +508,8 @@ class deliveryShowState extends State<deliveryShow>{
                                 // 인원이 남을 경우
                                 else {
                                   await FirebaseFirestore.instance
-                                      .collection('posts')
-                                      .doc(snapshot.data!['postName'])
+                                      .collection('delivery_board')
+                                      .doc(widget.id)
                                       .update({
                                     'currentMember': _currentMember + 1
                                   });
@@ -543,7 +543,7 @@ class deliveryShowState extends State<deliveryShow>{
                                     snapshot.data!['currentMember'];
                                 int _limitedMember =
                                     snapshot.data!['limitedMember'];
-                                String _roomName = snapshot.data!['postName'];
+                                String _roomName = widget.id;
 
                                 List<String> _joiningRoom = [];
                                 await FirebaseFirestore.instance
@@ -563,8 +563,8 @@ class deliveryShowState extends State<deliveryShow>{
                                 else if (_currentMember >= 2 &&
                                     _currentMember <= _limitedMember) {
                                   await FirebaseFirestore.instance
-                                      .collection('posts')
-                                      .doc(snapshot.data!['postName'])
+                                      .collection('delivery_board')
+                                      .doc(widget.id)
                                       .update({
                                     'currentMember': _currentMember - 1
                                   });
@@ -583,7 +583,7 @@ class deliveryShowState extends State<deliveryShow>{
                                 else if (_currentMember == 1) {
                                   Navigator.pop(context);
                                   fs
-                                      .collection('posts')
+                                      .collection('delivery_board')
                                       .doc(widget.id)
                                       .delete();
                                   List<String> roomName = [_roomName];
@@ -638,6 +638,8 @@ class deliveryModifyState extends State<deliveryModify>{
   late TextEditingController tagInput;
   String gender = "";
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     setState(() {
@@ -679,106 +681,145 @@ class deliveryModifyState extends State<deliveryModify>{
             foodInput = TextEditingController(text: snapshot.data!['food']);
             locationInput = TextEditingController(text: snapshot.data!['location']);
             tagInput = TextEditingController(text: snapshot.data!['tags']);
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                //태그 수정
-                TextField(
-                  controller: tagInput,
-                ),
-                //제목 수정
-                Container(
+            return Form(key: _formKey,
+              child: 
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  TextFormField(
+                      controller: tagInput,
+                      decoration: InputDecoration(hintText: "태그를 입력하세요."),
+                      validator : (text){
+                      if(text == null || text.isEmpty){
+                        return "태그는 필수 입력 사항입니다.";
+                      }
+                      return null;
+                      }
+                  ),
+                  TextFormField(
+                      controller: titleInput,
+                      decoration: InputDecoration(hintText: "제목을 입력하세요."),
+                      validator : (text){
+                      if(text == null || text.isEmpty){
+                        return "제목은 필수 입력 사항입니다.";
+                      }
+                      return null;
+                      }
+                  ),
+                  Divider(
+                    color: Colors.black,
+                  ),
+                  TextFormField(
+                      controller: timeInput,
+                      decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)"),
+                      validator : (text){
+                      if(text == null || text.isEmpty){
+                        return "마감 시간은 필수 입력 사항입니다.";
+                      }
+                      return null;
+                      }
+                  ),
+                  TextFormField(
+                      controller: memberInput,
+                      decoration: InputDecoration(hintText: "인원을 입력하세요. (숫자 형태)"),
+                      validator : (text){
+                      if(text == null || text.isEmpty){
+                        return "인원은 필수 입력 사항입니다.";
+                      }
+                      return null;
+                      }
+                  ),
+                  TextFormField(
+                      controller: foodInput,
+                      decoration: InputDecoration(hintText: "음식 종류를 입력하세요."),
+                      validator : (text){
+                      if(text == null || text.isEmpty){
+                        return "음식 종류는 필수 입력 사항입니다.";
+                      }
+                      return null;
+                      }
+                  ),
+                  TextFormField(
+                      controller: locationInput,
+                      decoration: InputDecoration(hintText: "위치를 입력하세요."),
+                      validator : (text){
+                      if(text == null || text.isEmpty){
+                        return "위치는 필수 입력 사항입니다.";
+                      }
+                      return null;
+                      }
+                  ),
+                  Row(
+                    children: [
+                      Padding(padding: EdgeInsets.fromLTRB(0, 60, 0, 0)),
+                      Radio(
+                          value: "여자만",
+                          groupValue: gender,
+                          onChanged: (String? value){
+                            setState(() {
+                              gender = value!;
+                            });
+                          }
+                      ),
+                      Text("여자만"),
+                      Radio(
+                          value: "남자만",
+                          groupValue: gender,
+                          onChanged: (String? value){
+                            setState(() {
+                              gender = value!;
+                            });
+                          }
+                      ),
+                      Text("남자만"),
+                      Radio(
+                          value: "상관없음",
+                          groupValue: gender,
+                          onChanged: (String? value){
+                            setState(() {
+                              gender = value!;
+                            });
+                          }
+                      ),
+                      Text("상관없음"),
+                    ],
+                  ),
+                  //내용 수정
+                  TextFormField(
+                      controller: contentInput,
+                      decoration: InputDecoration(hintText: "내용을 입력하세요."),
+                      validator : (text){
+                      if(text == null || text.isEmpty){
+                        return "내용은 필수 입력 사항입니다.";
+                      }
+                      return null;
+                    }
+                  ),
+                  Divider(
+                    color: Colors.black,
+                  ),
+                  Container(
                     height: 30,
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
-                    child: TextField(
-                          controller: titleInput,
+                      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.blueAccent[200],
                         ),
-                    ),
-                //시간 수정
-                TextField(
-                  controller: timeInput,
-                ),
-                //사람수 수정
-                TextField(
-                  controller: memberInput,
-                ),
-                //음식 수정
-                TextField(
-                  controller: foodInput,
-                ),
-                //위치 수정
-                TextField(
-                  controller: locationInput,
-                ),
-                //성별 수정
-                Row(
-                  children: [
-                    Padding(padding: EdgeInsets.fromLTRB(0, 60, 0, 0)),
-                    Radio(
-                        value: "여자만",
-                        groupValue: gender,
-                        onChanged: (String? value){
-                          setState(() {
-                            gender = value!;
-                          });
-                        }
-                    ),
-                    Text("여자만"),
-                    Radio(
-                        value: "남자만",
-                        groupValue: gender,
-                        onChanged: (String? value){
-                          setState(() {
-                            gender = value!;
-                          });
-                        }
-                    ),
-                    Text("남자만"),
-                    Radio(
-                        value: "상관없음",
-                        groupValue: gender,
-                        onChanged: (String? value){
-                          setState(() {
-                            gender = value!;
-                          });
-                        }
-                    ),
-                    Text("상관없음"),
-                  ],
-                ),
-                //내용 수정
-                Container(
-                    height: 50,
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
-                    child:
-                      TextField(
-                          controller: contentInput,
-                      ),
-                ),
-                Divider(
-                  color: Colors.black,
-                ),
-                Container(
-                  height: 30,
-                    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        primary: Colors.blueAccent[200],
-                      ),
-                      child: Text(
-                        "게시물 수정",
-                        style: TextStyle(color: Colors.black),
-                      ),
-                      onPressed: () {
-                        FocusScope.of(context).requestFocus(new FocusNode());
-                        updateOnFS();
-                        Navigator.pop(context);
-                      },
-                    )
-                ),
-              ],
+                        child: Text(
+                          "게시물 수정",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                        onPressed: () {
+                          FocusScope.of(context).requestFocus(new FocusNode());
+                          if(_formKey.currentState!.validate()){
+                            updateOnFS();
+                            Navigator.pop(context);
+                          }
+                        },
+                      )
+                  ),
+                ],
+              )
             );
           }
           return CircularProgressIndicator();
