@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../const.dart';
 
+// loading 시 뜰 widget
 class Loading extends StatelessWidget {
   const Loading();
 

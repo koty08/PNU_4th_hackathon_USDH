@@ -7,6 +7,7 @@ import 'package:login_test/login/firebase_provider.dart';
 import 'model/user_chat.dart';
 import 'widget/loading.dart';
 
+// 현재 내가 포함된 채팅방 목록
 class HomeScreen extends StatefulWidget {
   final String currentUserId;
 
