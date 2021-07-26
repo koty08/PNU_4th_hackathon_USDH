@@ -57,30 +57,27 @@ class SignUpPageState extends State<SignUpPage> {
         resizeToAvoidBottomInset: false,
         key: _scaffoldKey,
         body: SingleChildScrollView(
-          child: Container(
-            decoration: BoxDecoration(
-                image: DecorationImage(
+            child: Container(
+                decoration: BoxDecoration(
+                    image: DecorationImage(
                   fit: BoxFit.fill,
                   image: AssetImage("assets/images/belogin.png"),
-                )
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: MediaQuery.of(context).size.height * 1.6,
-                  margin: const EdgeInsets.only(top: 28, bottom: 28),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(60),
-                  ),
+                )),
+                child: Column(children: [
+                  Container(
+                    width: double.infinity,
+                    height: MediaQuery.of(context).size.height * 1.6,
+                    margin: const EdgeInsets.only(top: 28, bottom: 28),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(60),
+                    ),
                     child: Form(
                       key: _formKey,
-                      child: Column(
-                        children: [
-                          // 상단
-                          cSizedBox(30, 0),
-                          Row(
+                      child: Column(children: [
+                        // 상단
+                        cSizedBox(30, 0),
+                        Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -94,39 +91,37 @@ class SignUpPageState extends State<SignUpPage> {
                               Text(
                                 "회원가입",
                                 style: TextStyle(
-                                  color: Colors.indigo.shade400,
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.bold
-                                ),
+                                    color: Colors.indigo.shade400,
+                                    fontSize: 25,
+                                    fontWeight: FontWeight.bold),
                               ),
                               cSizedBox(0, 85)
-                            ]
-                          ),
-                          Container(
-                            margin: EdgeInsets.only(top: 15),
-                            height: 5,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                stops: [0.0, 1.0],
-                                colors: [
-                                  Colors.blue.shade200,
-                                  Colors.deepPurple.shade200,
-                                ],
-                              ),
-                            ),
-                            child: Divider(
-                              thickness: 5,
-                              color: Colors.transparent,
+                            ]),
+                        Container(
+                          margin: EdgeInsets.only(top: 15),
+                          height: 5,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              stops: [0.0, 1.0],
+                              colors: [
+                                Colors.blue.shade200,
+                                Colors.deepPurple.shade200,
+                              ],
                             ),
                           ),
-                          cSizedBox(40, 0),
+                          child: Divider(
+                            thickness: 5,
+                            color: Colors.transparent,
+                          ),
+                        ),
+                        cSizedBox(40, 0),
 
-                          // 입력
-                          // 1) email
-                          inputNav(Icons.email, "  웹메일"),
-                          Container(
+                        // 입력
+                        // 1) email
+                        inputNav(Icons.email, "  웹메일"),
+                        Container(
                             padding: EdgeInsets.fromLTRB(60, 0, 60, 0),
                             margin: EdgeInsets.fromLTRB(0, 5, 0, 15),
                             height: 68,
@@ -134,51 +129,49 @@ class SignUpPageState extends State<SignUpPage> {
                               controller: emailInput,
                               decoration: InputDecoration(
                                 hintText: "   웹메일(학교 이메일)",
-                                errorStyle: TextStyle(color: Colors.indigo.shade200),
+                                errorStyle:
+                                    TextStyle(color: Colors.indigo.shade200),
                               ),
-                              validator: (text){
-                                if(text == null || text.isEmpty){
+                              validator: (text) {
+                                if (text == null || text.isEmpty) {
                                   return "이메일은 필수 입력 사항입니다.";
-                                }
-                                else if(!text.contains("@")){
+                                } else if (!text.contains("@")) {
                                   return "부산대학교 웹메일을 사용하셔야 합니다.";
-                                }
-                                else if(text.contains("@") && text.split("@")[1] != "pusan.ac.kr"){
+                                } else if (text.contains("@") &&
+                                    text.split("@")[1] != "pusan.ac.kr") {
                                   return "부산대학교 웹메일을 사용하셔야 합니다.";
                                 }
                                 return null;
                               },
-                            )
-                          ),
+                            )),
 
-                          // pwd
-                          inputNav(Icons.lock, "  비밀번호"),
-                          Container(
-                              padding: EdgeInsets.fromLTRB(60, 0, 60, 0),
-                              margin: EdgeInsets.fromLTRB(0, 5, 0, 15),
-                              height: 68,
-                              child: TextFormField(
-                                controller: pwdInput,
-                                decoration: InputDecoration(
-                                  hintText: "   비밀번호(6자 이상)",
-                                  errorStyle: TextStyle(color: Colors.indigo.shade200),
-                                ),
-                                obscureText: true,
-                                validator: (text){
-                                  if(text == null || text.isEmpty){
-                                    return "비밀번호는 필수 입력 사항입니다.";
-                                  }
-                                  else if(text.length < 6){
-                                    return "비밀번호는 6자 이상이어야 합니다.";
-                                  }
-                                  return null;
-                                },
-                              )
-                          ),
+                        // pwd
+                        inputNav(Icons.lock, "  비밀번호"),
+                        Container(
+                            padding: EdgeInsets.fromLTRB(60, 0, 60, 0),
+                            margin: EdgeInsets.fromLTRB(0, 5, 0, 15),
+                            height: 68,
+                            child: TextFormField(
+                              controller: pwdInput,
+                              decoration: InputDecoration(
+                                hintText: "   비밀번호(6자 이상)",
+                                errorStyle:
+                                    TextStyle(color: Colors.indigo.shade200),
+                              ),
+                              obscureText: true,
+                              validator: (text) {
+                                if (text == null || text.isEmpty) {
+                                  return "비밀번호는 필수 입력 사항입니다.";
+                                } else if (text.length < 6) {
+                                  return "비밀번호는 6자 이상이어야 합니다.";
+                                }
+                                return null;
+                              },
+                            )),
 
-                          // confirm pwd
-                          inputNav(Icons.lock, "  비밀번호 확인"),
-                          Container(
+                        // confirm pwd
+                        inputNav(Icons.lock, "  비밀번호 확인"),
+                        Container(
                             padding: EdgeInsets.fromLTRB(60, 0, 60, 0),
                             margin: EdgeInsets.fromLTRB(0, 5, 0, 15),
                             height: 68,
@@ -186,148 +179,152 @@ class SignUpPageState extends State<SignUpPage> {
                               controller: repwdInput,
                               decoration: InputDecoration(
                                 hintText: "   비밀번호 확인",
-                                errorStyle: TextStyle(color: Colors.indigo.shade200),
+                                errorStyle:
+                                    TextStyle(color: Colors.indigo.shade200),
                               ),
                               obscureText: true,
-                              validator: (text){
-                                if(text == null || text.isEmpty){
+                              validator: (text) {
+                                if (text == null || text.isEmpty) {
                                   return "비밀번호를 한번 더 입력 해주세요.";
-                                }
-                                else if(text.length < 6){
+                                } else if (text.length < 6) {
                                   return "비밀번호가 일치하지 않습니다.";
                                 }
                                 return null;
                               },
-                            )
-                          ),
+                            )),
 
-                          // name
-                          inputNav(Icons.arrow_forward, "  이름(실명)"),
-                          Container(
+                        // name
+                        inputNav(Icons.arrow_forward, "  이름(실명)"),
+                        Container(
                             padding: EdgeInsets.fromLTRB(60, 0, 60, 0),
                             margin: EdgeInsets.fromLTRB(0, 5, 0, 15),
                             height: 68,
                             child: TextFormField(
-                              controller: nameInput,
-                              decoration: InputDecoration(
-                                hintText: "   이름",
-                                errorStyle: TextStyle(color: Colors.indigo.shade200),
-                              ),
-                              validator : (text){
-                                if(text == null || text.isEmpty){
-                                  return "이름은 필수 입력 사항입니다.";
-                                }
-                                return null;
-                              }
-                            )
-                          ),
+                                controller: nameInput,
+                                decoration: InputDecoration(
+                                  hintText: "   이름",
+                                  errorStyle:
+                                      TextStyle(color: Colors.indigo.shade200),
+                                ),
+                                validator: (text) {
+                                  if (text == null || text.isEmpty) {
+                                    return "이름은 필수 입력 사항입니다.";
+                                  }
+                                  return null;
+                                })),
 
-                          // nickname
-                          inputNav(Icons.arrow_forward, "  닉네임"),
-                          Container(
-                              padding: EdgeInsets.fromLTRB(60, 0, 60, 0),
-                              margin: EdgeInsets.fromLTRB(0, 5, 0, 15),
-                              height: 68,
-                              child: TextFormField(
+                        // nickname
+                        inputNav(Icons.arrow_forward, "  닉네임"),
+                        Container(
+                            padding: EdgeInsets.fromLTRB(60, 0, 60, 0),
+                            margin: EdgeInsets.fromLTRB(0, 5, 0, 15),
+                            height: 68,
+                            child: TextFormField(
                                 controller: nickInput,
                                 decoration: InputDecoration(
                                   hintText: "   닉네임",
-                                  errorStyle: TextStyle(color: Colors.indigo.shade200),
+                                  errorStyle:
+                                      TextStyle(color: Colors.indigo.shade200),
                                 ),
                                 obscureText: true,
-                                validator : (text){
-                                  if(text == null || text.isEmpty){
+                                validator: (text) {
+                                  if (text == null || text.isEmpty) {
                                     return "닉네임은 필수 입력 사항입니다.";
                                   }
                                   return null;
-                                }
-                              )
-                            ),
+                                })),
 
-                          // gender
-                          inputNav(Icons.face, "  성별"),
-                          Row(
-                            children: [
-                              Padding(padding: EdgeInsets.fromLTRB(0, 60, 0, 0)),
-                              cSizedBox(0, 50),
-                              Theme(
-                                data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                child: Radio(
-                                    value: "여자",
-                                    activeColor: Colors.black38,
-                                    groupValue: gender,
-                                    onChanged: (String? value){
-                                      setState(() {
-                                        gender = value!;
-                                      });
-                                    }
+                        // gender
+                        inputNav(Icons.face, "  성별"),
+                        Row(
+                          children: [
+                            Padding(padding: EdgeInsets.fromLTRB(0, 60, 0, 0)),
+                            cSizedBox(0, 50),
+                            Theme(
+                              data: ThemeData(
+                                  unselectedWidgetColor: Colors.black38),
+                              child: Radio(
+                                  value: "여자",
+                                  activeColor: Colors.black38,
+                                  groupValue: gender,
+                                  onChanged: (String? value) {
+                                    setState(() {
+                                      gender = value!;
+                                    });
+                                  }),
+                            ),
+                            Text(
+                              "여자",
+                              style: TextStyle(
+                                fontSize: 15,
+                              ),
+                            ),
+                            Theme(
+                              data: ThemeData(
+                                  unselectedWidgetColor: Colors.black38),
+                              child: Radio(
+                                  value: "남자",
+                                  activeColor: Colors.black38,
+                                  groupValue: gender,
+                                  onChanged: (String? value) {
+                                    setState(() {
+                                      gender = value!;
+                                    });
+                                  }),
+                            ),
+                            Text(
+                              "남자",
+                              style: TextStyle(
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                        cSizedBox(10, 0),
+
+                        // ToS
+                        inputNav(Icons.task_alt, "  약관동의"),
+                        cSizedBox(10, 0),
+                        tos("서비스 이용 약관 동의 (필수)", 0),
+                        tos("개인 정보 수집 및 이용 동의 (필수)", 1),
+                        tos("위치 정보 이용 약관 동의 (선택)", 2),
+                        tos("알림 수신 동의 (선택)", 3),
+                        cSizedBox(10, 0),
+
+                        // SignUp Button
+                        Container(
+                          width: 270,
+                          height: 50,
+                          margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                primary: Color(0xff9995f9).withOpacity(0.8),
+                              ),
+                              child: Text(
+                                "회원가입",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
                                 ),
                               ),
-                              Text("여자", style: TextStyle(fontSize: 15,),),
-                              Theme(
-                                data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                child: Radio(
-                                    value: "남자",
-                                    activeColor: Colors.black38,
-                                    groupValue: gender,
-                                    onChanged: (String? value){
-                                      setState(() {
-                                        gender = value!;
-                                      });
-                                    }
-                                ),
-                              ),
-                              Text("남자", style: TextStyle(fontSize: 15,),),
-                            ],
-                          ),
-                          cSizedBox(10, 0),
-
-                          // ToS
-                          inputNav(Icons.task_alt, "  약관동의"),
-                          cSizedBox(10, 0),
-                          tos("서비스 이용 약관 동의 (필수)", 0),
-                          tos("개인 정보 수집 및 이용 동의 (필수)", 1),
-                          tos("위치 정보 이용 약관 동의 (선택)", 2),
-                          tos("알림 수신 동의 (선택)", 3),
-                          cSizedBox(10, 0),
-
-                          // SignUp Button
-                          Container(
-                            width: 270,
-                            height: 50,
-                            margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
-                            child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30.0),
-                                  ),
-                                  primary: Color(0xff9995f9).withOpacity(0.8),
-                                ),
-                                child: Text(
-                                  "회원가입",
-                                  style: TextStyle(color: Colors.white, fontSize: 18,),
-                                ),
-                                onPressed: () {
-                                  FocusScope.of(context)
-                                      .requestFocus(new FocusNode());
-                                  if(_formKey.currentState!.validate()){
-                                    _signUp();
-                                  }
+                              onPressed: () {
+                                FocusScope.of(context)
+                                    .requestFocus(new FocusNode());
+                                if (_formKey.currentState!.validate()) {
+                                  _signUp();
                                 }
-                            ),
-                          ),
-                        ]
-                      ),
+                              }),
+                        ),
+                      ]),
                     ),
-                ),
-              ]
-            )
-          )
-        )
-    );
+                  ),
+                ]))));
   }
 
-  Widget inputNav(IconData data, String text){
+  Widget inputNav(IconData data, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -349,42 +346,41 @@ class SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget tos(String text, int num){
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        cSizedBox(0, 50),
-        Theme(
-          data: ThemeData(unselectedWidgetColor: Colors.black26),
-          child: Checkbox(
+  Widget tos(String text, int num) {
+    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      cSizedBox(0, 50),
+      Theme(
+        data: ThemeData(unselectedWidgetColor: Colors.black26),
+        child: Checkbox(
             activeColor: Colors.black26,
             value: listBool[num],
-            onChanged: (bool? value){
+            onChanged: (bool? value) {
               setState(() {
                 listBool[num] = value!;
               });
-            }
-          ),
+            }),
+      ),
+      Text(
+        text,
+        style: TextStyle(
+          fontSize: 16,
         ),
-        Text(text, style: TextStyle(fontSize: 16,),),
-      ]
-    );
+      ),
+    ]);
   }
 
-  Widget cSizedBox(double h, double w){
+  Widget cSizedBox(double h, double w) {
     return SizedBox(
       height: h,
       width: w,
     );
   }
 
-
   void _signUp() async {
     QuerySnapshot tmp = await fs.collection('users').get();
     int num = tmp.size;
 
-
-    if(!(listBool[0] && listBool[1])){
+    if (!(listBool[0] && listBool[1])) {
       fp.setMessage("not-agree");
       showMessage();
       return;
@@ -393,30 +389,29 @@ class SignUpPageState extends State<SignUpPage> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: Colors.indigo.shade200,
-        duration: Duration(seconds: 10),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        content: Container(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                height: 17,
-                width: 17,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation(Colors.white),
-                  backgroundColor: Colors.indigo.shade200,
+          backgroundColor: Colors.indigo.shade200,
+          duration: Duration(seconds: 10),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          content: Container(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  height: 17,
+                  width: 17,
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                    backgroundColor: Colors.indigo.shade200,
+                  ),
                 ),
-              ),
-              SizedBox(width: 15),
-              Text("계정생성 중..."),
-            ],
-           ),
-         )
-      ),
+                SizedBox(width: 15),
+                Text("계정생성 중..."),
+              ],
+            ),
+          )),
     );
     bool result = await fp.signUp(emailInput.text, pwdInput.text);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -425,12 +420,16 @@ class SignUpPageState extends State<SignUpPage> {
       Navigator.pop(context);
       fs.collection('users').doc(emailInput.text).set({
         'name': nameInput.text,
-        'num' : num,
-        'nick' : nickInput.text,
-        'gender' : gender,
+        'num': num,
+        'nick': nickInput.text,
+        'gender': gender,
         'email': emailInput.text,
         'postcount': 0,
         'piccount': 0,
+        // 프로필사진
+        'photoUrl':
+            'https://firebasestorage.googleapis.com/v0/b/example-18d75.appspot.com/o/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202021-07-21%20113022.png?alt=media&token=b9b9dfb3-ac59-430c-b35b-04d9fad08ae6',
+        'joiningIn': null,
       });
     } else {
       showMessage();

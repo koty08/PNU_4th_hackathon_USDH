@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:login_test/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +28,6 @@ class WriteBoardState extends State<WriteBoard> {
   TextEditingController memberInput = TextEditingController();
   TextEditingController foodInput = TextEditingController();
   TextEditingController locationInput = TextEditingController();
-  final _picker = ImagePicker();
   FirebaseStorage storage = FirebaseStorage.instance;
   FirebaseFirestore fs = FirebaseFirestore.instance;
   List urlList = [];
