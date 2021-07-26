@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// 여기 users - currentEmail - messageWith - peerEmail 이 들어옴(document)
 class UserChat {
   String id;
   String photoUrl;

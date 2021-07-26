@@ -5,7 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:login_test/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:login_test/chatting.dart';
+import 'package:login_test/chat/chatting.dart';
 
 late WriteBoardState pageState;
 late ListBoardState pageState2;

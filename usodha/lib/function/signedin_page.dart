@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:login_test/login/firebase_provider.dart';
 import 'package:login_test/function/board.dart';
-import 'package:login_test/home.dart';
+import 'package:login_test/chat/home.dart';
 
 late SignedInPageState pageState;
 
