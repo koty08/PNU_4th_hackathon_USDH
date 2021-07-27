@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:usdh/chat/chatting.dart';
+import 'package:usdh/chat/home.dart';
 
 late deliveryWriteState pageState;
 late deliveryListState pageState2;
@@ -27,6 +28,8 @@ bool is_available(String time, int n1, int n2){
       return false;
     }
 }
+
+/* ---------------------- Write Board (Delivery) ---------------------- */
 
 class deliveryWrite extends StatefulWidget {
   @override
@@ -252,6 +255,7 @@ class deliveryWriteState extends State<deliveryWrite> {
   }
 }
 
+/* ---------------------- Board List (Delivery) ---------------------- */
 
 class deliveryList extends StatefulWidget{
   @override
@@ -263,96 +267,129 @@ class deliveryList extends StatefulWidget{
 
 class deliveryListState extends State<deliveryList>{
   final Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+  late FirebaseProvider fp;
 
   @override
   Widget build(BuildContext context) {
+    fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
+
     return Scaffold(
-      appBar: AppBar(title: Text("게시글 목록")),
-      body: 
-        StreamBuilder<QuerySnapshot>(
+      body: StreamBuilder<QuerySnapshot>(
           stream: colstream,
-          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+          builder: (BuildContext context,
+              AsyncSnapshot<QuerySnapshot> snapshot) {
             if (!snapshot.hasData) {
               return CircularProgressIndicator();
             }
-        
-            return ListView(
-              children: snapshot.data!.docs.map((doc) {
-                String title = doc['title'];
-                String tags = doc['tags'];
-                return Column(children: [
-                  Padding(padding: EdgeInsets.fromLTRB(10, 15, 10, 15)),
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => deliveryShow(doc.id)));
-                    },
-                    child: Container(
-                      margin: EdgeInsets.fromLTRB(50, 10, 10, 10),
-                      child: Row(
-                        children: [
-                          //제목
-                          Text(title.toString(),
-                              style: TextStyle(
-                                  fontFamily: "SCDream",
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 20)),
-                          SizedBox(
-                            width: 20,
-                          ),
-
-                          //모집중, 모집완료 표시
-                          is_available(doc['time'], doc['currentMember'], doc['limitedMember']) ? Text("모집중") : Text("모집완료"),
-
-                          PopupMenuButton(
-                            itemBuilder: (BuildContext context) => [
-                              PopupMenuItem(
-                                child: TextButton(
-                                  child: Text(
-                                    "채팅시작",
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => Chat(
-                                                  peerId: doc['email'],
-                                                  peerAvatar:
-                                                      doc['photoUrl'],
-                                            )));
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+            return Column(
+                children: [
+                  cSizedBox(25, 0),
+                  Container(
+                    //decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 3, color: Colors.blueGrey))),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        IconButton(icon: Icon(Icons.navigate_before), onPressed:() { Navigator.pop(context);},),
+                        Text("배달", style: TextStyle(
+                            color: Colors.blueGrey,
+                            fontSize: 21, fontFamily: "SCDream",fontWeight: FontWeight.w500),
+                        ),
+                        cSizedBox(0, 50),
+                        Wrap(
+                          spacing: -5,
+                          children: [
+                            IconButton(icon: Icon(Icons.map), onPressed:() { Navigator.pop(context);},),
+                            IconButton(icon: Icon(Icons.refresh), onPressed:() {Navigator.pop(context);},),
+                            IconButton(icon: Icon(Icons.search), onPressed:() { Navigator.pop(context);},),
+                            IconButton(icon: Icon(Icons.message), onPressed: () {var tmp = fp.getInfo(); Navigator.push(context, MaterialPageRoute(builder: (context) =>HomeScreen(currentUserId: tmp['email'])));
+                            },),
+                          ],
+                        )
+                      ],
                     ),
                   ),
-                  //태그
-                  Text(tags.toString(),
-                    style: TextStyle(
-                    fontSize: 19, color: Colors.blueGrey)),
-                  Divider(
-                    thickness: 2,
-                    color: Colors.blue[200],
+                  CustomPaint(
+                    size: Size(400, 4),
+                    painter: CurvePainter(),
                   ),
-                ]);
-              }).toList()
-            );
-        }),
-        floatingActionButton: FloatingActionButton(
+                  Container(
+                      padding: EdgeInsets.fromLTRB(0, 0, 25, 0),
+                      child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                        IconButton(icon: Icon(Icons.check_box_outlined), onPressed:() { Navigator.pop(context);},),
+                        cSizedBox(2, 0),
+                        Text("모집완료 보기", style: TextStyle(fontSize: 15, color: Colors.indigo.shade300,),),
+                      ])
+                  ),
+                  // Container or Expanded or Flexible 사용
+                  Expanded(
+                    // 아래 간격 두고 싶으면 Container, height 사용
+                    //height: MediaQuery.of(context).size.height * 0.8,
+                      child: MediaQuery.removePadding(
+                        context: context,
+                        removeTop: true,
+                        child:ListView.separated(
+                            separatorBuilder: (context, index) => Divider(height: 10, thickness: 2, color: Colors.blue[100],),
+                            shrinkWrap: true,
+                            itemCount: snapshot.data!.docs.length,
+                            itemBuilder: (context, index){
+                              final DocumentSnapshot doc = snapshot.data!.docs[index];
+                              String title = doc['title'] + '[' + doc['currentMember'].toString() + '/' + doc['limitedMember'].toString() + ']';
+                              String writer = doc['writer'];
+                              //String tags = doc['tags'];
+                              return Column(children: [
+                                Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                                InkWell(onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context) => deliveryShow(doc.id)));},
+                                    child: Container(
+                                        margin: EdgeInsets.fromLTRB(50, 17, 10, 0),
+                                        child: Column(
+                                            children: [
+                                              Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                                                Text("#태그 #예시", style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 13)),
+                                                cSizedBox(0, 180),
+                                                is_available(doc['time'], doc['currentMember'], doc['limitedMember']) ? sText("모집중") : sText("모집완료"),
+                                                //Text("모집상태", style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 12)),
+                                              ]),
+                                              Row(children: [
+                                                Text(title.toString(), style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w600,fontSize: 18)),
+                                                cSizedBox(70, 20),
+                                                Text(writer.toString(), style: TextStyle(fontSize: 19, color: Colors.blueGrey)),
+                                                PopupMenuButton(itemBuilder: (BuildContext context) => [
+                                                  PopupMenuItem(child: TextButton(child:
+                                                  Text("채팅시작", style: TextStyle(color: Colors.black),),
+                                                      onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (context) => Chat(peerId: doc['email'], peerAvatar: doc['photoUrl'],)));})
+                                                  )
+                                                ])
+                                              ])
+                                            ])
+                                    ))
+                              ]);
+                            }
+                        ),
+                      )
+                  ),
+                ]
+            );}),
+
+      floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
-          onPressed: () {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => deliveryWrite()));
-          }),
+          onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (context) => deliveryWrite()));}
+      ),
     );
   }
+  Widget cSizedBox(double h, double w) {
+    return SizedBox(
+      height: h,
+      width: w,
+    );
+  }
+  Widget sText(String text){
+    return Text(text, style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 12));
+  }
 }
+
+/* ---------------------- Show Board (Delivery) ---------------------- */
 
 class deliveryShow extends StatefulWidget{
   deliveryShow(this.id);
@@ -617,6 +654,8 @@ class deliveryShowState extends State<deliveryShow>{
 
 }
 
+/* ---------------------- Modify Board (Delivery) ---------------------- */
+
 class deliveryModify extends StatefulWidget{
   deliveryModify(this.id);
   final String id;
@@ -830,5 +869,29 @@ class deliveryModifyState extends State<deliveryModify>{
   void updateOnFS() async {
     await fs.collection('delivery_board').doc(widget.id).update({'title' : titleInput.text, 'contents': contentInput.text, 'time' : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd])+" "+timeInput.text+":00",
       'limitedMember' : int.parse(memberInput.text), 'food' : foodInput.text, 'location' : locationInput.text, 'tags' : tagInput.text, 'gender' : gender});
+  }
+}
+
+class CurvePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint();
+    paint.shader = RadialGradient(
+        colors: [Colors.blue.shade100, Colors.deepPurple.shade200])
+        .createShader(Rect.fromCircle(center: Offset(160, 2), radius: 180));
+    paint.style = PaintingStyle.fill; // Change this to fill
+
+    var path = Path();
+
+    path.moveTo(0, 0);
+    path.quadraticBezierTo(size.width / 2, size.height / 2, size.width, 0);
+    path.quadraticBezierTo(size.width / 2, -size.height / 2, 0, 0);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true;
   }
 }
