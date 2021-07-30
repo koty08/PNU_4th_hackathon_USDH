@@ -266,8 +266,15 @@ class deliveryList extends StatefulWidget{
 }
 
 class deliveryListState extends State<deliveryList>{
-  final Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
   late FirebaseProvider fp;
+  TextEditingController searchInput = TextEditingController();
+
+  @override
+  void dispose() {
+    searchInput.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +282,12 @@ class deliveryListState extends State<deliveryList>{
     fp.setInfo();
 
     return Scaffold(
-      body: StreamBuilder<QuerySnapshot>(
+      body: RefreshIndicator(
+        //당겨서 새로고침
+          onRefresh: () async {
+            colstream = await FirebaseFirestore.instance.collection('delivery_board').snapshots();
+          },
+          child : StreamBuilder<QuerySnapshot>(
           stream: colstream,
           builder: (BuildContext context,
               AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -301,8 +313,39 @@ class deliveryListState extends State<deliveryList>{
                           spacing: -5,
                           children: [
                             IconButton(icon: Icon(Icons.map), onPressed:() { Navigator.pop(context);},),
-                            IconButton(icon: Icon(Icons.refresh), onPressed:() {Navigator.pop(context);},),
-                            IconButton(icon: Icon(Icons.search), onPressed:() { Navigator.pop(context);},),
+                            //새로고침 기능
+                            IconButton(icon: Icon(Icons.refresh), onPressed:() async {
+                              colstream = await FirebaseFirestore.instance.collection('delivery_board').snapshots();
+                            },),
+                            //검색 기능 팝업
+                            IconButton(icon: Icon(Icons.search), onPressed:() {
+                              showDialog(context: context, 
+                                builder: (BuildContext con){
+                                  return AlertDialog(
+                                    title: Text("검색 ㄱ"),
+                                    content: TextField(
+                                      controller: searchInput,
+                                      decoration: InputDecoration(hintText: "검색할 제목을 입력하세요."),
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(onPressed: () {
+                                        setState(() {
+                                          colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                                        });
+                                        Navigator.pop(con);
+                                      },
+                                      child: Text("검색")
+                                      ),
+                                      TextButton(onPressed: (){
+                                        Navigator.pop(con);
+                                      }, 
+                                      child: Text("취소")
+                                      ),
+                                    ],
+                                  );
+                                }
+                              );
+                            },),
                             IconButton(icon: Icon(Icons.message), onPressed: () {var tmp = fp.getInfo(); Navigator.push(context, MaterialPageRoute(builder: (context) =>HomeScreen(currentUserId: tmp['email'])));
                             },),
                           ],
@@ -370,8 +413,10 @@ class deliveryListState extends State<deliveryList>{
                       )
                   ),
                 ]
-            );}),
-
+            );
+          }
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (context) => deliveryWrite()));}
