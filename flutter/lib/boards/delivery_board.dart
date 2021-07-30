@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,6 +10,7 @@ import 'package:usdh/chat/chatting.dart';
 import 'package:usdh/chat/home.dart';
 
 late deliveryWriteState pageState;
+late deliveryMapState pageState1;
 late deliveryListState pageState2;
 late deliveryShowState pageState3;
 late deliveryModifyState pageState4;
@@ -255,6 +257,41 @@ class deliveryWriteState extends State<deliveryWrite> {
   }
 }
 
+
+/* ---------------------- Board Map (Delivery) ---------------------- */
+/* ----------------------    지우지 말아주세요    ---------------------- */
+
+class deliveryMap extends StatefulWidget{
+  @override
+  deliveryMapState createState() {
+    pageState1 = deliveryMapState();
+    return pageState1;
+  }
+}
+
+class deliveryMapState extends State<deliveryMap> {
+  late FirebaseProvider fp;
+  TextEditingController searchInput = TextEditingController();
+
+  @override
+  void dispose() {
+    searchInput.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
+
+    return Scaffold(
+        body: Container(
+        )
+    );
+  }
+}
+
+
 /* ---------------------- Board List (Delivery) ---------------------- */
 
 class deliveryList extends StatefulWidget{
@@ -296,7 +333,7 @@ class deliveryListState extends State<deliveryList>{
             }
             return Column(
                 children: [
-                  cSizedBox(25, 0),
+                  cSizedBox(35, 0),
                   Container(
                     //decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 3, color: Colors.blueGrey))),
                     child: Row(
@@ -353,10 +390,11 @@ class deliveryListState extends State<deliveryList>{
                       ],
                     ),
                   ),
-                  CustomPaint(
+                  /*CustomPaint(
                     size: Size(400, 4),
                     painter: CurvePainter(),
-                  ),
+                  ),*/
+                  Divider(color: Colors.blueAccent, thickness: 3,),
                   Container(
                       padding: EdgeInsets.fromLTRB(0, 0, 25, 0),
                       child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -378,26 +416,25 @@ class deliveryListState extends State<deliveryList>{
                             itemCount: snapshot.data!.docs.length,
                             itemBuilder: (context, index){
                               final DocumentSnapshot doc = snapshot.data!.docs[index];
-                              String title = doc['title'] + '[' + doc['currentMember'].toString() + '/' + doc['limitedMember'].toString() + ']';
+                              String title = doc['title'] + ' [' + doc['currentMember'].toString() + '/' + doc['limitedMember'].toString() + ']';
                               String writer = doc['writer'];
-                              //String tags = doc['tags'];
                               return Column(children: [
                                 Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                                 InkWell(onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context) => deliveryShow(doc.id)));},
                                     child: Container(
-                                        margin: EdgeInsets.fromLTRB(50, 17, 10, 0),
+                                        margin: EdgeInsets.fromLTRB(30, 17, 10, 0),
                                         child: Column(
                                             children: [
                                               Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                                                Text("#태그 #예시", style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 13)),
-                                                cSizedBox(0, 180),
+                                                Container(width: MediaQuery.of(context).size.width * 0.7, child:Text(doc['tags'], style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 13))),
+                                                cSizedBox(0, 10),
                                                 is_available(doc['time'], doc['currentMember'], doc['limitedMember']) ? sText("모집중") : sText("모집완료"),
                                                 //Text("모집상태", style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 12)),
                                               ]),
                                               Row(children: [
-                                                Text(title.toString(), style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w600,fontSize: 18)),
-                                                cSizedBox(70, 20),
-                                                Text(writer.toString(), style: TextStyle(fontSize: 19, color: Colors.blueGrey)),
+                                                Container(width: MediaQuery.of(context).size.width * 0.5, child:Text(title.toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w700,fontSize: 15)),),
+                                                cSizedBox(70, 40),
+                                                Container(width: MediaQuery.of(context).size.width * 0.15, child:Text(writer.toString(), textAlign: TextAlign.center,style: TextStyle(fontSize: 13, color: Colors.blueGrey))),
                                                 PopupMenuButton(itemBuilder: (BuildContext context) => [
                                                   PopupMenuItem(child: TextButton(child:
                                                   Text("채팅시작", style: TextStyle(color: Colors.black),),
@@ -430,7 +467,8 @@ class deliveryListState extends State<deliveryList>{
     );
   }
   Widget sText(String text){
-    return Text(text, style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 12));
+    return Container(width: MediaQuery.of(context).size.width * 0.15,
+    child:Text(text, textAlign: TextAlign.center, style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 12)));
   }
 }
 
@@ -462,7 +500,6 @@ class deliveryShowState extends State<deliveryShow>{
     fp.setInfo();
 
     return Scaffold(
-      appBar: AppBar(title: Text("게시글 내용"),),
       body:
         StreamBuilder(
           stream : fs.collection('delivery_board').doc(widget.id).snapshots(),
@@ -476,218 +513,313 @@ class deliveryShowState extends State<deliveryShow>{
             else if(snapshot.hasData){
               fp.setInfo();
               if(fp.getInfo()['name'] == snapshot.data!['writer']){
-                return Column(
+                return SingleChildScrollView(
+                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                  Text(snapshot.data!['tags']),
-                  Text(snapshot.data!['title']),
-                  Text("마감 " + formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
-                  Divider(color: Colors.black,),
-                  Text(formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
-                  Text(snapshot.data!['currentMember'].toString()+"/"+snapshot.data!['limitedMember'].toString()),
-                  Text(snapshot.data!['food']),
-                  Text(snapshot.data!['location']),
-                  Text(snapshot.data!['gender']),
-                  Divider(color: Colors.black,),
-                  Text(snapshot.data!['contents']),
-                  Row(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.purple[300],
+                    cSizedBox(35, 0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        IconButton(icon: Icon(Icons.navigate_before), onPressed:() { Navigator.pop(context);},),
+                        Text("배달", style: TextStyle(
+                            color: Colors.blueGrey,
+                            fontSize: 21, fontFamily: "SCDream",fontWeight: FontWeight.w500),
                         ),
-                        child: Text(
-                          "수정",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => deliveryModify(widget.id)));
-                          setState(() {
-                            
-                          });
-                        },
-                      ),
+                        cSizedBox(0, 175),
+                        IconButton(icon: Icon(Icons.message), onPressed: () {var tmp = fp.getInfo(); Navigator.push(context, MaterialPageRoute(builder: (context) =>HomeScreen(currentUserId: tmp['email'])));
+                        },),
+                      ],
                     ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.indigo[300],
-                        ),
-                        child: Text(
-                          "삭제",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          await fs.collection('delivery_board').doc(widget.id).delete();
-                          fp.updateIntInfo('postcount', -1);
-                        },
-                      ),
+                    Divider(color: Colors.indigo[400], thickness: 3,),
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                        child: Wrap(
+                            direction: Axis.vertical,
+                            spacing: 15,
+                            children: [
+                              tagText(snapshot.data!['tags']),
+                              Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
+                              condText("마감 " + formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn]))
+                            ]
+                        )
                     ),
-                  ],
+                    Divider(color: Colors.indigo[200], thickness: 2,),
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                        child: Wrap(
+                          direction: Axis.vertical,
+                          spacing: 15,
+                          children: [
+                            Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Colors.blueAccent, fontWeight: FontWeight.w600, fontSize: 15)),
+                            Padding(padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
+                                child: Wrap(
+                                  direction: Axis.vertical,
+                                  spacing: 15,
+                                  children: [
+                                    Wrap(spacing: 40, children: [cond2Text("모집기간"), condText(formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),],),
+                                    Wrap(spacing: 40, children: [cond2Text("모집인원"), condText(snapshot.data!['currentMember'].toString()+"/"+snapshot.data!['limitedMember'].toString())],),
+                                    Wrap(spacing: 40, children: [cond2Text("음식종류"), condText(snapshot.data!['food']),],),
+                                    Wrap(spacing: 40, children: [cond2Text("배분위치"), condText(snapshot.data!['location']),],)
+                                  ],
+                                )
+                            )
+                          ],
+                        )
+                    ),
+                    Divider(color: Colors.indigo[200], thickness: 2,),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
+                      child:Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.purple[300],
+                            ),
+                            child: Text(
+                              "수정",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => deliveryModify(widget.id)));
+                              setState(() {
+
+                              });
+                            },
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.indigo[300],
+                            ),
+                            child: Text(
+                              "삭제",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              await fs.collection('delivery_board').doc(widget.id).delete();
+                              fp.updateIntInfo('postcount', -1);
+                            },
+                          ),
+                        ),
+                      ],
                   )
                   ],
-                );
+                ));
               }
 
               else{
                 return Column(
-                    children: [
-                      Text(snapshot.data!['tags']),
-                      Text(snapshot.data!['title']),
-                      Text("마감 " + formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
-                      Divider(color: Colors.black,),
-                      Text(formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
-                      Text(snapshot.data!['currentMember'].toString()+"/"+snapshot.data!['limitedMember'].toString()),
-                      Text(snapshot.data!['food']),
-                      Text(snapshot.data!['location']),
-                      Text(snapshot.data!['gender']),
-                      Divider(color: Colors.black,),
-                      Text(snapshot.data!['contents']),
-                      // 참가, 손절
-                      Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    cSizedBox(35, 0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        IconButton(icon: Icon(Icons.navigate_before), onPressed:() { Navigator.pop(context);},),
+                        Text("배달", style: TextStyle(
+                            color: Colors.blueGrey,
+                            fontSize: 21, fontFamily: "SCDream",fontWeight: FontWeight.w500),
+                        ),
+                        cSizedBox(0, 175),
+                        IconButton(icon: Icon(Icons.message), onPressed: () {var tmp = fp.getInfo(); Navigator.push(context, MaterialPageRoute(builder: (context) =>HomeScreen(currentUserId: tmp['email'])));
+                        },),
+                      ],
+                    ),
+                    Divider(color: Colors.indigo[400], thickness: 3,),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                      child: Wrap(
+                        direction: Axis.vertical,
+                        spacing: 15,
                         children: [
-                          // 참가 버튼을 누르면 currentMember+1, 제한 넘으면 불가
-                          Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                primary: Colors.purple[300],
-                              ),
-                              child: Text(
-                                "참가",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: () async {
-                                var tmp = fp.getInfo();
-                                int _currentMember =
-                                    snapshot.data!['currentMember'];
-                                int _limitedMember =
-                                    snapshot.data!['limitedMember'];
-                                String _roomName = widget.id;
+                          tagText(snapshot.data!['tags']),
+                        Container(width: MediaQuery.of(context).size.width * 0.8, child:titleText(snapshot.data!['title'])),
+                          condText("마감 " + formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn]))
+                        ]
+                      )
+                    ),
+                    Divider(color: Colors.indigo[200], thickness: 2,),
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                        child: Wrap(
+                          direction: Axis.vertical,
+                          spacing: 15,
+                          children: [
+                            Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Colors.blueAccent, fontWeight: FontWeight.w600, fontSize: 15)),
+                            Padding(padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
+                              child: Wrap(
+                                direction: Axis.vertical,
+                                spacing: 15,
+                                children: [
+                                  Wrap(spacing: 40, children: [cond2Text("모집기간"), condText(formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),],),
+                                  Wrap(spacing: 40, children: [cond2Text("모집인원"), condText(snapshot.data!['currentMember'].toString()+"/"+snapshot.data!['limitedMember'].toString())],),
+                                  Wrap(spacing: 40, children: [cond2Text("음식종류"), condText(snapshot.data!['food']),],),
+                                  Wrap(spacing: 40, children: [cond2Text("배분위치"), condText(snapshot.data!['location']),],)
+                                ],
+                              )
+                            )
+                          ],
+                        )
+                    ),
+                    Divider(color: Colors.indigo[200], thickness: 2,),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
+                      child:Text(snapshot.data!['contents'], style: TextStyle(fontSize: 18),),
+                    ),
+                    // 참가, 손절
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // 참가 버튼을 누르면 currentMember+1, 제한 넘으면 불가
+                        Container(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.purple[300],
+                            ),
+                            child: Text(
+                              "참가",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: () async {
+                              var tmp = fp.getInfo();
+                              int _currentMember =
+                                  snapshot.data!['currentMember'];
+                              int _limitedMember =
+                                  snapshot.data!['limitedMember'];
+                              String _roomName = widget.id;
 
-                                List<String> _joiningRoom = [];
+                              List<String> _joiningRoom = [];
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(tmp['email'])
+                                  .get()
+                                  .then((value) {
+                                for (String room in value['joiningIn']) {
+                                  _joiningRoom.add(room);
+                                }
+                              });
+                              // 이미 참가한 방인 경우
+                              if (_joiningRoom.contains(_roomName)) {
+                                print('이미 참가한 방입니다!!');
+                              }
+                              // 제한 인원 꽉 찰 경우
+                              else if (_currentMember >= _limitedMember) {
+                                print('This room is full');
+                              }
+                              // 인원이 남을 경우
+                              else {
+                                await FirebaseFirestore.instance
+                                    .collection('delivery_board')
+                                    .doc(widget.id)
+                                    .update({
+                                  'currentMember': _currentMember + 1
+                                });
+                                List<String> roomName = [_roomName];
                                 await FirebaseFirestore.instance
                                     .collection('users')
                                     .doc(tmp['email'])
-                                    .get()
-                                    .then((value) {
-                                  for (String room in value['joiningIn']) {
-                                    _joiningRoom.add(room);
-                                  }
+                                    .update({
+                                  'joiningIn': FieldValue.arrayUnion(roomName)
                                 });
-                                // 이미 참가한 방인 경우
-                                if (_joiningRoom.contains(_roomName)) {
-                                  print('이미 참가한 방입니다!!');
-                                }
-                                // 제한 인원 꽉 찰 경우
-                                else if (_currentMember >= _limitedMember) {
-                                  print('This room is full');
-                                }
-                                // 인원이 남을 경우
-                                else {
-                                  await FirebaseFirestore.instance
-                                      .collection('delivery_board')
-                                      .doc(widget.id)
-                                      .update({
-                                    'currentMember': _currentMember + 1
-                                  });
-                                  List<String> roomName = [_roomName];
-                                  await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(tmp['email'])
-                                      .update({
-                                    'joiningIn': FieldValue.arrayUnion(roomName)
-                                  });
-                                  Navigator.pop(context);
-                                  print(_roomName + ' 참가!!');
-                                }
-                              },
-                            ),
+                                Navigator.pop(context);
+                                print(_roomName + ' 참가!!');
+                              }
+                            },
                           ),
-                          Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                primary: Colors.indigo[300],
-                              ),
-                              child: Text(
-                                "손절",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: () async {
-                                var tmp = fp.getInfo();
-                                int _currentMember =
-                                    snapshot.data!['currentMember'];
-                                int _limitedMember =
-                                    snapshot.data!['limitedMember'];
-                                String _roomName = widget.id;
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.indigo[300],
+                            ),
+                            child: Text(
+                              "손절",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: () async {
+                              var tmp = fp.getInfo();
+                              int _currentMember =
+                                  snapshot.data!['currentMember'];
+                              int _limitedMember =
+                                  snapshot.data!['limitedMember'];
+                              String _roomName = widget.id;
 
-                                List<String> _joiningRoom = [];
+                              List<String> _joiningRoom = [];
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(tmp['email'])
+                                  .get()
+                                  .then((value) {
+                                for (String room in value['joiningIn']) {
+                                  _joiningRoom.add(room);
+                                }
+                              });
+                              // 방에 참가하지 않은 경우
+                              if (!_joiningRoom.contains(_roomName)) {
+                                print('참가하지 않은 방입니다!!');
+                              }
+                              // 모임에 2명 이상, 제한 인원 이하로 남을 경우
+                              else if (_currentMember >= 2 &&
+                                  _currentMember <= _limitedMember) {
+                                await FirebaseFirestore.instance
+                                    .collection('delivery_board')
+                                    .doc(widget.id)
+                                    .update({
+                                  'currentMember': _currentMember - 1
+                                });
+                                List<String> roomName = [_roomName];
                                 await FirebaseFirestore.instance
                                     .collection('users')
                                     .doc(tmp['email'])
-                                    .get()
-                                    .then((value) {
-                                  for (String room in value['joiningIn']) {
-                                    _joiningRoom.add(room);
-                                  }
+                                    .update({
+                                  'joiningIn':
+                                      FieldValue.arrayRemove(roomName)
                                 });
-                                // 방에 참가하지 않은 경우
-                                if (!_joiningRoom.contains(_roomName)) {
-                                  print('참가하지 않은 방입니다!!');
-                                }
-                                // 모임에 2명 이상, 제한 인원 이하로 남을 경우
-                                else if (_currentMember >= 2 &&
-                                    _currentMember <= _limitedMember) {
-                                  await FirebaseFirestore.instance
-                                      .collection('delivery_board')
-                                      .doc(widget.id)
-                                      .update({
-                                    'currentMember': _currentMember - 1
-                                  });
-                                  List<String> roomName = [_roomName];
-                                  await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(tmp['email'])
-                                      .update({
-                                    'joiningIn':
-                                        FieldValue.arrayRemove(roomName)
-                                  });
-                                  Navigator.pop(context);
-                                  print(_roomName + ' 손절!!');
-                                }
-                                // 남은 인원이 1명일 경우
-                                else if (_currentMember == 1) {
-                                  Navigator.pop(context);
-                                  fs
-                                      .collection('delivery_board')
-                                      .doc(widget.id)
-                                      .delete();
-                                  List<String> roomName = [_roomName];
-                                  await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(tmp['email'])
-                                      .update({
-                                    'joiningIn':
-                                        FieldValue.arrayRemove(roomName)
-                                  });
-                                  print('사람이 0명이 되어 방 파괴!!');
-                                }
-                                // 남은 인원이 제한 인원 초과 또는 0명 이하일 경우
-                                else {
-                                  print('The current member has a error!!');
-                                }
-                              },
-                            ),
+                                Navigator.pop(context);
+                                print(_roomName + ' 손절!!');
+                              }
+                              // 남은 인원이 1명일 경우
+                              else if (_currentMember == 1) {
+                                Navigator.pop(context);
+                                fs
+                                    .collection('delivery_board')
+                                    .doc(widget.id)
+                                    .delete();
+                                List<String> roomName = [_roomName];
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(tmp['email'])
+                                    .update({
+                                  'joiningIn':
+                                      FieldValue.arrayRemove(roomName)
+                                });
+                                print('사람이 0명이 되어 방 파괴!!');
+                              }
+                              // 남은 인원이 제한 인원 초과 또는 0명 이하일 경우
+                              else {
+                                print('The current member has a error!!');
+                              }
+                            },
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
+                  ],
                 );
               }
             }
@@ -749,8 +881,7 @@ class deliveryModifyState extends State<deliveryModify>{
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(title: Text("게시물 수정")),
-      body:
+      body: SingleChildScrollView(child:
         StreamBuilder(
         stream : fs.collection('delivery_board').doc(widget.id).snapshots(),
         builder: (context, AsyncSnapshot<DocumentSnapshot>snapshot) {
@@ -766,10 +897,10 @@ class deliveryModifyState extends State<deliveryModify>{
             locationInput = TextEditingController(text: snapshot.data!['location']);
             tagInput = TextEditingController(text: snapshot.data!['tags']);
             return Form(key: _formKey,
-              child: 
-              Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  cSizedBox(50, 0),
                   TextFormField(
                       controller: tagInput,
                       decoration: InputDecoration(hintText: "태그를 입력하세요."),
@@ -871,7 +1002,13 @@ class deliveryModifyState extends State<deliveryModify>{
                   //내용 수정
                   TextFormField(
                       controller: contentInput,
-                      decoration: InputDecoration(hintText: "내용을 입력하세요."),
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
+                      decoration: InputDecoration(
+                        hintText: "내용을 입력하세요.",
+                        contentPadding: EdgeInsets.symmetric(vertical: 50, horizontal: 10.0),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)),
+                      ),
                       validator : (text){
                       if(text == null || text.isEmpty){
                         return "내용은 필수 입력 사항입니다.";
@@ -879,28 +1016,25 @@ class deliveryModifyState extends State<deliveryModify>{
                       return null;
                     }
                   ),
-                  Divider(
-                    color: Colors.black,
-                  ),
                   Container(
                     height: 30,
-                      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.blueAccent[200],
-                        ),
-                        child: Text(
-                          "게시물 수정",
-                          style: TextStyle(color: Colors.black),
-                        ),
-                        onPressed: () {
-                          FocusScope.of(context).requestFocus(new FocusNode());
-                          if(_formKey.currentState!.validate()){
-                            updateOnFS();
-                            Navigator.pop(context);
-                          }
-                        },
-                      )
+                    margin: EdgeInsets.fromLTRB(0, 50, 0, 50),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.blueAccent[200],
+                      ),
+                      child: Text(
+                        "게시물 수정",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      onPressed: () {
+                        FocusScope.of(context).requestFocus(new FocusNode());
+                        if(_formKey.currentState!.validate()){
+                          updateOnFS();
+                          Navigator.pop(context);
+                        }
+                      },
+                    )
                   ),
                 ],
               )
@@ -908,35 +1042,11 @@ class deliveryModifyState extends State<deliveryModify>{
           }
           return CircularProgressIndicator();
         }
-    ));
+    )));
   }
 
   void updateOnFS() async {
     await fs.collection('delivery_board').doc(widget.id).update({'title' : titleInput.text, 'contents': contentInput.text, 'time' : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd])+" "+timeInput.text+":00",
       'limitedMember' : int.parse(memberInput.text), 'food' : foodInput.text, 'location' : locationInput.text, 'tags' : tagInput.text, 'gender' : gender});
-  }
-}
-
-class CurvePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    var paint = Paint();
-    paint.shader = RadialGradient(
-        colors: [Colors.blue.shade100, Colors.deepPurple.shade200])
-        .createShader(Rect.fromCircle(center: Offset(160, 2), radius: 180));
-    paint.style = PaintingStyle.fill; // Change this to fill
-
-    var path = Path();
-
-    path.moveTo(0, 0);
-    path.quadraticBezierTo(size.width / 2, size.height / 2, size.width, 0);
-    path.quadraticBezierTo(size.width / 2, -size.height / 2, 0, 0);
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
   }
 }

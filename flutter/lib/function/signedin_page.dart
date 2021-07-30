@@ -170,6 +170,7 @@ class SignedInPageState extends State<SignedInPage> {
           child: SizedBox(
             height: 110,
             child: ListView.builder(
+                physics: NeverScrollableScrollPhysics(),
                 padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
                 itemCount: data.length,
                 itemExtent: 30,
