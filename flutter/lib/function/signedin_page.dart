@@ -25,7 +25,8 @@ class SignedInPageState extends State<SignedInPage> {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
     return Scaffold(
-      body: Column(
+
+      body: ListView(
         children: [
           Padding(padding: EdgeInsets.fromLTRB(0, 50, 0, 0)),
           Row(
@@ -73,10 +74,10 @@ class SignedInPageState extends State<SignedInPage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               cSizedBox(0, 15),
-              imageAndText('assets/images/icon/group.png', "택시", ListBoard()),
-              imageAndText('assets/images/icon/group.png', "배달", deliveryList()),
-              imageAndText('assets/images/icon/group.png', "공구", ListBoard()),
-              imageAndText('assets/images/icon/group.png', "팀빌딩", ListBoard()),
+              imageAndText('assets/images/icon/icontaxi.png', "택시", ListBoard()),
+              imageAndText('assets/images/icon/iconmotorcycle.png', "배달", deliveryList()),
+              imageAndText('assets/images/icon/iconshopping.png', "공구", ListBoard()),
+              imageAndText('assets/images/icon/iconteam.png', "팀빌딩", ListBoard()),
               cSizedBox(0, 15),
             ],
           ),
@@ -84,21 +85,17 @@ class SignedInPageState extends State<SignedInPage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               cSizedBox(0, 40),
-              imageAndText('assets/images/icon/group.png', "소모임", ListBoard()),
-              imageAndText('assets/images/icon/group.png', "룸메이트", ListBoard()),
-              imageAndText('assets/images/icon/group.png', "커뮤니티", ListBoard()),
+              imageAndText('assets/images/icon/iconplay.png', "소모임", ListBoard()),
+              imageAndText('assets/images/icon/iconroom.png', "룸메이트", ListBoard()),
+              imageAndText('assets/images/icon/iconcommunity.png', "커뮤니티", ListBoard()),
               cSizedBox(0, 40),
             ],
           ),
           Padding(padding: EdgeInsets.fromLTRB(0, 15, 0, 0)),
           messageBoard(Icons.timer, "마감 임박 게시글", [
-            "[택시] 택시 게시글",
-            "[배달] 배달 게시글",
-            "[공구] 공구 게시물",
-            "1",
-            "2",
-            "3",
-            "4"
+            "[택시]", "택시 게시글",
+            "[배달]", "배달 게시글",
+            "[공구]", "공구 게시물",
           ]),
           messageBoard(Icons.fireplace, "실시간 인기 게시글",
               ["[123] 456", "[11] 22", "[33] 44", "[55] 66"]),
