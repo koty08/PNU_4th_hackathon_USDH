@@ -34,7 +34,8 @@ class SignedInPageState extends State<SignedInPage> {
             children: [
               // 채팅방 버튼
               IconButton(
-                icon: Icon(Icons.message),
+                icon: Image.asset('assets/images/icon/iconmessage.png',
+                      width: 22, height: 22),
                 onPressed: () {
                   var tmp = fp.getInfo();
                   Navigator.push(
@@ -80,7 +81,7 @@ class SignedInPageState extends State<SignedInPage> {
               imageAndText(
                   'assets/images/icon/iconshopping.png', "공구", ListBoard()),
               imageAndText(
-                  'assets/images/icon/iconteam.png', "팀빌딩", ListBoard()),
+                  'assets/images/icon/iconcommunity.png', "커뮤니티", ListBoard()),
               cSizedBox(0, 15),
             ],
           ),
@@ -89,11 +90,11 @@ class SignedInPageState extends State<SignedInPage> {
             children: [
               cSizedBox(0, 40),
               imageAndText(
+                 'assets/images/icon/iconteam.png', "팀빌딩", ListBoard()),
+              imageAndText(
                   'assets/images/icon/iconplay.png', "소모임", ListBoard()),
               imageAndText(
                   'assets/images/icon/iconroom.png', "룸메이트", ListBoard()),
-              imageAndText(
-                  'assets/images/icon/iconcommunity.png', "커뮤니티", ListBoard()),
               cSizedBox(0, 40),
             ],
           ),
