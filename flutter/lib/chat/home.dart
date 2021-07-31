@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'chatting.dart';
 import 'const.dart';
 import 'package:usdh/login/firebase_provider.dart';
-import 'model/user_chat.dart';
+import 'package:usdh/chat/model/chat_room.dart';
+import 'package:usdh/chat/model/user_chat.dart';
 import 'widget/loading.dart';
 
 // 현재 내가 포함된 채팅방 목록
@@ -296,108 +297,125 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // 각각의 채팅 기록( 1 block )
+  // 각각의 채팅 기록( 1 block ) - '[chatRoomName]' document 를 인자로
   Widget buildItem(BuildContext context, DocumentSnapshot? document) {
     if (document != null) {
-      UserChat userChat = UserChat.fromDocument(document);
-      // 본인 정보는 제외
-      if (userChat.id == currentUserId) {
-        return SizedBox.shrink();
+      ChatRoom chatRoom = ChatRoom.fromDocument(document); // peerEmail 넘겨
+      // 다수의 프로필 사진을 어케 처리하지
+      String photoUrl =
+          'https://firebasestorage.googleapis.com/v0/b/example-18d75.appspot.com/o/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202021-07-21%20113022.png?alt=media&token=b9b9dfb3-ac59-430c-b35b-04d9fad08ae6';
+      List<String> nick = [];
+
+      // 여기 비동기를 어케 시키지??
+      for (var peerId in chatRoom.peerIds) {
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(peerId)
+            .get()
+            .then((value) {
+          nick.add(value['nick']);
+        });
       }
-      // 현재 본인이 가지고 있는 채팅방을 화면에 보여줌
-      else {
-        return Container(
-          child: TextButton(
-            child: Row(
-              children: <Widget>[
-                // 프로필 사진
-                Material(
-                  child: userChat.photoUrl.isNotEmpty
-                      ? Image.network(
-                          userChat.photoUrl,
-                          fit: BoxFit.cover,
-                          width: 50.0,
-                          height: 50.0,
-                          loadingBuilder: (BuildContext context, Widget child,
-                              ImageChunkEvent? loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              width: 50,
-                              height: 50,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  color: primaryColor,
-                                  value: loadingProgress.expectedTotalBytes !=
-                                              null &&
-                                          loadingProgress.expectedTotalBytes !=
-                                              null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
+
+      String nickForText = '';
+      for (int i = 0; i < nick.length; i++) {
+        if (i < nick.length - 2)
+          nickForText = nickForText + nick[i] + ", ";
+        else
+          nickForText += nickForText;
+      }
+      print(nickForText);
+      // 채팅방 블럭을 리턴함
+      return Container(
+        child: TextButton(
+          child: Row(
+            children: <Widget>[
+              // 프로필 사진
+              Material(
+                child: photoUrl.isNotEmpty
+                    ? Image.network(
+                        photoUrl,
+                        fit: BoxFit.cover,
+                        width: 50.0,
+                        height: 50.0,
+                        loadingBuilder: (BuildContext context, Widget child,
+                            ImageChunkEvent? loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            width: 50,
+                            height: 50,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: primaryColor,
+                                value: loadingProgress.expectedTotalBytes !=
+                                            null &&
+                                        loadingProgress.expectedTotalBytes !=
+                                            null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
                               ),
-                            );
-                          },
-                          errorBuilder: (context, object, stackTrace) {
-                            return Icon(
-                              Icons.account_circle,
-                              size: 50.0,
-                              color: greyColor,
-                            );
-                          },
-                        )
-                      : Icon(
-                          Icons.account_circle,
-                          size: 50.0,
-                          color: greyColor,
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, object, stackTrace) {
+                          return Icon(
+                            Icons.account_circle,
+                            size: 50.0,
+                            color: greyColor,
+                          );
+                        },
+                      )
+                    : Icon(
+                        Icons.account_circle,
+                        size: 50.0,
+                        color: greyColor,
+                      ),
+                borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                clipBehavior: Clip.hardEdge,
+              ),
+              // 닉네임
+              Flexible(
+                child: Container(
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        child: Text(
+                          'Nickname: $nickForText',
+                          maxLines: 1,
+                          style: TextStyle(color: primaryColor),
                         ),
-                  borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                  clipBehavior: Clip.hardEdge,
-                ),
-                // 닉네임과 간략한 자기 소개
-                Flexible(
-                  child: Container(
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          child: Text(
-                            'Nickname: ${userChat.nick}',
-                            maxLines: 1,
-                            style: TextStyle(color: primaryColor),
-                          ),
-                          alignment: Alignment.centerLeft,
-                          margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                        ),
-                      ],
-                    ),
-                    margin: EdgeInsets.only(left: 20.0),
+                        alignment: Alignment.centerLeft,
+                        margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
+                      ),
+                    ],
                   ),
+                  margin: EdgeInsets.only(left: 20.0),
                 ),
-              ],
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Chat(
-                    peerId: userChat.id,
-                    peerAvatar: userChat.photoUrl,
-                  ),
+              ),
+            ],
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Chat(
+                  peerIds: chatRoom.peerIds,
                 ),
-              );
-            },
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all<Color>(greyColor2),
-              shape: MaterialStateProperty.all<OutlinedBorder>(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
+              ),
+            );
+          },
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all<Color>(greyColor2),
+            shape: MaterialStateProperty.all<OutlinedBorder>(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10)),
               ),
             ),
           ),
-          margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
-        );
-      }
+        ),
+        margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
+      );
     } else {
       return SizedBox.shrink();
     }

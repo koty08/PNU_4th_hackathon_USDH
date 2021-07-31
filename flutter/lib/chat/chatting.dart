@@ -1,26 +1,39 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:usdh/login/firebase_provider.dart';
-import 'package:provider/provider.dart';
-import 'const.dart';
-import 'widget/loading.dart';
-import 'widget/full_photo.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+
+import 'package:usdh/login/firebase_provider.dart';
+import 'package:usdh/chat/const.dart';
+import 'package:usdh/chat/widget/loading.dart';
+import 'package:usdh/chat/widget/full_photo.dart';
 
 // 채팅방 내부
 class Chat extends StatelessWidget {
-  final String peerId;
-  final String peerAvatar;
+  final List<dynamic> peerIds; // chat에 참가한 유저의 email들
 
-  Chat({Key? key, required this.peerId, required this.peerAvatar})
-      : super(key: key);
+  Chat({Key? key, required this.peerIds}) : super(key: key);
+
+  Future<List<String>> getPeerAvatar() async {
+    final List<String> peerAvatars = []; // peerIds로 얻어
+    for (var peerId in peerIds) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(peerId)
+          .get()
+          .then((value) {
+        peerAvatars.add(value['photoUrl']);
+      });
+    }
+    return peerAvatars;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,31 +46,31 @@ class Chat extends StatelessWidget {
         centerTitle: true,
       ),
       body: ChatScreen(
-        peerId: peerId,
-        peerAvatar: peerAvatar,
+        peerIds: peerIds, // 채팅방 멤버들의 emails
+        peerAvatars: getPeerAvatar(), // 채팅방 멤버들의 photoUrls
       ),
     );
   }
 }
 
 class ChatScreen extends StatefulWidget {
-  final String peerId;
-  final String peerAvatar;
+  final List<dynamic> peerIds;
+  final Future<List<String>> peerAvatars;
 
-  ChatScreen({Key? key, required this.peerId, required this.peerAvatar})
+  ChatScreen({Key? key, required this.peerIds, required this.peerAvatars})
       : super(key: key);
 
   @override
   State createState() =>
-      ChatScreenState(peerId: peerId, peerAvatar: peerAvatar);
+      ChatScreenState(peerIds: peerIds, peerAvatars: peerAvatars);
 }
 
 class ChatScreenState extends State<ChatScreen> {
-  ChatScreenState({Key? key, required this.peerId, required this.peerAvatar});
+  ChatScreenState({Key? key, required this.peerIds, required this.peerAvatars});
 
-  String peerId;
-  String peerAvatar;
-  String? email;
+  List<dynamic> peerIds;
+  final Future<List<String>> peerAvatars;
+  String myId = '';
 
   List<QueryDocumentSnapshot> listMessage = new List.from([]);
   int _limit = 20;
@@ -69,9 +82,6 @@ class ChatScreenState extends State<ChatScreen> {
   bool isLoading = false;
   bool isShowSticker = false;
   String imageUrl = "";
-
-  FirebaseFirestore firebase = FirebaseFirestore.instance;
-  late FirebaseProvider fp;
 
   final TextEditingController textEditingController = TextEditingController();
   final ScrollController listScrollController = ScrollController();
@@ -106,45 +116,76 @@ class ChatScreenState extends State<ChatScreen> {
 
   // 어플을 껐다 켜도 데이터 유지되도록
   void readLocal() async {
-    email = 'koty08@pusan.ac.kr';
-    if (email.hashCode <= peerId.hashCode) {
-      groupChatId = '$email-$peerId';
-    } else {
-      groupChatId = '$peerId-$email';
-    }
+    myId = 'jungse8609@pusan.ac.kr'; // 본인 이메일
 
     // 본인 email is chattingWith 상대방 email
     FirebaseFirestore.instance
         .collection('users')
-        .doc(email)
-        .update({'chattingWith': peerId});
+        .doc(myId)
+        .update({'chattingWith': FieldValue.arrayUnion(peerIds)});
 
-    print(email);
-    print(peerId);
+    print(myId);
+    print(peerIds);
 
-    // 본인 메세지 창에는 상대방이 있어야지
+    // 상대방 정보를 나의 messageWith에 저장
     // 1. 상대방 정보 local에 저장
-    var peerPhotoUrl;
-    var peerNickname;
+    List<String> peerPhotoUrls = [];
+    List<String> peerNicknames = [];
+    for (var peerId in peerIds) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(peerId)
+          .get()
+          .then((value) {
+        peerPhotoUrls.add(value['photoUrl'].toString());
+        peerNicknames.add(value['nick'].toString());
+      });
+    }
+
+    // 2. 내 messageWith에 추가
     await FirebaseFirestore.instance
         .collection('users')
-        .doc(peerId)
+        .doc(myId)
+        .collection('messageWith')
+        .doc('test_group_name')
+        .set({
+      'chatMembers': peerIds,
+      'chatRoomName': 'test_group_name',
+    });
+
+    // 내 정보를 상대방 messageWith에 저장
+    // 1. local에 내 정보 저장
+    var myPhotoUrl;
+    var myNickname;
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(myId)
         .get()
         .then((value) async {
-      peerPhotoUrl = value['photoUrl'].toString();
-      peerNickname = value['nick'].toString();
+      myPhotoUrl = value['photoUrl'].toString();
+      myNickname = value['nick'].toString();
     });
-    // 2. 내 messageWith에 추가
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(email)
-        .collection('messageWith')
-        .doc(peerId)
-        .set({
-      'email': peerId,
-      'photoUrl': peerPhotoUrl,
-      'nick': peerNickname,
-    });
+
+    // 2. 상대방 messageWith에 저장
+    for (var peerId in peerIds) {
+      List<String> _peerIds = [];
+      for (var _peerId in peerIds) {
+        if (_peerId != peerId) {
+          _peerIds.add(_peerId);
+        }
+      }
+      _peerIds.add(myId);
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(peerId)
+          .collection('messageWith')
+          .doc('test_group_name')
+          .set({
+        'chatMembers': _peerIds,
+        'chatRoomName': 'test_group_name',
+      });
+    }
+
     setState(() {});
   }
 
@@ -200,67 +241,51 @@ class ChatScreenState extends State<ChatScreen> {
 
       var myDocumentReference = FirebaseFirestore.instance
           .collection('users')
-          .doc(email)
+          .doc(myId)
           .collection('messageWith')
-          .doc(peerId)
+          .doc('test_group_name')
           .collection('messages')
           .doc(DateTime.now().millisecondsSinceEpoch.toString());
 
-      var peersDocumentReference = FirebaseFirestore.instance
-          .collection('users')
-          .doc(peerId)
-          .collection('messageWith')
-          .doc(email)
-          .collection('messages')
-          .doc(DateTime.now().millisecondsSinceEpoch.toString());
-
-      // 나와 상대의 메세지를 firestore에 동시에 저장
-      FirebaseFirestore.instance.runTransaction((transaction) async {
-        transaction.set(
-          myDocumentReference,
-          {
-            'idFrom': email,
-            'idTo': peerId,
-            'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
-            'content': content,
-            'type': type
-          },
-        );
-        transaction.set(
-          peersDocumentReference,
-          {
-            'idFrom': email,
-            'idTo': peerId,
-            'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
-            'content': content,
-            'type': type
-          },
-        );
-
-        // 내 정보를 상대방 messageWith에 저장
-        // 1. local에 내 정보 저장
-        var myPhotoUrl;
-        var myNickname;
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(email)
-            .get()
-            .then((value) async {
-          myPhotoUrl = value['photoUrl'].toString();
-          myNickname = value['nick'].toString();
-        });
-        // 2. 상대방 messageWith에 저장
-        FirebaseFirestore.instance
+      var peersDocumentReference = [];
+      for (var peerId in peerIds) {
+        peersDocumentReference.add(FirebaseFirestore.instance
             .collection('users')
             .doc(peerId)
             .collection('messageWith')
-            .doc(email)
-            .set({
-          'email': email,
-          'photoUrl': myPhotoUrl,
-          'nick': myNickname,
-        });
+            .doc('test_group_name')
+            .collection('messages')
+            .doc(DateTime.now().millisecondsSinceEpoch.toString()));
+      }
+
+      // 나와 상대의 메세지를 firestore에 동시에 저장
+      FirebaseFirestore.instance.runTransaction((transaction) async {
+        // 내 messages에 기록
+        transaction.set(
+          myDocumentReference,
+          {
+            'idFrom': myId,
+            'idTo': peerIds,
+            'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
+            'content': content,
+            'type': type
+          },
+        );
+        // 상대 messages에 기록
+        for (var peerDocumentReference in peersDocumentReference) {
+          transaction.set(
+            peerDocumentReference,
+            {
+              'idFrom': myId,
+              'idTo': peerIds,
+              'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
+              'content': content,
+              'type': type
+            },
+          );
+        }
       });
+
       listScrollController.animateTo(0.0,
           duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
@@ -274,12 +299,12 @@ class ChatScreenState extends State<ChatScreen> {
   // 채팅방 내부 메세지 블럭 생성
   Widget buildItem(int index, DocumentSnapshot? document) {
     if (document != null) {
-      if (document.get('idFrom') == email) {
-        // 내가 보낸 메세지는 오른쪽에
+      if (document.get('idFrom') == myId) {
+        // 내가 보낸 메세지는 오른쪽에 ( 텍스트, 사진 순서)
         return Row(
           children: <Widget>[
             document.get('type') == 0
-                // 내가 보낸 메세지- type == 0
+                // 내가 보낸 메세지 텍스트 - type == 0
                 ? Container(
                     child: Text(
                       document.get('content'),
@@ -295,7 +320,7 @@ class ChatScreenState extends State<ChatScreen> {
                         right: 10.0),
                   )
                 : document.get('type') == 1
-                    // 내 프로필 사진
+                    // 내가 보낸 사진 - type == 1
                     ? Container(
                         child: OutlinedButton(
                           child: Material(
@@ -372,7 +397,7 @@ class ChatScreenState extends State<ChatScreen> {
                             bottom: isLastMessageRight(index) ? 20.0 : 10.0,
                             right: 10.0),
                       )
-                    // 이모티콘
+                    // 내가 보낸 이모티콘 - type == 2
                     : Container(
                         child: Image.asset(
                           'images/${document.get('content')}.gif',
@@ -388,7 +413,7 @@ class ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.end,
         );
       } else {
-        // 상대방 메세지의 type == 1
+        // 상대방 메세지는 왼쪽에 ( 사진, 텍스트 순서)
         return Container(
           child: Column(
             children: <Widget>[
@@ -397,7 +422,7 @@ class ChatScreenState extends State<ChatScreen> {
                   isLastMessageLeft(index)
                       ? Material(
                           child: Image.network(
-                            peerAvatar,
+                            '',
                             loadingBuilder: (BuildContext context, Widget child,
                                 ImageChunkEvent? loadingProgress) {
                               if (loadingProgress == null) return child;
@@ -561,7 +586,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   // 내가 메시지 보낸 시간
   bool isLastMessageLeft(int index) {
-    if ((index > 0 && listMessage[index - 1].get('idFrom') == email) ||
+    if ((index > 0 && listMessage[index - 1].get('idFrom') == myId) ||
         index == 0) {
       return true;
     } else {
@@ -571,7 +596,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   // 상대가 메시지 보낸 시간
   bool isLastMessageRight(int index) {
-    if ((index > 0 && listMessage[index - 1].get('idFrom') != email) ||
+    if ((index > 0 && listMessage[index - 1].get('idFrom') != myId) ||
         index == 0) {
       return true;
     } else {
@@ -581,7 +606,6 @@ class ChatScreenState extends State<ChatScreen> {
 
   // 뒤로 가기 누르면 chattingWith를 다시 null 상태로
   Future<bool> onBackPress() {
-    var tmp = fp.getInfo();
     if (isShowSticker) {
       setState(() {
         isShowSticker = false;
@@ -589,7 +613,7 @@ class ChatScreenState extends State<ChatScreen> {
     } else {
       FirebaseFirestore.instance
           .collection('users')
-          .doc(tmp['email'])
+          .doc(myId)
           .update({'chattingWith': null});
       Navigator.pop(context);
     }
@@ -599,8 +623,6 @@ class ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    fp = Provider.of<FirebaseProvider>(context);
-    fp.setInfo();
     return WillPopScope(
       child: Stack(
         children: <Widget>[
@@ -818,13 +840,13 @@ class ChatScreenState extends State<ChatScreen> {
   // 다시 켜면 끄기 전 상태 유지
   Widget buildListMessage() {
     return Flexible(
-      child: groupChatId.isNotEmpty
+      child: peerIds.isNotEmpty
           ? StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
-                  .doc(email)
+                  .doc(myId)
                   .collection('messageWith')
-                  .doc(peerId)
+                  .doc('test_group_name')
                   .collection('messages')
                   .orderBy('timestamp', descending: true)
                   .limit(_limit)
@@ -832,7 +854,7 @@ class ChatScreenState extends State<ChatScreen> {
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasData) {
-                  listMessage.addAll(snapshot.data!.docs);
+                  listMessage.addAll(snapshot.data!.docs); // 모든 메세지 get
                   return ListView.builder(
                     padding: EdgeInsets.all(10.0),
                     itemBuilder: (context, index) =>

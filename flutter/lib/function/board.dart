@@ -275,9 +275,7 @@ class ListBoardState extends State<ListBoard> {
                                               context,
                                               MaterialPageRoute(
                                                   builder: (context) => Chat(
-                                                        peerId: doc['email'],
-                                                        peerAvatar:
-                                                            doc['photoUrl'],
+                                                        peerIds: ['test'],
                                                       )));
                                         },
                                       ),
@@ -414,7 +412,7 @@ class showBoardState extends State<showBoard> {
                                   await storage
                                       .refFromURL(snapshot.data!['pic'][i])
                                       .delete();
-                                    fp.updateIntInfo('piccount', -1);
+                                  fp.updateIntInfo('piccount', -1);
                                 }
                                 await fs
                                     .collection('posts')

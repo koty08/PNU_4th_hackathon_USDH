@@ -12,20 +12,20 @@ late deliveryListState pageState2;
 late deliveryShowState pageState3;
 late deliveryModifyState pageState4;
 
-bool is_available(String time, int n1, int n2){
-    if(n1 >= n2){
-      return false;
-    }
-    String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
-    DateTime d1 = DateTime.parse(now);
-    DateTime d2 = DateTime.parse(time);
-    Duration diff = d1.difference(d2);
-    if(diff.isNegative){
-      return true;
-    }
-    else{
-      return false;
-    }
+bool is_available(String time, int n1, int n2) {
+  if (n1 >= n2) {
+    return false;
+  }
+  String now = formatDate(
+      DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
+  DateTime d1 = DateTime.parse(now);
+  DateTime d2 = DateTime.parse(time);
+  Duration diff = d1.difference(d2);
+  if (diff.isNegative) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 class deliveryWrite extends StatefulWidget {
@@ -82,163 +82,150 @@ class deliveryWriteState extends State<deliveryWrite> {
         resizeToAvoidBottomInset: false,
         appBar: AppBar(title: Text("게시판 글쓰기")),
         body: Center(
-          child: Form(
-            key: _formKey,
-            child: 
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-                      height: 30,
-                      child: TextFormField(
-                            controller: titleInput,
-                            decoration: InputDecoration(hintText: "제목을 입력하세요."),
-                            validator : (text){
-                            if(text == null || text.isEmpty){
-                              return "제목은 필수 입력 사항입니다.";
-                            }
-                            return null;
-                            }
-                            ),
-                  ),
-                  Divider(
-                    color: Colors.black,
-                  ),
-                  Container(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                height: 30,
+                child: TextFormField(
+                    controller: titleInput,
+                    decoration: InputDecoration(hintText: "제목을 입력하세요."),
+                    validator: (text) {
+                      if (text == null || text.isEmpty) {
+                        return "제목은 필수 입력 사항입니다.";
+                      }
+                      return null;
+                    }),
+              ),
+              Divider(
+                color: Colors.black,
+              ),
+              Container(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("모집조건"),
+                    TextFormField(
+                        controller: timeInput,
+                        decoration: InputDecoration(
+                            hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)"),
+                        validator: (text) {
+                          if (text == null || text.isEmpty) {
+                            return "마감 시간은 필수 입력 사항입니다.";
+                          }
+                          return null;
+                        }),
+                    TextFormField(
+                        controller: memberInput,
+                        decoration:
+                            InputDecoration(hintText: "인원을 입력하세요. (숫자 형태)"),
+                        validator: (text) {
+                          if (text == null || text.isEmpty) {
+                            return "인원은 필수 입력 사항입니다.";
+                          }
+                          return null;
+                        }),
+                    TextFormField(
+                        controller: foodInput,
+                        decoration: InputDecoration(hintText: "음식 종류를 입력하세요."),
+                        validator: (text) {
+                          if (text == null || text.isEmpty) {
+                            return "음식 종류는 필수 입력 사항입니다.";
+                          }
+                          return null;
+                        }),
+                    TextFormField(
+                        controller: locationInput,
+                        decoration: InputDecoration(hintText: "위치를 입력하세요."),
+                        validator: (text) {
+                          if (text == null || text.isEmpty) {
+                            return "위치는 필수 입력 사항입니다.";
+                          }
+                          return null;
+                        }),
+                    TextFormField(
+                        controller: tagInput,
+                        decoration: InputDecoration(hintText: "태그를 입력하세요."),
+                        validator: (text) {
+                          if (text == null || text.isEmpty) {
+                            return "태그는 필수 입력 사항입니다.";
+                          }
+                          return null;
+                        }),
+                    Row(
                       children: [
-                        Text("모집조건"),
-
-                        TextFormField(
-                            controller: timeInput,
-                            decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)"),
-                            validator : (text){
-                            if(text == null || text.isEmpty){
-                              return "마감 시간은 필수 입력 사항입니다.";
-                            }
-                            return null;
-                            }
-                        ),
-                        TextFormField(
-                            controller: memberInput,
-                            decoration: InputDecoration(hintText: "인원을 입력하세요. (숫자 형태)"),
-                            validator : (text){
-                            if(text == null || text.isEmpty){
-                              return "인원은 필수 입력 사항입니다.";
-                            }
-                            return null;
-                            }
-                        ),
-                        TextFormField(
-                            controller: foodInput,
-                            decoration: InputDecoration(hintText: "음식 종류를 입력하세요."),
-                            validator : (text){
-                            if(text == null || text.isEmpty){
-                              return "음식 종류는 필수 입력 사항입니다.";
-                            }
-                            return null;
-                            }
-                        ),
-                        TextFormField(
-                            controller: locationInput,
-                            decoration: InputDecoration(hintText: "위치를 입력하세요."),
-                            validator : (text){
-                            if(text == null || text.isEmpty){
-                              return "위치는 필수 입력 사항입니다.";
-                            }
-                            return null;
-                            }
-                        ),
-                        TextFormField(
-                            controller: tagInput,
-                            decoration: InputDecoration(hintText: "태그를 입력하세요."),
-                            validator : (text){
-                            if(text == null || text.isEmpty){
-                              return "태그는 필수 입력 사항입니다.";
-                            }
-                            return null;
-                            }
-                        ),
-                        Row(
-                          children: [
-                            Padding(padding: EdgeInsets.fromLTRB(0, 60, 0, 0)),
-                            Radio(
-                                value: "여자만",
-                                groupValue: gender,
-                                onChanged: (String? value){
-                                  setState(() {
-                                    gender = value!;
-                                  });
-                                }
-                            ),
-                            Text("여자만"),
-                            Radio(
-                                value: "남자만",
-                                groupValue: gender,
-                                onChanged: (String? value){
-                                  setState(() {
-                                    gender = value!;
-                                  });
-                                }
-                            ),
-                            Text("남자만"),
-                            Radio(
-                                value: "상관없음",
-                                groupValue: gender,
-                                onChanged: (String? value){
-                                  setState(() {
-                                    gender = value!;
-                                  });
-                                }
-                            ),
-                            Text("상관없음"),
-                          ],
-                        ),
+                        Padding(padding: EdgeInsets.fromLTRB(0, 60, 0, 0)),
+                        Radio(
+                            value: "여자만",
+                            groupValue: gender,
+                            onChanged: (String? value) {
+                              setState(() {
+                                gender = value!;
+                              });
+                            }),
+                        Text("여자만"),
+                        Radio(
+                            value: "남자만",
+                            groupValue: gender,
+                            onChanged: (String? value) {
+                              setState(() {
+                                gender = value!;
+                              });
+                            }),
+                        Text("남자만"),
+                        Radio(
+                            value: "상관없음",
+                            groupValue: gender,
+                            onChanged: (String? value) {
+                              setState(() {
+                                gender = value!;
+                              });
+                            }),
+                        Text("상관없음"),
                       ],
                     ),
-                  ),
-                  Divider(
-                    color: Colors.black,
-                  ),
-                  Container(
-                      height: 50,
-                      child:
-                        TextFormField(
-                            controller: contentInput,
-                            decoration: InputDecoration(hintText: "내용을 입력하세요."),
-                            validator : (text){
-                            if(text == null || text.isEmpty){
-                              return "내용은 필수 입력 사항입니다.";
-                            }
-                            return null;
-                          }
-                        ),
-                  ),
-                  Container(
-                    height: 30,
-                      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.blueAccent[200],
-                        ),
-                        child: Text(
-                          "게시글 쓰기",
-                          style: TextStyle(color: Colors.black),
-                        ),
-                        onPressed: () {
-                          FocusScope.of(context).requestFocus(new FocusNode());
-                          if(_formKey.currentState!.validate()){
-                            uploadOnFS();
-                            Navigator.pop(context);
-                          }
-                        },
-                    )
-                  )
-                ],
+                  ],
+                ),
               ),
-          )
-        ));
+              Divider(
+                color: Colors.black,
+              ),
+              Container(
+                height: 50,
+                child: TextFormField(
+                    controller: contentInput,
+                    decoration: InputDecoration(hintText: "내용을 입력하세요."),
+                    validator: (text) {
+                      if (text == null || text.isEmpty) {
+                        return "내용은 필수 입력 사항입니다.";
+                      }
+                      return null;
+                    }),
+              ),
+              Container(
+                  height: 30,
+                  margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.blueAccent[200],
+                    ),
+                    child: Text(
+                      "게시글 쓰기",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onPressed: () {
+                      FocusScope.of(context).requestFocus(new FocusNode());
+                      if (_formKey.currentState!.validate()) {
+                        uploadOnFS();
+                        Navigator.pop(context);
+                      }
+                    },
+                  ))
+            ],
+          ),
+        )));
   }
 
   void uploadOnFS() async {
@@ -246,14 +233,26 @@ class deliveryWriteState extends State<deliveryWrite> {
     await fs
         .collection('delivery_board')
         .doc(tmp['name'] + tmp['postcount'].toString())
-        .set({'title' : titleInput.text, 'writer': tmp['name'], 'contents': contentInput.text, 'time' : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd])+" "+timeInput.text+":00",
-        'currentMember' : 1, 'limitedMember' : int.parse(memberInput.text), 'food' : foodInput.text, 'location' : locationInput.text, 'tags' : tagInput.text, 'gender' : gender});
+        .set({
+      'title': titleInput.text,
+      'writer': tmp['name'],
+      'contents': contentInput.text,
+      'time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) +
+          " " +
+          timeInput.text +
+          ":00",
+      'currentMember': 1,
+      'limitedMember': int.parse(memberInput.text),
+      'food': foodInput.text,
+      'location': locationInput.text,
+      'tags': tagInput.text,
+      'gender': gender,
+    });
     fp.updateIntInfo('postcount', 1);
   }
 }
 
-
-class deliveryList extends StatefulWidget{
+class deliveryList extends StatefulWidget {
   @override
   deliveryListState createState() {
     pageState2 = deliveryListState();
@@ -261,111 +260,128 @@ class deliveryList extends StatefulWidget{
   }
 }
 
-class deliveryListState extends State<deliveryList>{
-  final Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+class deliveryListState extends State<deliveryList> {
+  final Stream<QuerySnapshot> colstream =
+      FirebaseFirestore.instance.collection('delivery_board').snapshots();
+  late FirebaseProvider fp;
 
   @override
   Widget build(BuildContext context) {
+    fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
+
     return Scaffold(
       appBar: AppBar(title: Text("게시글 목록")),
-      body: 
-        StreamBuilder<QuerySnapshot>(
+      body: StreamBuilder<QuerySnapshot>(
           stream: colstream,
-          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (!snapshot.hasData) {
               return CircularProgressIndicator();
             }
-        
+
             return ListView(
-              children: snapshot.data!.docs.map((doc) {
-                String title = doc['title'];
-                String tags = doc['tags'];
-                return Column(children: [
-                  Padding(padding: EdgeInsets.fromLTRB(10, 15, 10, 15)),
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => deliveryShow(doc.id)));
-                    },
-                    child: Container(
-                      margin: EdgeInsets.fromLTRB(50, 10, 10, 10),
-                      child: Row(
-                        children: [
-                          //제목
-                          Text(title.toString(),
-                              style: TextStyle(
-                                  fontFamily: "SCDream",
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 20)),
-                          SizedBox(
-                            width: 20,
-                          ),
+                children: snapshot.data!.docs.map((doc) {
+              String title = doc['title'];
+              String tags = doc['tags'];
+              return Column(children: [
+                Padding(padding: EdgeInsets.fromLTRB(10, 15, 10, 15)),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => deliveryShow(doc.id)));
+                  },
+                  child: Container(
+                    margin: EdgeInsets.fromLTRB(50, 10, 10, 10),
+                    child: Row(
+                      children: [
+                        //제목
+                        Text(title.toString(),
+                            style: TextStyle(
+                                fontFamily: "SCDream",
+                                fontWeight: FontWeight.w600,
+                                fontSize: 20)),
+                        SizedBox(
+                          width: 20,
+                        ),
 
-                          //모집중, 모집완료 표시
-                          is_available(doc['time'], doc['currentMember'], doc['limitedMember']) ? Text("모집중") : Text("모집완료"),
+                        //모집중, 모집완료 표시
+                        is_available(doc['time'], doc['currentMember'],
+                                doc['limitedMember'])
+                            ? Text("모집중")
+                            : Text("모집완료"),
 
-                          PopupMenuButton(
-                            itemBuilder: (BuildContext context) => [
-                              PopupMenuItem(
-                                child: TextButton(
-                                  child: Text(
-                                    "채팅시작",
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => Chat(
-                                                  peerId: doc['email'],
-                                                  peerAvatar:
-                                                      doc['photoUrl'],
-                                            )));
-                                  },
+                        // 채팅 시작 버튼
+                        PopupMenuButton(
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem(
+                              child: TextButton(
+                                child: Text(
+                                  "채팅시작",
+                                  style: TextStyle(color: Colors.black),
                                 ),
+                                onPressed: () async {
+                                  var tmp = fp.getInfo();
+                                  List<dynamic> peerIds = [];
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(tmp['email'])
+                                      .collection('messageWith')
+                                      .doc('test_group_name')
+                                      .get()
+                                      .then((value) {
+                                    peerIds = value['chatMembers'];
+                                  });
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => Chat(
+                                                // 수정 필요
+                                                peerIds: peerIds,
+                                              )));
+                                },
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  //태그
-                  Text(tags.toString(),
-                    style: TextStyle(
-                    fontSize: 19, color: Colors.blueGrey)),
-                  Divider(
-                    thickness: 2,
-                    color: Colors.blue[200],
-                  ),
-                ]);
-              }).toList()
-            );
-        }),
-        floatingActionButton: FloatingActionButton(
+                ),
+                //태그
+                Text(tags.toString(),
+                    style: TextStyle(fontSize: 19, color: Colors.blueGrey)),
+                Divider(
+                  thickness: 2,
+                  color: Colors.blue[200],
+                ),
+              ]);
+            }).toList());
+          }),
+      floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => deliveryWrite()));
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => deliveryWrite()));
           }),
     );
   }
 }
 
-class deliveryShow extends StatefulWidget{
+class deliveryShow extends StatefulWidget {
   deliveryShow(this.id);
   final String id;
 
   @override
-  deliveryShowState createState(){
+  deliveryShowState createState() {
     pageState3 = deliveryShowState();
     return pageState3;
   }
 }
 
-class deliveryShowState extends State<deliveryShow>{
+class deliveryShowState extends State<deliveryShow> {
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
 
@@ -380,89 +396,111 @@ class deliveryShowState extends State<deliveryShow>{
     fp.setInfo();
 
     return Scaffold(
-      appBar: AppBar(title: Text("게시글 내용"),),
-      body:
-        StreamBuilder(
-          stream : fs.collection('delivery_board').doc(widget.id).snapshots(),
-          builder: (context, AsyncSnapshot<DocumentSnapshot>snapshot){
-            fp.setInfo();
-
-            if (snapshot.hasData && !snapshot.data!.exists) {
-              return CircularProgressIndicator();
-            }
-
-            else if(snapshot.hasData){
+        appBar: AppBar(
+          title: Text("게시글 내용"),
+        ),
+        body: StreamBuilder(
+            stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
+            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               fp.setInfo();
-              if(fp.getInfo()['name'] == snapshot.data!['writer']){
-                return Column(
-                  children: [
-                  Text(snapshot.data!['tags']),
-                  Text(snapshot.data!['title']),
-                  Text("마감 " + formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
-                  Divider(color: Colors.black,),
-                  Text(formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
-                  Text(snapshot.data!['currentMember'].toString()+"/"+snapshot.data!['limitedMember'].toString()),
-                  Text(snapshot.data!['food']),
-                  Text(snapshot.data!['location']),
-                  Text(snapshot.data!['gender']),
-                  Divider(color: Colors.black,),
-                  Text(snapshot.data!['contents']),
-                  Row(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.purple[300],
-                        ),
-                        child: Text(
-                          "수정",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => deliveryModify(widget.id)));
-                          setState(() {
-                            
-                          });
-                        },
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.indigo[300],
-                        ),
-                        child: Text(
-                          "삭제",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          await fs.collection('delivery_board').doc(widget.id).delete();
-                          fp.updateIntInfo('postcount', -1);
-                        },
-                      ),
-                    ),
-                  ],
-                  )
-                  ],
-                );
-              }
 
-              else{
-                return Column(
+              if (snapshot.hasData && !snapshot.data!.exists) {
+                return CircularProgressIndicator();
+              } else if (snapshot.hasData) {
+                fp.setInfo();
+                if (fp.getInfo()['name'] == snapshot.data!['writer']) {
+                  return Column(
                     children: [
                       Text(snapshot.data!['tags']),
                       Text(snapshot.data!['title']),
-                      Text("마감 " + formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
-                      Divider(color: Colors.black,),
-                      Text(formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
-                      Text(snapshot.data!['currentMember'].toString()+"/"+snapshot.data!['limitedMember'].toString()),
+                      Text("마감 " +
+                          formatDate(DateTime.parse(snapshot.data!['time']),
+                              [HH, ':', nn])),
+                      Divider(
+                        color: Colors.black,
+                      ),
+                      Text(formatDate(DateTime.parse(snapshot.data!['time']),
+                          [HH, ':', nn])),
+                      Text(snapshot.data!['currentMember'].toString() +
+                          "/" +
+                          snapshot.data!['limitedMember'].toString()),
                       Text(snapshot.data!['food']),
                       Text(snapshot.data!['location']),
                       Text(snapshot.data!['gender']),
-                      Divider(color: Colors.black,),
+                      Divider(
+                        color: Colors.black,
+                      ),
+                      Text(snapshot.data!['contents']),
+                      Row(
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                primary: Colors.purple[300],
+                              ),
+                              child: Text(
+                                "수정",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            deliveryModify(widget.id)));
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                primary: Colors.indigo[300],
+                              ),
+                              child: Text(
+                                "삭제",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: () async {
+                                Navigator.pop(context);
+                                await fs
+                                    .collection('delivery_board')
+                                    .doc(widget.id)
+                                    .delete();
+                                fp.updateIntInfo('postcount', -1);
+                              },
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  );
+                } else {
+                  return Column(
+                    children: [
+                      Text(snapshot.data!['tags']),
+                      Text(snapshot.data!['title']),
+                      Text("마감 " +
+                          formatDate(DateTime.parse(snapshot.data!['time']),
+                              [HH, ':', nn])),
+                      Divider(
+                        color: Colors.black,
+                      ),
+                      Text(formatDate(DateTime.parse(snapshot.data!['time']),
+                          [HH, ':', nn])),
+                      Text(snapshot.data!['currentMember'].toString() +
+                          "/" +
+                          snapshot.data!['limitedMember'].toString()),
+                      Text(snapshot.data!['food']),
+                      Text(snapshot.data!['location']),
+                      Text(snapshot.data!['gender']),
+                      Divider(
+                        color: Colors.black,
+                      ),
                       Text(snapshot.data!['contents']),
                       // 참가, 손절
                       Row(
@@ -485,7 +523,7 @@ class deliveryShowState extends State<deliveryShow>{
                                     snapshot.data!['currentMember'];
                                 int _limitedMember =
                                     snapshot.data!['limitedMember'];
-                                String _roomName = snapshot.data!['postName'];
+                                String _roomName = widget.id;
 
                                 List<String> _joiningRoom = [];
                                 await FirebaseFirestore.instance
@@ -508,8 +546,8 @@ class deliveryShowState extends State<deliveryShow>{
                                 // 인원이 남을 경우
                                 else {
                                   await FirebaseFirestore.instance
-                                      .collection('posts')
-                                      .doc(snapshot.data!['postName'])
+                                      .collection('delivery_board')
+                                      .doc(widget.id)
                                       .update({
                                     'currentMember': _currentMember + 1
                                   });
@@ -543,7 +581,7 @@ class deliveryShowState extends State<deliveryShow>{
                                     snapshot.data!['currentMember'];
                                 int _limitedMember =
                                     snapshot.data!['limitedMember'];
-                                String _roomName = snapshot.data!['postName'];
+                                String _roomName = widget.id;
 
                                 List<String> _joiningRoom = [];
                                 await FirebaseFirestore.instance
@@ -563,8 +601,8 @@ class deliveryShowState extends State<deliveryShow>{
                                 else if (_currentMember >= 2 &&
                                     _currentMember <= _limitedMember) {
                                   await FirebaseFirestore.instance
-                                      .collection('posts')
-                                      .doc(snapshot.data!['postName'])
+                                      .collection('delivery_board')
+                                      .doc(widget.id)
                                       .update({
                                     'currentMember': _currentMember - 1
                                   });
@@ -583,7 +621,7 @@ class deliveryShowState extends State<deliveryShow>{
                                 else if (_currentMember == 1) {
                                   Navigator.pop(context);
                                   fs
-                                      .collection('posts')
+                                      .collection('delivery_board')
                                       .doc(widget.id)
                                       .delete();
                                   List<String> roomName = [_roomName];
@@ -606,18 +644,15 @@ class deliveryShowState extends State<deliveryShow>{
                         ],
                       ),
                     ],
-                );
+                  );
+                }
               }
-            }
-            return CircularProgressIndicator();
-          }
-        )
-    );
+              return CircularProgressIndicator();
+            }));
   }
-
 }
 
-class deliveryModify extends StatefulWidget{
+class deliveryModify extends StatefulWidget {
   deliveryModify(this.id);
   final String id;
   @override
@@ -627,7 +662,7 @@ class deliveryModify extends StatefulWidget{
   }
 }
 
-class deliveryModifyState extends State<deliveryModify>{
+class deliveryModifyState extends State<deliveryModify> {
   final FirebaseFirestore fs = FirebaseFirestore.instance;
   late TextEditingController titleInput;
   late TextEditingController contentInput;
@@ -660,134 +695,145 @@ class deliveryModifyState extends State<deliveryModify>{
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(title: Text("게시물 수정")),
-      body:
-        StreamBuilder(
-        stream : fs.collection('delivery_board').doc(widget.id).snapshots(),
-        builder: (context, AsyncSnapshot<DocumentSnapshot>snapshot) {
-          if (snapshot.hasData && !snapshot.data!.exists) {
-            return CircularProgressIndicator();
-          }
-          if(snapshot.hasData){
-            titleInput = TextEditingController(text: snapshot.data!['title']);
-            contentInput = TextEditingController(text: snapshot.data!['contents']);
-            timeInput = TextEditingController(text : formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn]));
-            memberInput = TextEditingController(text: snapshot.data!['limitedMember'].toString());
-            foodInput = TextEditingController(text: snapshot.data!['food']);
-            locationInput = TextEditingController(text: snapshot.data!['location']);
-            tagInput = TextEditingController(text: snapshot.data!['tags']);
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                //태그 수정
-                TextField(
-                  controller: tagInput,
-                ),
-                //제목 수정
-                Container(
-                    height: 30,
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
-                    child: TextField(
-                          controller: titleInput,
-                        ),
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(title: Text("게시물 수정")),
+        body: StreamBuilder(
+            stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
+            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+              if (snapshot.hasData && !snapshot.data!.exists) {
+                return CircularProgressIndicator();
+              }
+              if (snapshot.hasData) {
+                titleInput =
+                    TextEditingController(text: snapshot.data!['title']);
+                contentInput =
+                    TextEditingController(text: snapshot.data!['contents']);
+                timeInput = TextEditingController(
+                    text: formatDate(
+                        DateTime.parse(snapshot.data!['time']), [HH, ':', nn]));
+                memberInput = TextEditingController(
+                    text: snapshot.data!['limitedMember'].toString());
+                foodInput = TextEditingController(text: snapshot.data!['food']);
+                locationInput =
+                    TextEditingController(text: snapshot.data!['location']);
+                tagInput = TextEditingController(text: snapshot.data!['tags']);
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    //태그 수정
+                    TextField(
+                      controller: tagInput,
                     ),
-                //시간 수정
-                TextField(
-                  controller: timeInput,
-                ),
-                //사람수 수정
-                TextField(
-                  controller: memberInput,
-                ),
-                //음식 수정
-                TextField(
-                  controller: foodInput,
-                ),
-                //위치 수정
-                TextField(
-                  controller: locationInput,
-                ),
-                //성별 수정
-                Row(
-                  children: [
-                    Padding(padding: EdgeInsets.fromLTRB(0, 60, 0, 0)),
-                    Radio(
-                        value: "여자만",
-                        groupValue: gender,
-                        onChanged: (String? value){
-                          setState(() {
-                            gender = value!;
-                          });
-                        }
+                    //제목 수정
+                    Container(
+                      height: 30,
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 30, vertical: 50),
+                      child: TextField(
+                        controller: titleInput,
+                      ),
                     ),
-                    Text("여자만"),
-                    Radio(
-                        value: "남자만",
-                        groupValue: gender,
-                        onChanged: (String? value){
-                          setState(() {
-                            gender = value!;
-                          });
-                        }
+                    //시간 수정
+                    TextField(
+                      controller: timeInput,
                     ),
-                    Text("남자만"),
-                    Radio(
-                        value: "상관없음",
-                        groupValue: gender,
-                        onChanged: (String? value){
-                          setState(() {
-                            gender = value!;
-                          });
-                        }
+                    //사람수 수정
+                    TextField(
+                      controller: memberInput,
                     ),
-                    Text("상관없음"),
+                    //음식 수정
+                    TextField(
+                      controller: foodInput,
+                    ),
+                    //위치 수정
+                    TextField(
+                      controller: locationInput,
+                    ),
+                    //성별 수정
+                    Row(
+                      children: [
+                        Padding(padding: EdgeInsets.fromLTRB(0, 60, 0, 0)),
+                        Radio(
+                            value: "여자만",
+                            groupValue: gender,
+                            onChanged: (String? value) {
+                              setState(() {
+                                gender = value!;
+                              });
+                            }),
+                        Text("여자만"),
+                        Radio(
+                            value: "남자만",
+                            groupValue: gender,
+                            onChanged: (String? value) {
+                              setState(() {
+                                gender = value!;
+                              });
+                            }),
+                        Text("남자만"),
+                        Radio(
+                            value: "상관없음",
+                            groupValue: gender,
+                            onChanged: (String? value) {
+                              setState(() {
+                                gender = value!;
+                              });
+                            }),
+                        Text("상관없음"),
+                      ],
+                    ),
+                    //내용 수정
+                    Container(
+                      height: 50,
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 30, vertical: 50),
+                      child: TextField(
+                        controller: contentInput,
+                      ),
+                    ),
+                    Divider(
+                      color: Colors.black,
+                    ),
+                    Container(
+                        height: 30,
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.blueAccent[200],
+                          ),
+                          child: Text(
+                            "게시물 수정",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          onPressed: () {
+                            FocusScope.of(context)
+                                .requestFocus(new FocusNode());
+                            updateOnFS();
+                            Navigator.pop(context);
+                          },
+                        )),
                   ],
-                ),
-                //내용 수정
-                Container(
-                    height: 50,
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
-                    child:
-                      TextField(
-                          controller: contentInput,
-                      ),
-                ),
-                Divider(
-                  color: Colors.black,
-                ),
-                Container(
-                  height: 30,
-                    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        primary: Colors.blueAccent[200],
-                      ),
-                      child: Text(
-                        "게시물 수정",
-                        style: TextStyle(color: Colors.black),
-                      ),
-                      onPressed: () {
-                        FocusScope.of(context).requestFocus(new FocusNode());
-                        updateOnFS();
-                        Navigator.pop(context);
-                      },
-                    )
-                ),
-              ],
-            );
-          }
-          return CircularProgressIndicator();
-        }
-    ));
+                );
+              }
+              return CircularProgressIndicator();
+            }));
   }
 
   void updateOnFS() async {
-    await fs.collection('delivery_board').doc(widget.id).update({'title' : titleInput.text, 'contents': contentInput.text, 'time' : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd])+" "+timeInput.text+":00",
-      'limitedMember' : int.parse(memberInput.text), 'food' : foodInput.text, 'location' : locationInput.text, 'tags' : tagInput.text, 'gender' : gender});
+    await fs.collection('delivery_board').doc(widget.id).update({
+      'title': titleInput.text,
+      'contents': contentInput.text,
+      'time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) +
+          " " +
+          timeInput.text +
+          ":00",
+      'limitedMember': int.parse(memberInput.text),
+      'food': foodInput.text,
+      'location': locationInput.text,
+      'tags': tagInput.text,
+      'gender': gender
+    });
   }
 }

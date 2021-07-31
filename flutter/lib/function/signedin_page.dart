@@ -74,7 +74,8 @@ class SignedInPageState extends State<SignedInPage> {
             children: [
               cSizedBox(0, 15),
               imageAndText('assets/images/icon/group.png', "택시", ListBoard()),
-              imageAndText('assets/images/icon/group.png', "배달", deliveryList()),
+              imageAndText(
+                  'assets/images/icon/group.png', "배달", deliveryList()),
               imageAndText('assets/images/icon/group.png', "공구", ListBoard()),
               imageAndText('assets/images/icon/group.png', "팀빌딩", ListBoard()),
               cSizedBox(0, 15),
