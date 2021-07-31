@@ -8,6 +8,13 @@ Widget cSizedBox(double h, double w) {
   );
 }
 
+Widget headerText(String text) {
+  return Text(
+      text,
+      style: TextStyle(fontFamily: "SCDream", color: Colors.blueGrey, fontWeight: FontWeight.w500, fontSize: 21)
+  );
+}
+
 Widget tagText(String text) {
   return Text(
     text,
