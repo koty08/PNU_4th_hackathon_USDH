@@ -1,13 +1,16 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:usdh/chat/chatting.dart';
+import 'package:usdh/chat/home.dart';
 
 late deliveryWriteState pageState;
+late deliveryMapState pageState1;
 late deliveryListState pageState2;
 late deliveryShowState pageState3;
 late deliveryModifyState pageState4;
@@ -27,6 +30,8 @@ bool is_available(String time, int n1, int n2) {
     return false;
   }
 }
+
+/* ---------------------- Write Board (Delivery) ---------------------- */
 
 class deliveryWrite extends StatefulWidget {
   @override
@@ -252,6 +257,38 @@ class deliveryWriteState extends State<deliveryWrite> {
   }
 }
 
+/* ---------------------- Board Map (Delivery) ---------------------- */
+/* ----------------------    지우지 말아주세요    ---------------------- */
+
+class deliveryMap extends StatefulWidget {
+  @override
+  deliveryMapState createState() {
+    pageState1 = deliveryMapState();
+    return pageState1;
+  }
+}
+
+class deliveryMapState extends State<deliveryMap> {
+  late FirebaseProvider fp;
+  TextEditingController searchInput = TextEditingController();
+
+  @override
+  void dispose() {
+    searchInput.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
+
+    return Scaffold(body: Container());
+  }
+}
+
+/* ---------------------- Board List (Delivery) ---------------------- */
+
 class deliveryList extends StatefulWidget {
   @override
   deliveryListState createState() {
@@ -261,9 +298,16 @@ class deliveryList extends StatefulWidget {
 }
 
 class deliveryListState extends State<deliveryList> {
-  final Stream<QuerySnapshot> colstream =
+  Stream<QuerySnapshot> colstream =
       FirebaseFirestore.instance.collection('delivery_board').snapshots();
   late FirebaseProvider fp;
+  TextEditingController searchInput = TextEditingController();
+
+  @override
+  void dispose() {
+    searchInput.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -271,95 +315,278 @@ class deliveryListState extends State<deliveryList> {
     fp.setInfo();
 
     return Scaffold(
-      appBar: AppBar(title: Text("게시글 목록")),
-      body: StreamBuilder<QuerySnapshot>(
-          stream: colstream,
-          builder:
-              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (!snapshot.hasData) {
-              return CircularProgressIndicator();
-            }
-
-            return ListView(
-                children: snapshot.data!.docs.map((doc) {
-              String title = doc['title'];
-              String tags = doc['tags'];
+      body: RefreshIndicator(
+        //당겨서 새로고침
+        onRefresh: () async {
+          colstream = await FirebaseFirestore.instance
+              .collection('delivery_board')
+              .snapshots();
+        },
+        child: StreamBuilder<QuerySnapshot>(
+            stream: colstream,
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (!snapshot.hasData) {
+                return CircularProgressIndicator();
+              }
               return Column(children: [
-                Padding(padding: EdgeInsets.fromLTRB(10, 15, 10, 15)),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => deliveryShow(doc.id)));
-                  },
-                  child: Container(
-                    margin: EdgeInsets.fromLTRB(50, 10, 10, 10),
-                    child: Row(
-                      children: [
-                        //제목
-                        Text(title.toString(),
-                            style: TextStyle(
-                                fontFamily: "SCDream",
-                                fontWeight: FontWeight.w600,
-                                fontSize: 20)),
-                        SizedBox(
-                          width: 20,
-                        ),
-
-                        //모집중, 모집완료 표시
-                        is_available(doc['time'], doc['currentMember'],
-                                doc['limitedMember'])
-                            ? Text("모집중")
-                            : Text("모집완료"),
-
-                        // 채팅 시작 버튼
-                        PopupMenuButton(
-                          itemBuilder: (BuildContext context) => [
-                            PopupMenuItem(
-                              child: TextButton(
-                                child: Text(
-                                  "채팅시작",
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                                onPressed: () async {
-                                  var tmp = fp.getInfo();
-                                  List<dynamic> peerIds = [];
-                                  await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(tmp['email'])
-                                      .collection('messageWith')
-                                      .doc('test_group_name')
-                                      .get()
-                                      .then((value) {
-                                    peerIds = value['chatMembers'];
+                cSizedBox(35, 0),
+                Container(
+                  //decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 3, color: Colors.blueGrey))),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.navigate_before),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                      Text(
+                        "배달",
+                        style: TextStyle(
+                            color: Colors.blueGrey,
+                            fontSize: 21,
+                            fontFamily: "SCDream",
+                            fontWeight: FontWeight.w500),
+                      ),
+                      cSizedBox(0, 50),
+                      Wrap(
+                        spacing: -5,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.map),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          //새로고침 기능
+                          IconButton(
+                            icon: Icon(Icons.refresh),
+                            onPressed: () async {
+                              colstream = await FirebaseFirestore.instance
+                                  .collection('delivery_board')
+                                  .snapshots();
+                            },
+                          ),
+                          //검색 기능 팝업
+                          IconButton(
+                            icon: Icon(Icons.search),
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext con) {
+                                    return AlertDialog(
+                                      title: Text("검색 ㄱ"),
+                                      content: TextField(
+                                        controller: searchInput,
+                                        decoration: InputDecoration(
+                                            hintText: "검색할 제목을 입력하세요."),
+                                      ),
+                                      actions: <Widget>[
+                                        TextButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                colstream = FirebaseFirestore
+                                                    .instance
+                                                    .collection(
+                                                        'delivery_board')
+                                                    .orderBy('title')
+                                                    .startAt([
+                                                  searchInput.text
+                                                ]).endAt([
+                                                  searchInput.text + '\uf8ff'
+                                                ]).snapshots();
+                                              });
+                                              Navigator.pop(con);
+                                            },
+                                            child: Text("검색")),
+                                        TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(con);
+                                            },
+                                            child: Text("취소")),
+                                      ],
+                                    );
                                   });
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => Chat(
-                                                // 수정 필요
-                                                peerIds: peerIds,
-                                              )));
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.message),
+                            onPressed: () {
+                              var tmp = fp.getInfo();
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => HomeScreen(
+                                          currentUserId: tmp['email'])));
+                            },
+                          ),
+                        ],
+                      )
+                    ],
                   ),
                 ),
-                //태그
-                Text(tags.toString(),
-                    style: TextStyle(fontSize: 19, color: Colors.blueGrey)),
+                /*CustomPaint(
+                    size: Size(400, 4),
+                    painter: CurvePainter(),
+                  ),*/
                 Divider(
-                  thickness: 2,
-                  color: Colors.blue[200],
+                  color: Colors.blueAccent,
+                  thickness: 3,
                 ),
+                Container(
+                    padding: EdgeInsets.fromLTRB(0, 0, 25, 0),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.check_box_outlined),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          cSizedBox(2, 0),
+                          Text(
+                            "모집완료 보기",
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.indigo.shade300,
+                            ),
+                          ),
+                        ])),
+                // Container or Expanded or Flexible 사용
+                Expanded(
+                    // 아래 간격 두고 싶으면 Container, height 사용
+                    //height: MediaQuery.of(context).size.height * 0.8,
+                    child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: ListView.separated(
+                      separatorBuilder: (context, index) => Divider(
+                            height: 10,
+                            thickness: 2,
+                            color: Colors.blue[100],
+                          ),
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        final DocumentSnapshot doc = snapshot.data!.docs[index];
+                        String title = doc['title'] +
+                            ' [' +
+                            doc['currentMember'].toString() +
+                            '/' +
+                            doc['limitedMember'].toString() +
+                            ']';
+                        String writer = doc['writer'];
+                        return Column(children: [
+                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                          InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            deliveryShow(doc.id)));
+                              },
+                              child: Container(
+                                  margin: EdgeInsets.fromLTRB(30, 17, 10, 0),
+                                  child: Column(children: [
+                                    Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.7,
+                                              child: Text(doc['tags'],
+                                                  style: TextStyle(
+                                                      fontFamily: "SCDream",
+                                                      color: Colors.grey[600],
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontSize: 13))),
+                                          cSizedBox(0, 10),
+                                          is_available(
+                                                  doc['time'],
+                                                  doc['currentMember'],
+                                                  doc['limitedMember'])
+                                              ? sText("모집중")
+                                              : sText("모집완료"),
+                                          //Text("모집상태", style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 12)),
+                                        ]),
+                                    Row(children: [
+                                      Container(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.5,
+                                        child: Text(title.toString(),
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                                fontFamily: "SCDream",
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 15)),
+                                      ),
+                                      cSizedBox(70, 40),
+                                      Container(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.15,
+                                          child: Text(writer.toString(),
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.blueGrey))),
+                                      PopupMenuButton(
+                                          itemBuilder: (BuildContext context) =>
+                                              [
+                                                PopupMenuItem(
+                                                    child: TextButton(
+                                                  child: Text(
+                                                    "채팅시작",
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  ),
+                                                  onPressed: () async {
+                                                    var tmp = fp.getInfo();
+                                                    List<dynamic> peerIds = [];
+                                                    await FirebaseFirestore
+                                                        .instance
+                                                        .collection('users')
+                                                        .doc(tmp['email'])
+                                                        .collection(
+                                                            'messageWith')
+                                                        .doc('test_group_name')
+                                                        .get()
+                                                        .then((value) {
+                                                      peerIds =
+                                                          value['chatMembers'];
+                                                    });
+                                                    Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                            builder:
+                                                                (context) =>
+                                                                    Chat(
+                                                                      // 수정 필요
+                                                                      peerIds:
+                                                                          peerIds,
+                                                                    )));
+                                                  },
+                                                ))
+                                              ])
+                                    ])
+                                  ])))
+                        ]);
+                      }),
+                )),
               ]);
-            }).toList());
-          }),
+            }),
+      ),
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
@@ -368,7 +595,28 @@ class deliveryListState extends State<deliveryList> {
           }),
     );
   }
+
+  Widget cSizedBox(double h, double w) {
+    return SizedBox(
+      height: h,
+      width: w,
+    );
+  }
+
+  Widget sText(String text) {
+    return Container(
+        width: MediaQuery.of(context).size.width * 0.15,
+        child: Text(text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontFamily: "SCDream",
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+                fontSize: 12)));
+  }
 }
+
+/* ---------------------- Show Board (Delivery) ---------------------- */
 
 class deliveryShow extends StatefulWidget {
   deliveryShow(this.id);
@@ -396,9 +644,6 @@ class deliveryShowState extends State<deliveryShow> {
     fp.setInfo();
 
     return Scaffold(
-        appBar: AppBar(
-          title: Text("게시글 내용"),
-        ),
         body: StreamBuilder(
             stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -409,29 +654,136 @@ class deliveryShowState extends State<deliveryShow> {
               } else if (snapshot.hasData) {
                 fp.setInfo();
                 if (fp.getInfo()['name'] == snapshot.data!['writer']) {
-                  return Column(
+                  return SingleChildScrollView(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(snapshot.data!['tags']),
-                      Text(snapshot.data!['title']),
-                      Text("마감 " +
-                          formatDate(DateTime.parse(snapshot.data!['time']),
-                              [HH, ':', nn])),
-                      Divider(
-                        color: Colors.black,
-                      ),
-                      Text(formatDate(DateTime.parse(snapshot.data!['time']),
-                          [HH, ':', nn])),
-                      Text(snapshot.data!['currentMember'].toString() +
-                          "/" +
-                          snapshot.data!['limitedMember'].toString()),
-                      Text(snapshot.data!['food']),
-                      Text(snapshot.data!['location']),
-                      Text(snapshot.data!['gender']),
-                      Divider(
-                        color: Colors.black,
-                      ),
-                      Text(snapshot.data!['contents']),
+                      cSizedBox(35, 0),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.navigate_before),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          Text(
+                            "배달",
+                            style: TextStyle(
+                                color: Colors.blueGrey,
+                                fontSize: 21,
+                                fontFamily: "SCDream",
+                                fontWeight: FontWeight.w500),
+                          ),
+                          cSizedBox(0, 175),
+                          IconButton(
+                            icon: Icon(Icons.message),
+                            onPressed: () {
+                              var tmp = fp.getInfo();
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => HomeScreen(
+                                          currentUserId: tmp['email'])));
+                            },
+                          ),
+                        ],
+                      ),
+                      Divider(
+                        color: Colors.indigo[400],
+                        thickness: 3,
+                      ),
+                      Padding(
+                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                          child: Wrap(
+                              direction: Axis.vertical,
+                              spacing: 15,
+                              children: [
+                                tagText(snapshot.data!['tags']),
+                                Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.8,
+                                    child: titleText(snapshot.data!['title'])),
+                                condText("마감 " +
+                                    formatDate(
+                                        DateTime.parse(snapshot.data!['time']),
+                                        [HH, ':', nn]))
+                              ])),
+                      Divider(
+                        color: Colors.indigo[200],
+                        thickness: 2,
+                      ),
+                      Padding(
+                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                          child: Wrap(
+                            direction: Axis.vertical,
+                            spacing: 15,
+                            children: [
+                              Text("모집조건",
+                                  style: TextStyle(
+                                      fontFamily: "SCDream",
+                                      color: Colors.blueAccent,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15)),
+                              Padding(
+                                  padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
+                                  child: Wrap(
+                                    direction: Axis.vertical,
+                                    spacing: 15,
+                                    children: [
+                                      Wrap(
+                                        spacing: 40,
+                                        children: [
+                                          cond2Text("모집기간"),
+                                          condText(formatDate(
+                                              DateTime.parse(
+                                                  snapshot.data!['time']),
+                                              [HH, ':', nn])),
+                                        ],
+                                      ),
+                                      Wrap(
+                                        spacing: 40,
+                                        children: [
+                                          cond2Text("모집인원"),
+                                          condText(snapshot
+                                                  .data!['currentMember']
+                                                  .toString() +
+                                              "/" +
+                                              snapshot.data!['limitedMember']
+                                                  .toString())
+                                        ],
+                                      ),
+                                      Wrap(
+                                        spacing: 40,
+                                        children: [
+                                          cond2Text("음식종류"),
+                                          condText(snapshot.data!['food']),
+                                        ],
+                                      ),
+                                      Wrap(
+                                        spacing: 40,
+                                        children: [
+                                          cond2Text("배분위치"),
+                                          condText(snapshot.data!['location']),
+                                        ],
+                                      )
+                                    ],
+                                  ))
+                            ],
+                          )),
+                      Divider(
+                        color: Colors.indigo[200],
+                        thickness: 2,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
+                        child: Text(snapshot.data!['contents'],
+                            style: TextStyle(fontSize: 14)),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
                             margin: const EdgeInsets.symmetric(
@@ -478,32 +830,140 @@ class deliveryShowState extends State<deliveryShow> {
                         ],
                       )
                     ],
-                  );
+                  ));
                 } else {
                   return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(snapshot.data!['tags']),
-                      Text(snapshot.data!['title']),
-                      Text("마감 " +
-                          formatDate(DateTime.parse(snapshot.data!['time']),
-                              [HH, ':', nn])),
-                      Divider(
-                        color: Colors.black,
+                      cSizedBox(35, 0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.navigate_before),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          Text(
+                            "배달",
+                            style: TextStyle(
+                                color: Colors.blueGrey,
+                                fontSize: 21,
+                                fontFamily: "SCDream",
+                                fontWeight: FontWeight.w500),
+                          ),
+                          cSizedBox(0, 175),
+                          IconButton(
+                            icon: Icon(Icons.message),
+                            onPressed: () {
+                              var tmp = fp.getInfo();
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => HomeScreen(
+                                          currentUserId: tmp['email'])));
+                            },
+                          ),
+                        ],
                       ),
-                      Text(formatDate(DateTime.parse(snapshot.data!['time']),
-                          [HH, ':', nn])),
-                      Text(snapshot.data!['currentMember'].toString() +
-                          "/" +
-                          snapshot.data!['limitedMember'].toString()),
-                      Text(snapshot.data!['food']),
-                      Text(snapshot.data!['location']),
-                      Text(snapshot.data!['gender']),
                       Divider(
-                        color: Colors.black,
+                        color: Colors.indigo[400],
+                        thickness: 3,
                       ),
-                      Text(snapshot.data!['contents']),
+                      Padding(
+                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                          child: Wrap(
+                              direction: Axis.vertical,
+                              spacing: 15,
+                              children: [
+                                tagText(snapshot.data!['tags']),
+                                Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.8,
+                                    child: titleText(snapshot.data!['title'])),
+                                condText("마감 " +
+                                    formatDate(
+                                        DateTime.parse(snapshot.data!['time']),
+                                        [HH, ':', nn]))
+                              ])),
+                      Divider(
+                        color: Colors.indigo[200],
+                        thickness: 2,
+                      ),
+                      Padding(
+                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                          child: Wrap(
+                            direction: Axis.vertical,
+                            spacing: 15,
+                            children: [
+                              Text("모집조건",
+                                  style: TextStyle(
+                                      fontFamily: "SCDream",
+                                      color: Colors.blueAccent,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15)),
+                              Padding(
+                                  padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
+                                  child: Wrap(
+                                    direction: Axis.vertical,
+                                    spacing: 15,
+                                    children: [
+                                      Wrap(
+                                        spacing: 40,
+                                        children: [
+                                          cond2Text("모집기간"),
+                                          condText(formatDate(
+                                              DateTime.parse(
+                                                  snapshot.data!['time']),
+                                              [HH, ':', nn])),
+                                        ],
+                                      ),
+                                      Wrap(
+                                        spacing: 40,
+                                        children: [
+                                          cond2Text("모집인원"),
+                                          condText(snapshot
+                                                  .data!['currentMember']
+                                                  .toString() +
+                                              "/" +
+                                              snapshot.data!['limitedMember']
+                                                  .toString())
+                                        ],
+                                      ),
+                                      Wrap(
+                                        spacing: 40,
+                                        children: [
+                                          cond2Text("음식종류"),
+                                          condText(snapshot.data!['food']),
+                                        ],
+                                      ),
+                                      Wrap(
+                                        spacing: 40,
+                                        children: [
+                                          cond2Text("배분위치"),
+                                          condText(snapshot.data!['location']),
+                                        ],
+                                      )
+                                    ],
+                                  ))
+                            ],
+                          )),
+                      Divider(
+                        color: Colors.indigo[200],
+                        thickness: 2,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
+                        child: Text(
+                          snapshot.data!['contents'],
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
                       // 참가, 손절
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           // 참가 버튼을 누르면 currentMember+1, 제한 넘으면 불가
                           Container(
@@ -652,6 +1112,8 @@ class deliveryShowState extends State<deliveryShow> {
   }
 }
 
+/* ---------------------- Modify Board (Delivery) ---------------------- */
+
 class deliveryModify extends StatefulWidget {
   deliveryModify(this.id);
   final String id;
@@ -672,6 +1134,8 @@ class deliveryModifyState extends State<deliveryModify> {
   late TextEditingController locationInput;
   late TextEditingController tagInput;
   String gender = "";
+
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -697,128 +1161,176 @@ class deliveryModifyState extends State<deliveryModify> {
   Widget build(BuildContext context) {
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        appBar: AppBar(title: Text("게시물 수정")),
-        body: StreamBuilder(
-            stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
-            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-              if (snapshot.hasData && !snapshot.data!.exists) {
-                return CircularProgressIndicator();
-              }
-              if (snapshot.hasData) {
-                titleInput =
-                    TextEditingController(text: snapshot.data!['title']);
-                contentInput =
-                    TextEditingController(text: snapshot.data!['contents']);
-                timeInput = TextEditingController(
-                    text: formatDate(
-                        DateTime.parse(snapshot.data!['time']), [HH, ':', nn]));
-                memberInput = TextEditingController(
-                    text: snapshot.data!['limitedMember'].toString());
-                foodInput = TextEditingController(text: snapshot.data!['food']);
-                locationInput =
-                    TextEditingController(text: snapshot.data!['location']);
-                tagInput = TextEditingController(text: snapshot.data!['tags']);
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    //태그 수정
-                    TextField(
-                      controller: tagInput,
-                    ),
-                    //제목 수정
-                    Container(
-                      height: 30,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 30, vertical: 50),
-                      child: TextField(
-                        controller: titleInput,
-                      ),
-                    ),
-                    //시간 수정
-                    TextField(
-                      controller: timeInput,
-                    ),
-                    //사람수 수정
-                    TextField(
-                      controller: memberInput,
-                    ),
-                    //음식 수정
-                    TextField(
-                      controller: foodInput,
-                    ),
-                    //위치 수정
-                    TextField(
-                      controller: locationInput,
-                    ),
-                    //성별 수정
-                    Row(
-                      children: [
-                        Padding(padding: EdgeInsets.fromLTRB(0, 60, 0, 0)),
-                        Radio(
-                            value: "여자만",
-                            groupValue: gender,
-                            onChanged: (String? value) {
-                              setState(() {
-                                gender = value!;
-                              });
-                            }),
-                        Text("여자만"),
-                        Radio(
-                            value: "남자만",
-                            groupValue: gender,
-                            onChanged: (String? value) {
-                              setState(() {
-                                gender = value!;
-                              });
-                            }),
-                        Text("남자만"),
-                        Radio(
-                            value: "상관없음",
-                            groupValue: gender,
-                            onChanged: (String? value) {
-                              setState(() {
-                                gender = value!;
-                              });
-                            }),
-                        Text("상관없음"),
-                      ],
-                    ),
-                    //내용 수정
-                    Container(
-                      height: 50,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 30, vertical: 50),
-                      child: TextField(
-                        controller: contentInput,
-                      ),
-                    ),
-                    Divider(
-                      color: Colors.black,
-                    ),
-                    Container(
-                        height: 30,
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            primary: Colors.blueAccent[200],
-                          ),
-                          child: Text(
-                            "게시물 수정",
-                            style: TextStyle(color: Colors.black),
-                          ),
-                          onPressed: () {
-                            FocusScope.of(context)
-                                .requestFocus(new FocusNode());
-                            updateOnFS();
-                            Navigator.pop(context);
-                          },
-                        )),
-                  ],
-                );
-              }
-              return CircularProgressIndicator();
-            }));
+        body: SingleChildScrollView(
+            child: StreamBuilder(
+                stream:
+                    fs.collection('delivery_board').doc(widget.id).snapshots(),
+                builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                  if (snapshot.hasData && !snapshot.data!.exists) {
+                    return CircularProgressIndicator();
+                  }
+                  if (snapshot.hasData) {
+                    titleInput =
+                        TextEditingController(text: snapshot.data!['title']);
+                    contentInput =
+                        TextEditingController(text: snapshot.data!['contents']);
+                    timeInput = TextEditingController(
+                        text: formatDate(DateTime.parse(snapshot.data!['time']),
+                            [HH, ':', nn]));
+                    memberInput = TextEditingController(
+                        text: snapshot.data!['limitedMember'].toString());
+                    foodInput =
+                        TextEditingController(text: snapshot.data!['food']);
+                    locationInput =
+                        TextEditingController(text: snapshot.data!['location']);
+                    tagInput =
+                        TextEditingController(text: snapshot.data!['tags']);
+                    return Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            cSizedBox(50, 0),
+                            TextFormField(
+                                controller: tagInput,
+                                decoration:
+                                    InputDecoration(hintText: "태그를 입력하세요."),
+                                validator: (text) {
+                                  if (text == null || text.isEmpty) {
+                                    return "태그는 필수 입력 사항입니다.";
+                                  }
+                                  return null;
+                                }),
+                            TextFormField(
+                                controller: titleInput,
+                                decoration:
+                                    InputDecoration(hintText: "제목을 입력하세요."),
+                                validator: (text) {
+                                  if (text == null || text.isEmpty) {
+                                    return "제목은 필수 입력 사항입니다.";
+                                  }
+                                  return null;
+                                }),
+                            Divider(
+                              color: Colors.black,
+                            ),
+                            TextFormField(
+                                controller: timeInput,
+                                decoration: InputDecoration(
+                                    hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)"),
+                                validator: (text) {
+                                  if (text == null || text.isEmpty) {
+                                    return "마감 시간은 필수 입력 사항입니다.";
+                                  }
+                                  return null;
+                                }),
+                            TextFormField(
+                                controller: memberInput,
+                                decoration: InputDecoration(
+                                    hintText: "인원을 입력하세요. (숫자 형태)"),
+                                validator: (text) {
+                                  if (text == null || text.isEmpty) {
+                                    return "인원은 필수 입력 사항입니다.";
+                                  }
+                                  return null;
+                                }),
+                            TextFormField(
+                                controller: foodInput,
+                                decoration:
+                                    InputDecoration(hintText: "음식 종류를 입력하세요."),
+                                validator: (text) {
+                                  if (text == null || text.isEmpty) {
+                                    return "음식 종류는 필수 입력 사항입니다.";
+                                  }
+                                  return null;
+                                }),
+                            TextFormField(
+                                controller: locationInput,
+                                decoration:
+                                    InputDecoration(hintText: "위치를 입력하세요."),
+                                validator: (text) {
+                                  if (text == null || text.isEmpty) {
+                                    return "위치는 필수 입력 사항입니다.";
+                                  }
+                                  return null;
+                                }),
+                            Row(
+                              children: [
+                                Padding(
+                                    padding: EdgeInsets.fromLTRB(0, 60, 0, 0)),
+                                Radio(
+                                    value: "여자만",
+                                    groupValue: gender,
+                                    onChanged: (String? value) {
+                                      setState(() {
+                                        gender = value!;
+                                      });
+                                    }),
+                                Text("여자만"),
+                                Radio(
+                                    value: "남자만",
+                                    groupValue: gender,
+                                    onChanged: (String? value) {
+                                      setState(() {
+                                        gender = value!;
+                                      });
+                                    }),
+                                Text("남자만"),
+                                Radio(
+                                    value: "상관없음",
+                                    groupValue: gender,
+                                    onChanged: (String? value) {
+                                      setState(() {
+                                        gender = value!;
+                                      });
+                                    }),
+                                Text("상관없음"),
+                              ],
+                            ),
+                            //내용 수정
+                            TextFormField(
+                                controller: contentInput,
+                                keyboardType: TextInputType.multiline,
+                                maxLines: null,
+                                decoration: InputDecoration(
+                                  hintText: "내용을 입력하세요.",
+                                  contentPadding: EdgeInsets.symmetric(
+                                      vertical: 50, horizontal: 10.0),
+                                  border: OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(15.0)),
+                                ),
+                                validator: (text) {
+                                  if (text == null || text.isEmpty) {
+                                    return "내용은 필수 입력 사항입니다.";
+                                  }
+                                  return null;
+                                }),
+                            Container(
+                                height: 30,
+                                margin: EdgeInsets.fromLTRB(0, 50, 0, 50),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Colors.blueAccent[200],
+                                  ),
+                                  child: Text(
+                                    "게시물 수정",
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                  onPressed: () {
+                                    FocusScope.of(context)
+                                        .requestFocus(new FocusNode());
+                                    if (_formKey.currentState!.validate()) {
+                                      updateOnFS();
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                )),
+                          ],
+                        ));
+                  }
+                  return CircularProgressIndicator();
+                })));
   }
 
   void updateOnFS() async {

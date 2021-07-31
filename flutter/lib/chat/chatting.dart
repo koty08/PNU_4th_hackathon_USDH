@@ -116,7 +116,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   // 어플을 껐다 켜도 데이터 유지되도록
   void readLocal() async {
-    myId = 'jungse8609@pusan.ac.kr'; // 본인 이메일
+    myId = 'cse1224@pusan.ac.kr'; // 본인 이메일
 
     // 본인 email is chattingWith 상대방 email
     FirebaseFirestore.instance

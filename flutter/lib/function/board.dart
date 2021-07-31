@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'package:usdh/chat/chatting.dart';
+import 'package:usdh/chat/home.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -12,6 +13,8 @@ late WriteBoardState pageState;
 late ListBoardState pageState2;
 late showBoardState pageState3;
 late modifyBoardState pageState4;
+
+/* ---------------------- Write Board ---------------------- */
 
 class WriteBoard extends StatefulWidget {
   @override
@@ -181,6 +184,8 @@ class WriteBoardState extends State<WriteBoard> {
   }
 }
 
+/* ---------------------- Board List ---------------------- */
+
 class ListBoard extends StatefulWidget {
   @override
   ListBoardState createState() {
@@ -192,45 +197,121 @@ class ListBoard extends StatefulWidget {
 class ListBoardState extends State<ListBoard> {
   final Stream<QuerySnapshot> colstream =
       FirebaseFirestore.instance.collection('posts').snapshots();
+  late FirebaseProvider fp;
 
   @override
   Widget build(BuildContext context) {
+    fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
+
     return Scaffold(
-      appBar: AppBar(title: Text("게시글 목록")),
-      body: ListView(children: <Widget>[
-        Container(
-          padding: EdgeInsets.fromLTRB(0, 15, 25, 0),
-          child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-            SizedBox(
-              width: 25,
-              height: 30,
-              child: Icon(Icons.check_box),
-            ),
-            cSizedBox(2, 0),
-            Text(
-              "모집완료 보기",
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.indigo.shade300,
+      body: StreamBuilder<QuerySnapshot>(
+          stream: colstream,
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (!snapshot.hasData) {
+              return CircularProgressIndicator();
+            }
+            return Column(children: [
+              cSizedBox(25, 0),
+              Container(
+                //decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 3, color: Colors.blueGrey))),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.navigate_before),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    Text(
+                      "택시",
+                      style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontSize: 21,
+                          fontFamily: "SCDream",
+                          fontWeight: FontWeight.w500),
+                    ),
+                    cSizedBox(0, 50),
+                    Wrap(
+                      spacing: -5,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.map),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.refresh),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.search),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.message),
+                          onPressed: () {
+                            var tmp = fp.getInfo();
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => HomeScreen(
+                                        currentUserId: tmp['email'])));
+                          },
+                        ),
+                      ],
+                    )
+                  ],
+                ),
               ),
-            ),
-          ]),
-        ),
-        Container(
-          height: MediaQuery.of(context).size.height,
-          child: StreamBuilder<QuerySnapshot>(
-            stream: colstream,
-            builder:
-                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (!snapshot.hasData) {
-                return CircularProgressIndicator();
-              }
-              switch (snapshot.connectionState) {
-                case ConnectionState.waiting:
-                  return Text("Loading...");
-                default:
-                  return ListView(
-                    children: snapshot.data!.docs.map((doc) {
+              CustomPaint(
+                size: Size(400, 4),
+                painter: CurvePainter(),
+              ),
+              Container(
+                  padding: EdgeInsets.fromLTRB(0, 0, 25, 0),
+                  child:
+                      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                    IconButton(
+                      icon: Icon(Icons.check_box_outlined),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    cSizedBox(2, 0),
+                    Text(
+                      "모집완료 보기",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.indigo.shade300,
+                      ),
+                    ),
+                  ])),
+              // Container or Expanded or Flexible 사용
+              Expanded(
+                  // 아래 간격 두고 싶으면 Container, height 사용
+                  //height: MediaQuery.of(context).size.height * 0.8,
+                  child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                child: ListView.separated(
+                    separatorBuilder: (context, index) => Divider(
+                          height: 10,
+                          thickness: 2,
+                          color: Colors.blue[100],
+                        ),
+                    shrinkWrap: true,
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      final DocumentSnapshot doc = snapshot.data!.docs[index];
                       String title = doc['title'] +
                           '[' +
                           doc['currentMember'].toString() +
@@ -238,66 +319,91 @@ class ListBoardState extends State<ListBoard> {
                           doc['limitedMember'].toString() +
                           ']';
                       String writer = doc['writer'];
+                      //String tags = doc['tags'];
                       return Column(children: [
-                        Padding(padding: EdgeInsets.fromLTRB(10, 15, 10, 15)),
+                        Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                         InkWell(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => showBoard(doc.id)));
-                          },
-                          child: Container(
-                            margin: EdgeInsets.fromLTRB(50, 10, 10, 10),
-                            child: Row(
-                              children: [
-                                Text(title.toString(),
-                                    style: TextStyle(
-                                        fontFamily: "SCDream",
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 20)),
-                                SizedBox(
-                                  width: 20,
-                                ),
-                                Text(writer.toString(),
-                                    style: TextStyle(
-                                        fontSize: 19, color: Colors.blueGrey)),
-                                PopupMenuButton(
-                                  itemBuilder: (BuildContext context) => [
-                                    PopupMenuItem(
-                                      child: TextButton(
-                                        child: Text(
-                                          "채팅시작",
-                                          style: TextStyle(color: Colors.black),
-                                        ),
-                                        onPressed: () {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) => Chat(
-                                                        peerIds: ['test'],
-                                                      )));
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Divider(
-                          thickness: 2,
-                          color: Colors.blue[200],
-                        ),
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => showBoard(doc.id)));
+                            },
+                            child: Container(
+                                margin: EdgeInsets.fromLTRB(50, 17, 10, 0),
+                                child: Column(children: [
+                                  Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text("#태그 #예시",
+                                            style: TextStyle(
+                                                fontFamily: "SCDream",
+                                                color: Colors.grey[600],
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 13)),
+                                        cSizedBox(0, 180),
+                                        //is_available(doc['time'], doc['currentMember'], doc['limitedMember']) ? Text("모집중") : Text("모집완료"),
+                                        Text("모집상태",
+                                            style: TextStyle(
+                                                fontFamily: "SCDream",
+                                                color: Colors.grey[600],
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 12)),
+                                      ]),
+                                  Row(children: [
+                                    Text(title.toString(),
+                                        style: TextStyle(
+                                            fontFamily: "SCDream",
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 18)),
+                                    cSizedBox(70, 20),
+                                    Text(writer.toString(),
+                                        style: TextStyle(
+                                            fontSize: 19,
+                                            color: Colors.blueGrey)),
+                                    PopupMenuButton(
+                                        itemBuilder: (BuildContext context) => [
+                                              PopupMenuItem(
+                                                  child: TextButton(
+                                                child: Text(
+                                                  "채팅시작",
+                                                  style: TextStyle(
+                                                      color: Colors.black),
+                                                ),
+                                                onPressed: () async {
+                                                  var tmp = fp.getInfo();
+                                                  List<dynamic> peerIds = [];
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('users')
+                                                      .doc(tmp['email'])
+                                                      .collection('messageWith')
+                                                      .doc('test_group_name')
+                                                      .get()
+                                                      .then((value) {
+                                                    peerIds =
+                                                        value['chatMembers'];
+                                                  });
+                                                  Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              Chat(
+                                                                // 수정 필요
+                                                                peerIds:
+                                                                    peerIds,
+                                                              )));
+                                                },
+                                              ))
+                                            ])
+                                  ])
+                                ])))
                       ]);
-                    }).toList(),
-                  );
-              }
-            },
-          ),
-        ),
-      ]),
+                    }),
+              )),
+            ]);
+          }),
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
@@ -314,6 +420,8 @@ class ListBoardState extends State<ListBoard> {
     );
   }
 }
+
+/* ---------------------- Show Board ---------------------- */
 
 class showBoard extends StatefulWidget {
   showBoard(this.id);
@@ -593,6 +701,8 @@ class showBoardState extends State<showBoard> {
   }
 }
 
+/* ---------------------- Modify Board ---------------------- */
+
 class modifyBoard extends StatefulWidget {
   modifyBoard(this.id);
   final String id;
@@ -688,5 +798,29 @@ class modifyBoardState extends State<modifyBoard> {
         .collection('posts')
         .doc(widget.id)
         .update({'title': txt1, 'contents': txt2});
+  }
+}
+
+class CurvePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint();
+    paint.shader = RadialGradient(
+            colors: [Colors.blue.shade100, Colors.deepPurple.shade200])
+        .createShader(Rect.fromCircle(center: Offset(160, 2), radius: 180));
+    paint.style = PaintingStyle.fill; // Change this to fill
+
+    var path = Path();
+
+    path.moveTo(0, 0);
+    path.quadraticBezierTo(size.width / 2, size.height / 2, size.width, 0);
+    path.quadraticBezierTo(size.width / 2, -size.height / 2, 0, 0);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true;
   }
 }
