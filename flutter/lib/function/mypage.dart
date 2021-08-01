@@ -177,6 +177,17 @@ class MyPageState extends State<MyPage> {
                   onPressed: (){
                     Navigator.push(context, MaterialPageRoute(builder: (context) => ListBoard()));
                   }),
+            ),
+            Container(
+              margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
+              child: ElevatedButton(
+                  child: Text(
+                    "신청자 목록",
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => ApplicantListBoard()));
+                  }),
             )
           ],
         ),

@@ -1,12 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-//import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'chatting.dart';
-import 'const.dart';
+import 'package:usdh/chat/chatting.dart';
+import 'package:usdh/chat/const.dart';
 import 'package:usdh/login/firebase_provider.dart';
-import 'package:usdh/chat/model/chat_room.dart';
-import 'package:usdh/chat/model/user_chat.dart';
-import 'widget/loading.dart';
+import 'package:usdh/chat/widget/loading.dart';
 
 // 현재 내가 포함된 채팅방 목록
 class HomeScreen extends StatefulWidget {
@@ -78,9 +75,7 @@ class HomeScreenState extends State<HomeScreen> {
   // }
 
   void scrollListener() {
-    if (listScrollController.offset >=
-            listScrollController.position.maxScrollExtent &&
-        !listScrollController.position.outOfRange) {
+    if (listScrollController.offset >= listScrollController.position.maxScrollExtent && !listScrollController.position.outOfRange) {
       setState(() {
         _limit += _limitIncrement;
       });
@@ -261,19 +256,12 @@ class HomeScreenState extends State<HomeScreen> {
           // firebase에서 limits만큼의 users 정보 가져옴
           Container(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(currentUserId)
-                  .collection('messageWith')
-                  .limit(_limit)
-                  .snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
+              stream: FirebaseFirestore.instance.collection('users').doc(currentUserId).collection('messageWith').limit(_limit).snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasData) {
                   return ListView.builder(
                     padding: EdgeInsets.all(10.0),
-                    itemBuilder: (context, index) =>
-                        buildItem(context, snapshot.data?.docs[index]),
+                    itemBuilder: (context, index) => buildItem(context, snapshot.data?.docs[index]),
                     itemCount: snapshot.data?.docs.length,
                     controller: listScrollController,
                   );
@@ -300,23 +288,20 @@ class HomeScreenState extends State<HomeScreen> {
   // 각각의 채팅 기록( 1 block ) - '[chatRoomName]' document 를 인자로
   Widget buildItem(BuildContext context, DocumentSnapshot? document) {
     if (document != null) {
-      ChatRoom chatRoom = ChatRoom.fromDocument(document); // peerEmail 넘겨
       // 다수의 프로필 사진을 어케 처리하지
-      String photoUrl =
-          'https://firebasestorage.googleapis.com/v0/b/example-18d75.appspot.com/o/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202021-07-21%20113022.png?alt=media&token=b9b9dfb3-ac59-430c-b35b-04d9fad08ae6';
+      List<dynamic> peerIds = document['chatMembers'];
+      String photoUrl = 'https://firebasestorage.googleapis.com/v0/b/example-18d75.appspot.com/o/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202021-07-21%20113022.png?alt=media&token=b9b9dfb3-ac59-430c-b35b-04d9fad08ae6';
+
       List<String> nick = [];
 
       // 여기 비동기를 어케 시키지??
-      for (var peerId in chatRoom.peerIds) {
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(peerId)
-            .get()
-            .then((value) {
+      for (var peerId in peerIds) {
+        FirebaseFirestore.instance.collection('users').doc(peerId).get().then((value) {
           nick.add(value['nick']);
         });
       }
 
+      // 채팅방 리스트에 나타날 groupChatName,,
       String nickForText = '';
       for (int i = 0; i < nick.length; i++) {
         if (i < nick.length - 2)
@@ -325,6 +310,7 @@ class HomeScreenState extends State<HomeScreen> {
           nickForText += nickForText;
       }
       print(nickForText);
+      
       // 채팅방 블럭을 리턴함
       return Container(
         child: TextButton(
@@ -338,8 +324,7 @@ class HomeScreenState extends State<HomeScreen> {
                         fit: BoxFit.cover,
                         width: 50.0,
                         height: 50.0,
-                        loadingBuilder: (BuildContext context, Widget child,
-                            ImageChunkEvent? loadingProgress) {
+                        loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
                           if (loadingProgress == null) return child;
                           return Container(
                             width: 50,
@@ -347,13 +332,7 @@ class HomeScreenState extends State<HomeScreen> {
                             child: Center(
                               child: CircularProgressIndicator(
                                 color: primaryColor,
-                                value: loadingProgress.expectedTotalBytes !=
-                                            null &&
-                                        loadingProgress.expectedTotalBytes !=
-                                            null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                    : null,
+                                value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
                               ),
                             ),
                           );
@@ -396,11 +375,13 @@ class HomeScreenState extends State<HomeScreen> {
             ],
           ),
           onPressed: () {
+            print(document.id);
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => Chat(
-                  peerIds: chatRoom.peerIds,
+                  peerIds: peerIds,
+                  groupChatId: document.id,
                 ),
               ),
             );

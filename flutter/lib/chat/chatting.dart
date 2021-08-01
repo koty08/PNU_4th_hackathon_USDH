@@ -18,17 +18,14 @@ import 'package:usdh/chat/widget/full_photo.dart';
 // 채팅방 내부
 class Chat extends StatelessWidget {
   final List<dynamic> peerIds; // chat에 참가한 유저의 email들
+  final String groupChatId;
 
-  Chat({Key? key, required this.peerIds}) : super(key: key);
+  Chat({Key? key, required this.peerIds, required this.groupChatId}) : super(key: key);
 
   Future<List<String>> getPeerAvatar() async {
     final List<String> peerAvatars = []; // peerIds로 얻어
     for (var peerId in peerIds) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(peerId)
-          .get()
-          .then((value) {
+      await FirebaseFirestore.instance.collection('users').doc(peerId).get().then((value) {
         peerAvatars.add(value['photoUrl']);
       });
     }
@@ -48,6 +45,7 @@ class Chat extends StatelessWidget {
       body: ChatScreen(
         peerIds: peerIds, // 채팅방 멤버들의 emails
         peerAvatars: getPeerAvatar(), // 채팅방 멤버들의 photoUrls
+        groupChatId: groupChatId,
       ),
     );
   }
@@ -56,26 +54,25 @@ class Chat extends StatelessWidget {
 class ChatScreen extends StatefulWidget {
   final List<dynamic> peerIds;
   final Future<List<String>> peerAvatars;
+  final String groupChatId;
 
-  ChatScreen({Key? key, required this.peerIds, required this.peerAvatars})
-      : super(key: key);
+  ChatScreen({Key? key, required this.peerIds, required this.peerAvatars, required this.groupChatId}) : super(key: key);
 
   @override
-  State createState() =>
-      ChatScreenState(peerIds: peerIds, peerAvatars: peerAvatars);
+  State createState() => ChatScreenState(peerIds: peerIds, peerAvatars: peerAvatars, groupChatId: groupChatId);
 }
 
 class ChatScreenState extends State<ChatScreen> {
-  ChatScreenState({Key? key, required this.peerIds, required this.peerAvatars});
+  ChatScreenState({Key? key, required this.peerIds, required this.peerAvatars, required this.groupChatId});
 
   List<dynamic> peerIds;
   final Future<List<String>> peerAvatars;
+  final String groupChatId;
   String myId = '';
 
   List<QueryDocumentSnapshot> listMessage = new List.from([]);
   int _limit = 20;
   int _limitIncrement = 20;
-  String groupChatId = "";
   SharedPreferences? prefs;
 
   File? imageFile;
@@ -88,9 +85,7 @@ class ChatScreenState extends State<ChatScreen> {
   final FocusNode focusNode = FocusNode();
 
   _scrollListener() {
-    if (listScrollController.offset >=
-            listScrollController.position.maxScrollExtent &&
-        !listScrollController.position.outOfRange) {
+    if (listScrollController.offset >= listScrollController.position.maxScrollExtent && !listScrollController.position.outOfRange) {
       setState(() {
         _limit += _limitIncrement;
       });
@@ -119,49 +114,29 @@ class ChatScreenState extends State<ChatScreen> {
     myId = 'cse1224@pusan.ac.kr'; // 본인 이메일
 
     // 본인 email is chattingWith 상대방 email
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(myId)
-        .update({'chattingWith': FieldValue.arrayUnion(peerIds)});
-
-    print(myId);
-    print(peerIds);
-
+    FirebaseFirestore.instance.collection('users').doc(myId).update({'chattingWith': FieldValue.arrayUnion(peerIds)});
+    
     // 상대방 정보를 나의 messageWith에 저장
     // 1. 상대방 정보 local에 저장
     List<String> peerPhotoUrls = [];
     List<String> peerNicknames = [];
     for (var peerId in peerIds) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(peerId)
-          .get()
-          .then((value) {
+      await FirebaseFirestore.instance.collection('users').doc(peerId).get().then((value) {
         peerPhotoUrls.add(value['photoUrl'].toString());
         peerNicknames.add(value['nick'].toString());
       });
     }
 
     // 2. 내 messageWith에 추가
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(myId)
-        .collection('messageWith')
-        .doc('test_group_name')
-        .set({
+    await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).set({
       'chatMembers': peerIds,
-      'chatRoomName': 'test_group_name',
     });
 
     // 내 정보를 상대방 messageWith에 저장
     // 1. local에 내 정보 저장
     var myPhotoUrl;
     var myNickname;
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(myId)
-        .get()
-        .then((value) async {
+    await FirebaseFirestore.instance.collection('users').doc(myId).get().then((value) async {
       myPhotoUrl = value['photoUrl'].toString();
       myNickname = value['nick'].toString();
     });
@@ -175,14 +150,8 @@ class ChatScreenState extends State<ChatScreen> {
         }
       }
       _peerIds.add(myId);
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(peerId)
-          .collection('messageWith')
-          .doc('test_group_name')
-          .set({
+      await FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).set({
         'chatMembers': _peerIds,
-        'chatRoomName': 'test_group_name',
       });
     }
 
@@ -239,23 +208,11 @@ class ChatScreenState extends State<ChatScreen> {
     if (content.trim() != '') {
       textEditingController.clear();
 
-      var myDocumentReference = FirebaseFirestore.instance
-          .collection('users')
-          .doc(myId)
-          .collection('messageWith')
-          .doc('test_group_name')
-          .collection('messages')
-          .doc(DateTime.now().millisecondsSinceEpoch.toString());
+      var myDocumentReference = FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString());
 
       var peersDocumentReference = [];
       for (var peerId in peerIds) {
-        peersDocumentReference.add(FirebaseFirestore.instance
-            .collection('users')
-            .doc(peerId)
-            .collection('messageWith')
-            .doc('test_group_name')
-            .collection('messages')
-            .doc(DateTime.now().millisecondsSinceEpoch.toString()));
+        peersDocumentReference.add(FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString()));
       }
 
       // 나와 상대의 메세지를 firestore에 동시에 저장
@@ -263,36 +220,20 @@ class ChatScreenState extends State<ChatScreen> {
         // 내 messages에 기록
         transaction.set(
           myDocumentReference,
-          {
-            'idFrom': myId,
-            'idTo': peerIds,
-            'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
-            'content': content,
-            'type': type
-          },
+          {'idFrom': myId, 'idTo': peerIds, 'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), 'content': content, 'type': type},
         );
         // 상대 messages에 기록
         for (var peerDocumentReference in peersDocumentReference) {
           transaction.set(
             peerDocumentReference,
-            {
-              'idFrom': myId,
-              'idTo': peerIds,
-              'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
-              'content': content,
-              'type': type
-            },
+            {'idFrom': myId, 'idTo': peerIds, 'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), 'content': content, 'type': type},
           );
         }
       });
 
-      listScrollController.animateTo(0.0,
-          duration: Duration(milliseconds: 300), curve: Curves.easeOut);
+      listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
-      Fluttertoast.showToast(
-          msg: 'Nothing to send',
-          backgroundColor: Colors.black,
-          textColor: Colors.red);
+      Fluttertoast.showToast(msg: 'Nothing to send', backgroundColor: Colors.black, textColor: Colors.red);
     }
   }
 
@@ -312,12 +253,8 @@ class ChatScreenState extends State<ChatScreen> {
                     ),
                     padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
                     width: 200.0,
-                    decoration: BoxDecoration(
-                        color: greyColor2,
-                        borderRadius: BorderRadius.circular(8.0)),
-                    margin: EdgeInsets.only(
-                        bottom: isLastMessageRight(index) ? 20.0 : 10.0,
-                        right: 10.0),
+                    decoration: BoxDecoration(color: greyColor2, borderRadius: BorderRadius.circular(8.0)),
+                    margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
                   )
                 : document.get('type') == 1
                     // 내가 보낸 사진 - type == 1
@@ -326,9 +263,7 @@ class ChatScreenState extends State<ChatScreen> {
                           child: Material(
                             child: Image.network(
                               document.get("content"),
-                              loadingBuilder: (BuildContext context,
-                                  Widget child,
-                                  ImageChunkEvent? loadingProgress) {
+                              loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
                                 if (loadingProgress == null) return child;
                                 return Container(
                                   decoration: BoxDecoration(
@@ -342,17 +277,7 @@ class ChatScreenState extends State<ChatScreen> {
                                   child: Center(
                                     child: CircularProgressIndicator(
                                       color: primaryColor,
-                                      value:
-                                          loadingProgress.expectedTotalBytes !=
-                                                      null &&
-                                                  loadingProgress
-                                                          .expectedTotalBytes !=
-                                                      null
-                                              ? loadingProgress
-                                                      .cumulativeBytesLoaded /
-                                                  loadingProgress
-                                                      .expectedTotalBytes!
-                                              : null,
+                                      value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
                                     ),
                                   ),
                                 );
@@ -375,8 +300,7 @@ class ChatScreenState extends State<ChatScreen> {
                               height: 200.0,
                               fit: BoxFit.cover,
                             ),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(8.0)),
+                            borderRadius: BorderRadius.all(Radius.circular(8.0)),
                             clipBehavior: Clip.hardEdge,
                           ),
                           onPressed: () {
@@ -389,13 +313,9 @@ class ChatScreenState extends State<ChatScreen> {
                               ),
                             );
                           },
-                          style: ButtonStyle(
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  EdgeInsets.all(0))),
+                          style: ButtonStyle(padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.all(0))),
                         ),
-                        margin: EdgeInsets.only(
-                            bottom: isLastMessageRight(index) ? 20.0 : 10.0,
-                            right: 10.0),
+                        margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
                       )
                     // 내가 보낸 이모티콘 - type == 2
                     : Container(
@@ -405,9 +325,7 @@ class ChatScreenState extends State<ChatScreen> {
                           height: 100.0,
                           fit: BoxFit.cover,
                         ),
-                        margin: EdgeInsets.only(
-                            bottom: isLastMessageRight(index) ? 20.0 : 10.0,
-                            right: 10.0),
+                        margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
                       ),
           ],
           mainAxisAlignment: MainAxisAlignment.end,
@@ -423,19 +341,12 @@ class ChatScreenState extends State<ChatScreen> {
                       ? Material(
                           child: Image.network(
                             '',
-                            loadingBuilder: (BuildContext context, Widget child,
-                                ImageChunkEvent? loadingProgress) {
+                            loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
                               if (loadingProgress == null) return child;
                               return Center(
                                 child: CircularProgressIndicator(
                                   color: primaryColor,
-                                  value: loadingProgress.expectedTotalBytes !=
-                                              null &&
-                                          loadingProgress.expectedTotalBytes !=
-                                              null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
+                                  value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
                                 ),
                               );
                             },
@@ -464,9 +375,7 @@ class ChatScreenState extends State<ChatScreen> {
                           ),
                           padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
                           width: 200.0,
-                          decoration: BoxDecoration(
-                              color: primaryColor,
-                              borderRadius: BorderRadius.circular(8.0)),
+                          decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
                           margin: EdgeInsets.only(left: 10.0),
                         )
                       : document.get('type') == 1
@@ -475,9 +384,7 @@ class ChatScreenState extends State<ChatScreen> {
                                 child: Material(
                                   child: Image.network(
                                     document.get('content'),
-                                    loadingBuilder: (BuildContext context,
-                                        Widget child,
-                                        ImageChunkEvent? loadingProgress) {
+                                    loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
                                       if (loadingProgress == null) return child;
                                       return Container(
                                         decoration: BoxDecoration(
@@ -491,24 +398,12 @@ class ChatScreenState extends State<ChatScreen> {
                                         child: Center(
                                           child: CircularProgressIndicator(
                                             color: primaryColor,
-                                            value: loadingProgress
-                                                            .expectedTotalBytes !=
-                                                        null &&
-                                                    loadingProgress
-                                                            .expectedTotalBytes !=
-                                                        null
-                                                ? loadingProgress
-                                                        .cumulativeBytesLoaded /
-                                                    loadingProgress
-                                                        .expectedTotalBytes!
-                                                : null,
+                                            value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
                                           ),
                                         ),
                                       );
                                     },
-                                    errorBuilder:
-                                        (context, object, stackTrace) =>
-                                            Material(
+                                    errorBuilder: (context, object, stackTrace) => Material(
                                       child: Image.asset(
                                         'images/img_not_available.jpeg',
                                         width: 200.0,
@@ -524,21 +419,13 @@ class ChatScreenState extends State<ChatScreen> {
                                     height: 200.0,
                                     fit: BoxFit.cover,
                                   ),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8.0)),
+                                  borderRadius: BorderRadius.all(Radius.circular(8.0)),
                                   clipBehavior: Clip.hardEdge,
                                 ),
                                 onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => FullPhoto(
-                                              url: document.get('content'))));
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => FullPhoto(url: document.get('content'))));
                                 },
-                                style: ButtonStyle(
-                                    padding:
-                                        MaterialStateProperty.all<EdgeInsets>(
-                                            EdgeInsets.all(0))),
+                                style: ButtonStyle(padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.all(0))),
                               ),
                               margin: EdgeInsets.only(left: 10.0),
                             )
@@ -549,10 +436,7 @@ class ChatScreenState extends State<ChatScreen> {
                                 height: 100.0,
                                 fit: BoxFit.cover,
                               ),
-                              margin: EdgeInsets.only(
-                                  bottom:
-                                      isLastMessageRight(index) ? 20.0 : 10.0,
-                                  right: 10.0),
+                              margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
                             ),
                 ],
               ),
@@ -561,16 +445,10 @@ class ChatScreenState extends State<ChatScreen> {
               isLastMessageLeft(index)
                   ? Container(
                       child: Text(
-                        DateFormat('dd MMM kk:mm').format(
-                            DateTime.fromMillisecondsSinceEpoch(
-                                int.parse(document.get('timestamp')))),
-                        style: TextStyle(
-                            color: greyColor,
-                            fontSize: 12.0,
-                            fontStyle: FontStyle.italic),
+                        DateFormat('dd MMM kk:mm').format(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
+                        style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
                       ),
-                      margin:
-                          EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
+                      margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
                     )
                   : Container()
             ],
@@ -586,8 +464,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   // 내가 메시지 보낸 시간
   bool isLastMessageLeft(int index) {
-    if ((index > 0 && listMessage[index - 1].get('idFrom') == myId) ||
-        index == 0) {
+    if ((index > 0 && listMessage[index - 1].get('idFrom') == myId) || index == 0) {
       return true;
     } else {
       return false;
@@ -596,8 +473,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   // 상대가 메시지 보낸 시간
   bool isLastMessageRight(int index) {
-    if ((index > 0 && listMessage[index - 1].get('idFrom') != myId) ||
-        index == 0) {
+    if ((index > 0 && listMessage[index - 1].get('idFrom') != myId) || index == 0) {
       return true;
     } else {
       return false;
@@ -611,10 +487,7 @@ class ChatScreenState extends State<ChatScreen> {
         isShowSticker = false;
       });
     } else {
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(myId)
-          .update({'chattingWith': null});
+      FirebaseFirestore.instance.collection('users').doc(myId).update({'chattingWith': null});
       Navigator.pop(context);
     }
 
@@ -752,9 +625,7 @@ class ChatScreenState extends State<ChatScreen> {
           ],
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         ),
-        decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: greyColor2, width: 0.5)),
-            color: Colors.white),
+        decoration: BoxDecoration(border: Border(top: BorderSide(color: greyColor2, width: 0.5)), color: Colors.white),
         padding: EdgeInsets.all(5.0),
         height: 180.0,
       ),
@@ -831,9 +702,7 @@ class ChatScreenState extends State<ChatScreen> {
       ),
       width: double.infinity,
       height: 50.0,
-      decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: greyColor2, width: 0.5)),
-          color: Colors.white),
+      decoration: BoxDecoration(border: Border(top: BorderSide(color: greyColor2, width: 0.5)), color: Colors.white),
     );
   }
 
@@ -842,23 +711,13 @@ class ChatScreenState extends State<ChatScreen> {
     return Flexible(
       child: peerIds.isNotEmpty
           ? StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(myId)
-                  .collection('messageWith')
-                  .doc('test_group_name')
-                  .collection('messages')
-                  .orderBy('timestamp', descending: true)
-                  .limit(_limit)
-                  .snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
+              stream: FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').orderBy('timestamp', descending: true).limit(_limit).snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasData) {
                   listMessage.addAll(snapshot.data!.docs); // 모든 메세지 get
                   return ListView.builder(
                     padding: EdgeInsets.all(10.0),
-                    itemBuilder: (context, index) =>
-                        buildItem(index, snapshot.data?.docs[index]),
+                    itemBuilder: (context, index) => buildItem(index, snapshot.data?.docs[index]),
                     itemCount: snapshot.data?.docs.length,
                     reverse: true,
                     controller: listScrollController,

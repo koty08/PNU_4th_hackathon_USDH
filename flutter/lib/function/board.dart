@@ -8,11 +8,14 @@ import 'package:usdh/chat/chatting.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:usdh/Widget/widget.dart';
 
 late WriteBoardState pageState;
 late ListBoardState pageState2;
 late showBoardState pageState3;
 late modifyBoardState pageState4;
+late ApplicantListBoardState pageState5;
+late showApplicantListState pageState6;
 
 /* ---------------------- Write Board ---------------------- */
 
@@ -150,9 +153,7 @@ class WriteBoardState extends State<WriteBoard> {
 
     late Reference ref;
     for (int i = 0; i < pickedImgList!.length; i++) {
-      ref = storage
-          .ref()
-          .child('board/${tmp['name'] + tmp['piccount'].toString()}');
+      ref = storage.ref().child('board/${tmp['name'] + tmp['piccount'].toString()}');
       await ref.putFile(File(pickedImgList[i].path));
       fp.updateIntInfo('piccount', 1);
       String url = await ref.getDownloadURL();
@@ -166,10 +167,7 @@ class WriteBoardState extends State<WriteBoard> {
 
   void uploadOnFS(String txt1, String txt2) async {
     var tmp = fp.getInfo();
-    await fs
-        .collection('posts')
-        .doc(tmp['name'] + tmp['postcount'].toString())
-        .set({
+    await fs.collection('posts').doc(tmp['name'] + tmp['postcount'].toString()).set({
       'title': txt1,
       'writer': tmp['name'],
       'contents': txt2,
@@ -195,8 +193,7 @@ class ListBoard extends StatefulWidget {
 }
 
 class ListBoardState extends State<ListBoard> {
-  final Stream<QuerySnapshot> colstream =
-      FirebaseFirestore.instance.collection('posts').snapshots();
+  final Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('posts').snapshots();
   late FirebaseProvider fp;
 
   @override
@@ -207,8 +204,7 @@ class ListBoardState extends State<ListBoard> {
     return Scaffold(
       body: StreamBuilder<QuerySnapshot>(
           stream: colstream,
-          builder:
-              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (!snapshot.hasData) {
               return CircularProgressIndicator();
             }
@@ -228,11 +224,7 @@ class ListBoardState extends State<ListBoard> {
                     ),
                     Text(
                       "택시",
-                      style: TextStyle(
-                          color: Colors.blueGrey,
-                          fontSize: 21,
-                          fontFamily: "SCDream",
-                          fontWeight: FontWeight.w500),
+                      style: TextStyle(color: Colors.blueGrey, fontSize: 21, fontFamily: "SCDream", fontWeight: FontWeight.w500),
                     ),
                     cSizedBox(0, 50),
                     Wrap(
@@ -260,11 +252,7 @@ class ListBoardState extends State<ListBoard> {
                           icon: Icon(Icons.message),
                           onPressed: () {
                             var tmp = fp.getInfo();
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => HomeScreen(
-                                        currentUserId: tmp['email'])));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(currentUserId: tmp['email'])));
                           },
                         ),
                       ],
@@ -278,8 +266,7 @@ class ListBoardState extends State<ListBoard> {
               ),
               Container(
                   padding: EdgeInsets.fromLTRB(0, 0, 25, 0),
-                  child:
-                      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     IconButton(
                       icon: Icon(Icons.check_box_outlined),
                       onPressed: () {
@@ -312,91 +299,28 @@ class ListBoardState extends State<ListBoard> {
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
                       final DocumentSnapshot doc = snapshot.data!.docs[index];
-                      String title = doc['title'] +
-                          '[' +
-                          doc['currentMember'].toString() +
-                          '/' +
-                          doc['limitedMember'].toString() +
-                          ']';
+                      String title = doc['title'] + '[' + doc['currentMember'].toString() + '/' + doc['limitedMember'].toString() + ']';
                       String writer = doc['writer'];
                       //String tags = doc['tags'];
                       return Column(children: [
                         Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                         InkWell(
                             onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => showBoard(doc.id)));
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => showBoard(doc.id)));
                             },
                             child: Container(
                                 margin: EdgeInsets.fromLTRB(50, 17, 10, 0),
                                 child: Column(children: [
-                                  Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Text("#태그 #예시",
-                                            style: TextStyle(
-                                                fontFamily: "SCDream",
-                                                color: Colors.grey[600],
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 13)),
-                                        cSizedBox(0, 180),
-                                        //is_available(doc['time'], doc['currentMember'], doc['limitedMember']) ? Text("모집중") : Text("모집완료"),
-                                        Text("모집상태",
-                                            style: TextStyle(
-                                                fontFamily: "SCDream",
-                                                color: Colors.grey[600],
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 12)),
-                                      ]),
+                                  Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                                    Text("#태그 #예시", style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 13)),
+                                    cSizedBox(0, 180),
+                                    //is_available(doc['time'], doc['currentMember'], doc['limitedMember']) ? Text("모집중") : Text("모집완료"),
+                                    Text("모집상태", style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 12)),
+                                  ]),
                                   Row(children: [
-                                    Text(title.toString(),
-                                        style: TextStyle(
-                                            fontFamily: "SCDream",
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 18)),
+                                    Text(title.toString(), style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w600, fontSize: 18)),
                                     cSizedBox(70, 20),
-                                    Text(writer.toString(),
-                                        style: TextStyle(
-                                            fontSize: 19,
-                                            color: Colors.blueGrey)),
-                                    PopupMenuButton(
-                                        itemBuilder: (BuildContext context) => [
-                                              PopupMenuItem(
-                                                  child: TextButton(
-                                                child: Text(
-                                                  "채팅시작",
-                                                  style: TextStyle(
-                                                      color: Colors.black),
-                                                ),
-                                                onPressed: () async {
-                                                  var tmp = fp.getInfo();
-                                                  List<dynamic> peerIds = [];
-                                                  await FirebaseFirestore
-                                                      .instance
-                                                      .collection('users')
-                                                      .doc(tmp['email'])
-                                                      .collection('messageWith')
-                                                      .doc('test_group_name')
-                                                      .get()
-                                                      .then((value) {
-                                                    peerIds =
-                                                        value['chatMembers'];
-                                                  });
-                                                  Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              Chat(
-                                                                // 수정 필요
-                                                                peerIds:
-                                                                    peerIds,
-                                                              )));
-                                                },
-                                              ))
-                                            ])
+                                    Text(writer.toString(), style: TextStyle(fontSize: 19, color: Colors.blueGrey)),
                                   ])
                                 ])))
                       ]);
@@ -407,8 +331,7 @@ class ListBoardState extends State<ListBoard> {
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => WriteBoard()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => WriteBoard()));
           }),
     );
   }
@@ -473,16 +396,14 @@ class showBoardState extends State<showBoard> {
                               child: ListView.builder(
                                   itemCount: snapshot.data!['pic'].length,
                                   itemBuilder: (BuildContext context, int idx) {
-                                    return Image.network(
-                                        snapshot.data!['pic'][idx]);
+                                    return Image.network(snapshot.data!['pic'][idx]);
                                   }),
                             ),
                       // 수정, 삭제
                       Row(
                         children: [
                           Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
+                            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 primary: Colors.purple[300],
@@ -492,18 +413,13 @@ class showBoardState extends State<showBoard> {
                                 style: TextStyle(color: Colors.white),
                               ),
                               onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            modifyBoard(widget.id)));
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => modifyBoard(widget.id)));
                                 setState(() {});
                               },
                             ),
                           ),
                           Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
+                            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 primary: Colors.indigo[300],
@@ -514,18 +430,11 @@ class showBoardState extends State<showBoard> {
                               ),
                               onPressed: () async {
                                 Navigator.pop(context);
-                                for (int i = 0;
-                                    i < snapshot.data!['pic'].length;
-                                    i++) {
-                                  await storage
-                                      .refFromURL(snapshot.data!['pic'][i])
-                                      .delete();
+                                for (int i = 0; i < snapshot.data!['pic'].length; i++) {
+                                  await storage.refFromURL(snapshot.data!['pic'][i]).delete();
                                   fp.updateIntInfo('piccount', -1);
                                 }
-                                await fs
-                                    .collection('posts')
-                                    .doc(widget.id)
-                                    .delete();
+                                await fs.collection('posts').doc(widget.id).delete();
                                 fp.updateIntInfo('postcount', -1);
                               },
                             ),
@@ -547,8 +456,7 @@ class showBoardState extends State<showBoard> {
                               child: ListView.builder(
                                   itemCount: snapshot.data!['pic'].length,
                                   itemBuilder: (BuildContext context, int idx) {
-                                    return Image.network(
-                                        snapshot.data!['pic'][idx]);
+                                    return Image.network(snapshot.data!['pic'][idx]);
                                   }),
                             ),
                       // 참가, 손절
@@ -556,8 +464,7 @@ class showBoardState extends State<showBoard> {
                         children: [
                           // 참가 버튼을 누르면 currentMember+1, 제한 넘으면 불가
                           Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
+                            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 primary: Colors.purple[300],
@@ -568,18 +475,12 @@ class showBoardState extends State<showBoard> {
                               ),
                               onPressed: () async {
                                 var tmp = fp.getInfo();
-                                int _currentMember =
-                                    snapshot.data!['currentMember'];
-                                int _limitedMember =
-                                    snapshot.data!['limitedMember'];
+                                int _currentMember = snapshot.data!['currentMember'];
+                                int _limitedMember = snapshot.data!['limitedMember'];
                                 String _roomName = snapshot.data!['postName'];
 
                                 List<String> _joiningRoom = [];
-                                await FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(tmp['email'])
-                                    .get()
-                                    .then((value) {
+                                await FirebaseFirestore.instance.collection('users').doc(tmp['email']).get().then((value) {
                                   for (String room in value['joiningIn']) {
                                     _joiningRoom.add(room);
                                   }
@@ -594,19 +495,9 @@ class showBoardState extends State<showBoard> {
                                 }
                                 // 인원이 남을 경우
                                 else {
-                                  await FirebaseFirestore.instance
-                                      .collection('posts')
-                                      .doc(snapshot.data!['postName'])
-                                      .update({
-                                    'currentMember': _currentMember + 1
-                                  });
+                                  await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!['postName']).update({'currentMember': _currentMember + 1});
                                   List<String> roomName = [_roomName];
-                                  await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(tmp['email'])
-                                      .update({
-                                    'joiningIn': FieldValue.arrayUnion(roomName)
-                                  });
+                                  await FirebaseFirestore.instance.collection('users').doc(tmp['email']).update({'joiningIn': FieldValue.arrayUnion(roomName)});
                                   Navigator.pop(context);
                                   print(_roomName + ' 참가!!');
                                 }
@@ -614,8 +505,7 @@ class showBoardState extends State<showBoard> {
                             ),
                           ),
                           Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
+                            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 primary: Colors.indigo[300],
@@ -626,18 +516,12 @@ class showBoardState extends State<showBoard> {
                               ),
                               onPressed: () async {
                                 var tmp = fp.getInfo();
-                                int _currentMember =
-                                    snapshot.data!['currentMember'];
-                                int _limitedMember =
-                                    snapshot.data!['limitedMember'];
+                                int _currentMember = snapshot.data!['currentMember'];
+                                int _limitedMember = snapshot.data!['limitedMember'];
                                 String _roomName = snapshot.data!['postName'];
 
                                 List<String> _joiningRoom = [];
-                                await FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(tmp['email'])
-                                    .get()
-                                    .then((value) {
+                                await FirebaseFirestore.instance.collection('users').doc(tmp['email']).get().then((value) {
                                   for (String room in value['joiningIn']) {
                                     _joiningRoom.add(room);
                                   }
@@ -647,40 +531,19 @@ class showBoardState extends State<showBoard> {
                                   print('참가하지 않은 방입니다!!');
                                 }
                                 // 모임에 2명 이상, 제한 인원 이하로 남을 경우
-                                else if (_currentMember >= 2 &&
-                                    _currentMember <= _limitedMember) {
-                                  await FirebaseFirestore.instance
-                                      .collection('posts')
-                                      .doc(snapshot.data!['postName'])
-                                      .update({
-                                    'currentMember': _currentMember - 1
-                                  });
+                                else if (_currentMember >= 2 && _currentMember <= _limitedMember) {
+                                  await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!['postName']).update({'currentMember': _currentMember - 1});
                                   List<String> roomName = [_roomName];
-                                  await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(tmp['email'])
-                                      .update({
-                                    'joiningIn':
-                                        FieldValue.arrayRemove(roomName)
-                                  });
+                                  await FirebaseFirestore.instance.collection('users').doc(tmp['email']).update({'joiningIn': FieldValue.arrayRemove(roomName)});
                                   Navigator.pop(context);
                                   print(_roomName + ' 손절!!');
                                 }
                                 // 남은 인원이 1명일 경우
                                 else if (_currentMember == 1) {
                                   Navigator.pop(context);
-                                  fs
-                                      .collection('posts')
-                                      .doc(widget.id)
-                                      .delete();
+                                  fs.collection('posts').doc(widget.id).delete();
                                   List<String> roomName = [_roomName];
-                                  await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(tmp['email'])
-                                      .update({
-                                    'joiningIn':
-                                        FieldValue.arrayRemove(roomName)
-                                  });
+                                  await FirebaseFirestore.instance.collection('users').doc(tmp['email']).update({'joiningIn': FieldValue.arrayRemove(roomName)});
                                   print('사람이 0명이 되어 방 파괴!!');
                                 }
                                 // 남은 인원이 제한 인원 초과 또는 0명 이하일 경우
@@ -730,25 +593,21 @@ class modifyBoardState extends State<modifyBoard> {
                 return CircularProgressIndicator();
               }
               if (snapshot.hasData) {
-                titleInput =
-                    TextEditingController(text: snapshot.data!['title']);
-                contentInput =
-                    TextEditingController(text: snapshot.data!['contents']);
+                titleInput = TextEditingController(text: snapshot.data!['title']);
+                contentInput = TextEditingController(text: snapshot.data!['contents']);
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Container(
                       height: 30,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 30, vertical: 50),
+                      margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
                       child: TextField(
                         controller: titleInput,
                       ),
                     ),
                     Container(
                       height: 50,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 30, vertical: 50),
+                      margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
                       child: TextField(
                         controller: contentInput,
                       ),
@@ -763,14 +622,12 @@ class modifyBoardState extends State<modifyBoard> {
                             child: ListView.builder(
                                 itemCount: snapshot.data!['pic'].length,
                                 itemBuilder: (BuildContext context, int idx) {
-                                  return Image.network(
-                                      snapshot.data!['pic'][idx]);
+                                  return Image.network(snapshot.data!['pic'][idx]);
                                 }),
                           ),
                     Container(
                         height: 30,
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             primary: Colors.blueAccent[200],
@@ -780,8 +637,7 @@ class modifyBoardState extends State<modifyBoard> {
                             style: TextStyle(color: Colors.black),
                           ),
                           onPressed: () {
-                            FocusScope.of(context)
-                                .requestFocus(new FocusNode());
+                            FocusScope.of(context).requestFocus(new FocusNode());
                             updateOnFS(titleInput.text, contentInput.text);
                             Navigator.pop(context);
                           },
@@ -794,10 +650,7 @@ class modifyBoardState extends State<modifyBoard> {
   }
 
   void updateOnFS(String txt1, String txt2) async {
-    await fs
-        .collection('posts')
-        .doc(widget.id)
-        .update({'title': txt1, 'contents': txt2});
+    await fs.collection('posts').doc(widget.id).update({'title': txt1, 'contents': txt2});
   }
 }
 
@@ -805,9 +658,7 @@ class CurvePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     var paint = Paint();
-    paint.shader = RadialGradient(
-            colors: [Colors.blue.shade100, Colors.deepPurple.shade200])
-        .createShader(Rect.fromCircle(center: Offset(160, 2), radius: 180));
+    paint.shader = RadialGradient(colors: [Colors.blue.shade100, Colors.deepPurple.shade200]).createShader(Rect.fromCircle(center: Offset(160, 2), radius: 180));
     paint.style = PaintingStyle.fill; // Change this to fill
 
     var path = Path();
@@ -822,5 +673,278 @@ class CurvePainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
     return true;
+  }
+}
+
+/* -----------------Applicant Board List -------------------- */
+
+class ApplicantListBoard extends StatefulWidget {
+  @override
+  ApplicantListBoardState createState() {
+    pageState5 = ApplicantListBoardState();
+    return pageState5;
+  }
+}
+
+class ApplicantListBoardState extends State<ApplicantListBoard> {
+  final Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+  late FirebaseProvider fp;
+
+  @override
+  Widget build(BuildContext context) {
+    fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
+
+    return Scaffold(
+      body: StreamBuilder<QuerySnapshot>(
+          stream: colstream,
+          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (!snapshot.hasData) {
+              return CircularProgressIndicator();
+            }
+            return Column(children: [
+              cSizedBox(25, 0),
+              Container(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.navigate_before),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    Text(
+                      "신청자 목록",
+                      style: TextStyle(color: Colors.blueGrey, fontSize: 21, fontFamily: "SCDream", fontWeight: FontWeight.w500),
+                    ),
+                    cSizedBox(0, 50),
+                    Wrap(
+                      spacing: -5,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.map),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.refresh),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.search),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.message),
+                          onPressed: () {
+                            var tmp = fp.getInfo();
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(currentUserId: tmp['email'])));
+                          },
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              CustomPaint(
+                size: Size(400, 4),
+                painter: CurvePainter(),
+              ),
+              // Container or Expanded or Flexible 사용
+              Expanded(
+                  // 아래 간격 두고 싶으면 Container, height 사용
+                  //height: MediaQuery.of(context).size.height * 0.8,
+                  child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                child: ListView.separated(
+                    separatorBuilder: (context, index) => Divider(
+                          height: 10,
+                          thickness: 2,
+                          color: Colors.blue[100],
+                        ),
+                    shrinkWrap: true,
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      final DocumentSnapshot doc = snapshot.data!.docs[index];
+                      if (fp.getInfo()['name'] == doc['writer']) {
+                        String title = doc['title'] + '[' + doc['currentMember'].toString() + '/' + doc['limitedMember'].toString() + ']';
+                        String writer = doc['writer'];
+                        //String tags = doc['tags'];
+                        return Column(children: [
+                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                          InkWell(
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => showApplicantList(doc.id)));
+                              },
+                              child: Container(
+                                  margin: EdgeInsets.fromLTRB(50, 17, 10, 0),
+                                  child: Column(children: [
+                                    Row(children: [
+                                      Text(title.toString(), style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w600, fontSize: 18)),
+                                      cSizedBox(70, 20),
+                                      Text(writer.toString(), style: TextStyle(fontSize: 19, color: Colors.blueGrey)),
+                                    ])
+                                  ])))
+                        ]);
+                      } else {
+                        return Container();
+                      }
+                    }),
+              )),
+            ]);
+          }),
+      floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => WriteBoard()));
+          }),
+    );
+  }
+
+  Widget cSizedBox(double h, double w) {
+    return SizedBox(
+      height: h,
+      width: w,
+    );
+  }
+}
+
+/* ------------------ Show Applicant Board ------------------ */
+
+class showApplicantList extends StatefulWidget {
+  showApplicantList(this.id);
+  final String id;
+
+  @override
+  showApplicantListState createState() {
+    pageState6 = showApplicantListState();
+    return pageState6;
+  }
+}
+
+class showApplicantListState extends State<showApplicantList> {
+  final FirebaseStorage storage = FirebaseStorage.instance;
+  final FirebaseFirestore fs = FirebaseFirestore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    FirebaseProvider fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.id),
+        ),
+        body: StreamBuilder(
+            stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
+            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+              fp.setInfo();
+              if (snapshot.hasData && !snapshot.data!.exists) {
+                return CircularProgressIndicator();
+              } else if (snapshot.hasData) {
+                fp.setInfo();
+                return Column(
+                  children: [
+                    Text('[' + snapshot.data!['currentMember'].toString() + '/' + snapshot.data!['limitedMember'].toString() + ']'),
+                    Text('현재 멤버: ' + snapshot.data!['members'].toString()),
+                    Expanded(
+                        child: MediaQuery.removePadding(
+                      context: context,
+                      removeTop: true,
+                      child: ListView.separated(
+                          separatorBuilder: (context, index) => Divider(
+                                height: 10,
+                                thickness: 2,
+                                color: Colors.blue[100],
+                              ),
+                          shrinkWrap: true,
+                          itemCount: snapshot.data!.get('isFineForMembers').length,
+                          itemBuilder: (context, index) {
+                            final List<dynamic> isFineForMembers = snapshot.data!.get('isFineForMembers');
+                            final List<dynamic> members = snapshot.data!.get('members');
+                            return Column(children: [
+                              Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                              Row(
+                                children: [
+                                  Text(isFineForMembers[index]),
+                                  Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        primary: Colors.purple[300],
+                                      ),
+                                      child: Text(
+                                        "허락",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      onPressed: () async {
+                                        int currentMember = snapshot.data!.get('currentMember');
+                                        int limitedMember = snapshot.data!.get('limitedMember');
+
+                                        // 제한 인원을 넘지 않았으면 추가
+                                        Navigator.of(context).pop();
+                                        if (currentMember < limitedMember) {
+                                          await FirebaseFirestore.instance.collection('delivery_board').doc(widget.id).update({
+                                            'members': FieldValue.arrayUnion([isFineForMembers[index].toString()]),
+                                            'isFineForMembers': FieldValue.arrayRemove([isFineForMembers[index].toString()]),
+                                            'currentMember': currentMember + 1,
+                                          });
+                                          currentMember += 1;
+                                          members.add(isFineForMembers[index]);
+                                          // 인원이 모두 차면 채팅방 생성
+                                          if (currentMember == limitedMember) {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) => Chat(
+                                                          peerIds: members,
+                                                          groupChatId: widget.id,
+                                                        )));
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                  Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        primary: Colors.indigo[300],
+                                      ),
+                                      child: Text(
+                                        "거절",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      onPressed: () async {
+                                        Navigator.of(context).pop();
+                                        await FirebaseFirestore.instance.collection('delivery_board').doc(widget.id).update({
+                                          'isFineForMembers': FieldValue.arrayRemove([isFineForMembers[index].toString()])
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ]);
+                          }),
+                    )),
+                  ],
+                );
+              }
+              return CircularProgressIndicator();
+            }));
   }
 }
