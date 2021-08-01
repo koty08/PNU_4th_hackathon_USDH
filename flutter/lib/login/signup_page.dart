@@ -111,10 +111,6 @@ class SignUpPageState extends State<SignUpPage> {
                               ],
                             ),
                           ),
-                          child: Divider(
-                            thickness: 5,
-                            color: Colors.transparent,
-                          ),
                         ),
                         cSizedBox(40, 0),
 
