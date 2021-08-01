@@ -34,33 +34,16 @@ class SignedInPageState extends State<SignedInPage> {
             children: [
               // 채팅방 버튼
               IconButton(
-                icon: Image.asset('assets/images/icon/iconmessage.png',
-                      width: 22, height: 22),
+                icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
                 onPressed: () {
                   var tmp = fp.getInfo();
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              HomeScreen(currentUserId: tmp['email'])));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(currentUserId: tmp['email'])));
                 },
               ),
-              Text(
-                "유소더하",
-                style: TextStyle(
-                    fontFamily: "SCDream",
-                    fontWeight: FontWeight.w200,
-                    height: 2,
-                    fontSize: 23,
-                    color: Color(0xFF323232)),
-              ),
+              Text("유소더하", style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w200, height: 2, fontSize: 23, color: Color(0xFF323232)),),
               IconButton(
-                icon: Image.asset('assets/images/icon/profile.png',
-                    width: 22, height: 22),
-                onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => MyPage()));
-                },
+                icon: Image.asset('assets/images/icon/profile.png', width: 22, height: 22),
+                onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));},
               ),
             ],
           ),
@@ -74,14 +57,10 @@ class SignedInPageState extends State<SignedInPage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               cSizedBox(0, 15),
-              imageAndText(
-                  'assets/images/icon/icontaxi.png', "택시", ListBoard()),
-              imageAndText('assets/images/icon/iconmotorcycle.png', "배달",
-                  deliveryList()),
-              imageAndText(
-                  'assets/images/icon/iconshopping.png', "공구", ListBoard()),
-              imageAndText(
-                  'assets/images/icon/iconcommunity.png', "커뮤니티", ListBoard()),
+              imageAndText('assets/images/icon/icontaxi.png', "택시", ListBoard()),
+              imageAndText('assets/images/icon/iconmotorcycle.png', "배달", deliveryList()),
+              imageAndText('assets/images/icon/iconshopping.png', "공구", ListBoard()),
+              imageAndText('assets/images/icon/iconcommunity.png', "커뮤니티", ListBoard()),
               cSizedBox(0, 15),
             ],
           ),
@@ -89,25 +68,19 @@ class SignedInPageState extends State<SignedInPage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               cSizedBox(0, 40),
-              imageAndText(
-                 'assets/images/icon/iconteam.png', "팀빌딩", ListBoard()),
-              imageAndText(
-                  'assets/images/icon/iconplay.png', "소모임", ListBoard()),
-              imageAndText(
-                  'assets/images/icon/iconroom.png', "룸메이트", ListBoard()),
+              imageAndText('assets/images/icon/iconteam.png', "팀빌딩", ListBoard()),
+              imageAndText('assets/images/icon/iconplay.png', "소모임", ListBoard()),
+              imageAndText('assets/images/icon/iconroom.png', "룸메이트", ListBoard()),
               cSizedBox(0, 40),
             ],
           ),
           Padding(padding: EdgeInsets.fromLTRB(0, 15, 0, 0)),
-          messageBoard(Icons.timer, "마감 임박 게시글", [
-            "[택시]",
-            "택시 게시글",
-            "[배달]",
-            "배달 게시글",
-            "[공구]",
-            "공구 게시물",
+          messageBoard('assets/images/icon/iconclock.png', "마감 임박 게시글", [
+            "[택시]", "택시 게시글",
+            "[배달]", "배달 게시글",
+            "[공구]", "공구 게시물",
           ]),
-          messageBoard(Icons.fireplace, "실시간 인기 게시글",
+          messageBoard('assets/images/icon/iconfire.png', "실시간 인기 게시글",
               ["[123] 456", "[11] 22", "[33] 44", "[55] 66"]),
         ],
       ),
@@ -127,21 +100,14 @@ class SignedInPageState extends State<SignedInPage> {
           children: [
             Image.asset(data, width: 35, height: 35),
             cSizedBox(5, 0),
-            Text(
-              text,
-              style: TextStyle(
-                  fontFamily: "SCDream",
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                  color: Color(0xffDD373C44)),
-            ),
+            Text(text, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w500, fontSize: 12, color: Color(0xffDD373C44)),),
           ],
         ),
       ),
     );
   }
 
-  Widget messageBoard(IconData iconData, String title, List<String> data) {
+  Widget messageBoard(String image, String title, List<String> data) {
     return Column(
       children: [
         Padding(
@@ -152,16 +118,9 @@ class SignedInPageState extends State<SignedInPage> {
               Row(
                 children: [
                   cSizedBox(0, 10),
-                  Icon(iconData),
+                  Image.asset(image, width: 35, height: 35),
                   cSizedBox(0, 10),
-                  Text(
-                    title,
-                    style: TextStyle(
-                        fontFamily: "SCDream",
-                        fontWeight: FontWeight.w400,
-                        fontSize: 17,
-                        color: Color(0xffDD373C44)),
-                  ),
+                  Text(title, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w400, fontSize: 17, color: Color(0xffDD373C44)),),
                 ],
               ),
               Padding(
