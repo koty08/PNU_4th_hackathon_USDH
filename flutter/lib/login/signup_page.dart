@@ -111,10 +111,6 @@ class SignUpPageState extends State<SignUpPage> {
                               ],
                             ),
                           ),
-                          child: Divider(
-                            thickness: 5,
-                            color: Colors.transparent,
-                          ),
                         ),
                         cSizedBox(40, 0),
 
@@ -430,6 +426,7 @@ class SignUpPageState extends State<SignUpPage> {
         'photoUrl':
             'https://firebasestorage.googleapis.com/v0/b/example-18d75.appspot.com/o/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202021-07-21%20113022.png?alt=media&token=b9b9dfb3-ac59-430c-b35b-04d9fad08ae6',
         'joiningIn': null,
+        'portfolio': [],
       });
     } else {
       showMessage();

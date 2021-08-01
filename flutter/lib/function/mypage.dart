@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:usdh/function/portfolio.dart';
 import '../login/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'board.dart';
@@ -12,6 +13,7 @@ class MyPage extends StatefulWidget {
     return pageState;
   }
 }
+
 class MyPageState extends State<MyPage> {
   late FirebaseProvider fp;
 
@@ -22,13 +24,12 @@ class MyPageState extends State<MyPage> {
   @override
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
 
     double propertyWith = 130;
-    if(fp.getUser() == null){
+    if (fp.getUser() == null) {
       return CircularProgressIndicator();
-    }
-    
-    else{
+    } else {
       return Scaffold(
         appBar: AppBar(title: Text("로그인 완료 페이지")),
         body: ListView(
@@ -43,10 +44,9 @@ class MyPageState extends State<MyPage> {
                     decoration: BoxDecoration(color: Colors.amber),
                     child: Center(
                       child: Text(
-                        "로그인된 사용자 정보",
+                        "포트폴리오 테스트",
                         style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold),
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -62,10 +62,11 @@ class MyPageState extends State<MyPage> {
                           children: <Widget>[
                             Container(
                               width: propertyWith,
-                              child: Text("UID", style: tsItem),
+                              child: Text("포트폴리오 자기소개", style: tsItem),
                             ),
                             Expanded(
-                              child: Text(fp.getUser()!.uid, style: tsContent),
+                              child: Text(fp.getInfo()['portfolio'][0],
+                                  style: tsContent),
                             )
                           ],
                         ),
@@ -74,10 +75,11 @@ class MyPageState extends State<MyPage> {
                           children: <Widget>[
                             Container(
                               width: propertyWith,
-                              child: Text("Email", style: tsItem),
+                              child: Text("포트폴리오 자기스펙", style: tsItem),
                             ),
                             Expanded(
-                              child: Text(fp.getUser()!.email.toString(), style: tsContent),
+                              child: Text(fp.getInfo()['portfolio'][1],
+                                  style: tsContent),
                             )
                           ],
                         ),
@@ -86,10 +88,10 @@ class MyPageState extends State<MyPage> {
                           children: <Widget>[
                             Container(
                               width: propertyWith,
-                              child: Text("isEmailVerified", style: tsItem),
+                              child: Text("포트폴리오 태그", style: tsItem),
                             ),
                             Expanded(
-                              child: Text(fp.getUser()!.emailVerified.toString(),
+                              child: Text(fp.getInfo()['portfolio'][2],
                                   style: tsContent),
                             )
                           ],
@@ -106,7 +108,6 @@ class MyPageState extends State<MyPage> {
                 ],
               ),
             ),
-
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: ElevatedButton(
@@ -123,7 +124,6 @@ class MyPageState extends State<MyPage> {
                 },
               ),
             ),
-
             Container(
               margin: const EdgeInsets.only(left: 20, right: 20, top: 0),
               child: ElevatedButton(
@@ -131,15 +131,15 @@ class MyPageState extends State<MyPage> {
                   primary: Colors.orange[300],
                 ),
                 child: Text(
-                  "비밀번호 재설정 이메일 보내기",
+                  "포트폴리오 작성하기",
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: () {
-                  fp.PWReset();
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => Portfolio()));
                 },
               ),
             ),
-
             Container(
               margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
               child: ElevatedButton(
@@ -155,7 +155,6 @@ class MyPageState extends State<MyPage> {
                 },
               ),
             ),
-
             Container(
               margin: const EdgeInsets.only(left: 20, right: 20, top: 5),
               child: ElevatedButton(
@@ -163,8 +162,9 @@ class MyPageState extends State<MyPage> {
                     "게시판 글쓰기",
                     style: TextStyle(color: Colors.black),
                   ),
-                  onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => WriteBoard()));
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => WriteBoard()));
                   }),
             ),
             Container(
@@ -174,8 +174,9 @@ class MyPageState extends State<MyPage> {
                     "게시글 목록",
                     style: TextStyle(color: Colors.black),
                   ),
-                  onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => ListBoard()));
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => ListBoard()));
                   }),
             ),
             Container(

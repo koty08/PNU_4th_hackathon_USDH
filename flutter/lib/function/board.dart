@@ -8,7 +8,6 @@ import 'package:usdh/chat/chatting.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:usdh/Widget/widget.dart';
 
 late WriteBoardState pageState;
 late ListBoardState pageState2;

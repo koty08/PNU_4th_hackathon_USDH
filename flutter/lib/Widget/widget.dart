@@ -8,6 +8,38 @@ Widget cSizedBox(double h, double w) {
   );
 }
 
+
+/* ---------------------- Divider ---------------------- */
+
+Widget headerDivider() {
+  return Container(
+    height: 3,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft, end: Alignment.bottomRight, stops: [0.0, 1.0],
+        colors: [Colors.blue.shade100, Colors.deepPurple.shade100,],
+      ),
+    ),
+  );
+}
+
+Widget middleDivider() {
+  return Container(
+    margin: EdgeInsets.fromLTRB(20, 5, 20, 0),
+    height: 2.5,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(20),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft, end: Alignment.bottomRight, stops: [0.0, 1.0],
+        colors: [Colors.blue.shade50, Colors.deepPurple.shade50,],
+      ),
+    ),
+  );
+}
+
+
+/* ---------------------- Text ---------------------- */
+
 Widget headerText(String text) {
   return Text(
       text,
@@ -42,6 +74,67 @@ Widget cond2Text(String text) {
       style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w700, fontSize: 13)
   );
 }
+
+
+/* ---------------------- Text Field ---------------------- */
+
+Widget tagField(TextEditingController controller, String hint, String valid) {
+  return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.multiline, maxLines: null,
+      style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 14),
+      decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none),
+      validator: (text) {
+        if (text == null || text.isEmpty) {
+          return valid;
+        }
+        return null;
+      }
+  );
+}
+
+Widget titleField(TextEditingController controller) {
+  return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.multiline, maxLines: null,
+      style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w600, fontSize: 18),
+      decoration: InputDecoration(hintText: "제목을 입력하세요.", border: InputBorder.none, focusedBorder: InputBorder.none),
+      validator: (text) {
+        if (text == null || text.isEmpty) {
+          return "제목은 필수 입력 사항입니다.";
+        }
+        return null;
+      }
+  );
+}
+
+Widget condField(TextEditingController controller, String hint, String valid) {
+  return TextFormField(
+      controller: controller,
+      style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
+      decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none),
+      validator: (text) {
+        if (text == null || text.isEmpty) {
+          return valid;
+        }
+        return null;
+      }
+  );
+}
+
+Widget condWrap(String ctext, TextEditingController controller, String hint, String valid){
+  return Wrap(
+    spacing: 40,
+    children: [
+      cond2Text(ctext),
+      Container(width: 250, height: 22,
+        child: condField(controller, hint, valid)
+      )
+    ],
+  );
+}
+
+/* ---------------------- Painter ---------------------- */
 
 class CurvePainter extends CustomPainter {
   @override
