@@ -40,7 +40,7 @@ class SignedInPageState extends State<SignedInPage> {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(currentUserId: tmp['email'])));
                 },
               ),
-              Text("유소더하", style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w200, height: 2, fontSize: 23, color: Color(0xFF323232)),),
+              Text("유소더하", style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w400, height: 2, fontSize: 23, color: Color(0xFF323232)),),
               IconButton(
                 icon: Image.asset('assets/images/icon/profile.png', width: 22, height: 22),
                 onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));},
@@ -125,7 +125,7 @@ class SignedInPageState extends State<SignedInPage> {
               ),
               Padding(
                 padding: EdgeInsets.fromLTRB(0, 0, 25, 0),
-                child: Icon(Icons.add_box),
+                //child: Icon(Icons.add_box),
               ),
             ],
           ),
@@ -135,7 +135,7 @@ class SignedInPageState extends State<SignedInPage> {
           painter: CurvePainter(),
         ),
         Padding(
-          padding: EdgeInsets.fromLTRB(70, 10, 55, 10),
+          padding: EdgeInsets.fromLTRB(70, 10, 55, 0),
           child: SizedBox(
             height: 110,
             child: ListView.builder(
@@ -148,7 +148,7 @@ class SignedInPageState extends State<SignedInPage> {
                     data[index],
                     style: TextStyle(
                         fontFamily: "SCDream",
-                        fontWeight: FontWeight.w300,
+                        fontWeight: FontWeight.w400,
                         fontSize: 12.5,
                         color: Color(0xffDD373C44)),
                   );

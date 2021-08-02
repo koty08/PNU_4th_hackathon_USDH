@@ -572,10 +572,10 @@ class deliveryShowState extends State<deliveryShow> {
                                       direction: Axis.vertical,
                                       spacing: 15,
                                       children: [
-                                        Wrap(spacing: 40, children: [cond2Text("모집기간"), condText(formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),],),
-                                        Wrap(spacing: 40, children: [cond2Text("모집인원"), condText(snapshot.data!['currentMember'].toString()+"/"+snapshot.data!['limitedMember'].toString())],),
-                                        Wrap(spacing: 40, children: [cond2Text("음식종류"), condText(snapshot.data!['food']),],),
-                                        Wrap(spacing: 40, children: [cond2Text("배분위치"), condText(snapshot.data!['location']),],)
+                                        Wrap(spacing: 20, children: [cond2Text("모집기간"), condText(formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),],),
+                                        Wrap(spacing: 20, children: [cond2Text("모집인원"), condText(snapshot.data!['currentMember'].toString()+"/"+snapshot.data!['limitedMember'].toString())],),
+                                        Wrap(spacing: 20, children: [cond2Text("음식종류"), condText(snapshot.data!['food']),],),
+                                        Wrap(spacing: 20, children: [cond2Text("배분위치"), condText(snapshot.data!['location']),],)
                                       ],
                                     )
                                 )
