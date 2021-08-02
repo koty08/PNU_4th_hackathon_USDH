@@ -191,6 +191,7 @@ class deliveryWriteState extends State<deliveryWrite> {
       'gender': gender,
       'members': [],
       'isFineForMembers': [],
+      'tags_parse' : tagInput.text.split("#").map((tag) => tag.trim()).toList(),
     });
     fp.updateIntInfo('postcount', 1);
   }
@@ -240,7 +241,15 @@ class deliveryListState extends State<deliveryList> {
   Stream<QuerySnapshot> colstream =
       FirebaseFirestore.instance.collection('delivery_board').snapshots();
   late FirebaseProvider fp;
+  final _formKey = GlobalKey<FormState>();
   TextEditingController searchInput = TextEditingController();
+  String search = "";
+
+  @override
+  void initState() {
+    search = "제목";
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -256,8 +265,10 @@ class deliveryListState extends State<deliveryList> {
     return Scaffold(
       body: RefreshIndicator(
         //당겨서 새로고침
-        onRefresh: () async {
-          colstream = await FirebaseFirestore.instance.collection('delivery_board').snapshots();
+        onRefresh: () async{
+          setState(() {
+            colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+          });
         },
         child: StreamBuilder<QuerySnapshot>(
             stream: colstream,
@@ -289,37 +300,102 @@ class deliveryListState extends State<deliveryList> {
                           //새로고침 기능
                           IconButton(
                             icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
-                            onPressed:() async {colstream = await FirebaseFirestore.instance.collection('delivery_board').snapshots();},
+                            onPressed:() {
+                              setState(() {
+                                colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+                              });
+                            },
                           ),
                           //검색 기능 팝업
                           IconButton(
                             icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
                             onPressed:() {
-                            showDialog(context: context,
-                                builder: (BuildContext con){
-                                  return AlertDialog(
-                                    title: Text("검색 ㄱ"),
-                                    content: TextField(
-                                      controller: searchInput,
-                                      decoration: InputDecoration(hintText: "검색할 제목을 입력하세요."),
-                                    ),
-                                    actions: <Widget>[
-                                      TextButton(onPressed: () {
-                                        setState(() {
-                                          colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
-                                        });
-                                        Navigator.pop(con);
-                                      },
-                                          child: Text("검색")
-                                      ),
-                                      TextButton(onPressed: (){
-                                        Navigator.pop(con);
-                                      },
-                                          child: Text("취소")
-                                      ),
-                                      ],
-                                    );
-                                  });
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext con){
+                                return StatefulBuilder(
+                                  builder: (con, setState) {
+                                    return Form(
+                                        key: _formKey,
+                                        child:
+                                          AlertDialog(
+                                            title: Row(
+                                              children: [
+                                                Theme(
+                                                  data: ThemeData(
+                                                      unselectedWidgetColor: Colors.black38),
+                                                  child: Radio(
+                                                      value: "제목",
+                                                      activeColor: Colors.black38,
+                                                      groupValue: search,
+                                                      onChanged: (String? value) {
+                                                        setState(() {
+                                                          search = value!;
+                                                        });
+                                                      }),
+                                                ),
+                                                Text("제목 검색" ,style: TextStyle(fontSize: 10,),),
+                                                Theme(
+                                                  data: ThemeData(
+                                                      unselectedWidgetColor: Colors.black38),
+                                                  child: Radio(
+                                                      value: "태그",
+                                                      activeColor: Colors.black38,
+                                                      groupValue: search,
+                                                      onChanged: (String? value) {
+                                                        setState(() {
+                                                          search = value!;
+                                                        });
+                                                      }),
+                                                ),
+                                                Text("태그 검색", style: TextStyle(fontSize: 10,),),
+                                              ],
+                                            ),
+                                            content:
+                                              TextFormField(
+                                                controller: searchInput,
+                                                decoration: (search == "제목")? InputDecoration(hintText: "검색할 제목을 입력하세요."):
+                                                  InputDecoration(hintText: "검색할 태그를 입력하세요."),
+                                                validator: (text) {
+                                                  if (text == null || text.isEmpty) {
+                                                    return "검색어를 입력하지 않으셨습니다.";
+                                                  }
+                                                  return null;
+                                                }
+                                              ),
+                                            actions: <Widget>[
+                                              TextButton(onPressed: () {
+                                                if(_formKey.currentState!.validate()){
+                                                  if(search == "제목"){
+                                                    setState(() {
+                                                      colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                                                    });
+                                                    searchInput.clear();
+                                                    Navigator.pop(con);
+                                                  }
+                                                  else{
+                                                    setState(() {
+                                                      colstream = FirebaseFirestore.instance.collection('delivery_board').where('tags_parse', arrayContains: searchInput.text).snapshots();
+                                                    });
+                                                    searchInput.clear();
+                                                    Navigator.pop(con);
+                                                  }
+                                                }
+                                              },
+                                                child: Text("검색")
+                                              ),
+                                              TextButton(onPressed: (){
+                                                Navigator.pop(con);
+                                                searchInput.clear();
+                                              },
+                                                child: Text("취소")
+                                              ),
+                                              ],
+                                          )
+                                        );
+                                    }
+                                );
+                              });
                             },
                           ),
                           IconButton(
@@ -884,6 +960,7 @@ class deliveryModifyState extends State<deliveryModify> {
       'food': foodInput.text,
       'location': locationInput.text,
       'tags': tagInput.text,
+      'tags_parse' : tagInput.text.split("#").map((tag) => tag.trim()).toList(),
       'gender': gender,
       'members': [],
       'isFineForMembers': [],
