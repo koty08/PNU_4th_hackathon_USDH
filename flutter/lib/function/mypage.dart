@@ -34,80 +34,80 @@ class MyPageState extends State<MyPage> {
         appBar: AppBar(title: Text("로그인 완료 페이지")),
         body: ListView(
           children: <Widget>[
-            Container(
-              margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
-              child: Column(
-                children: <Widget>[
-                  //헤더
-                  Container(
-                    height: 50,
-                    decoration: BoxDecoration(color: Colors.amber),
-                    child: Center(
-                      child: Text(
-                        "포트폴리오 테스트",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
+            // Container(
+            //   margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
+            //   child: Column(
+            //     children: <Widget>[
+            //       //헤더
+            //       Container(
+            //         height: 50,
+            //         decoration: BoxDecoration(color: Colors.amber),
+            //         child: Center(
+            //           child: Text(
+            //             "포트폴리오 테스트",
+            //             style: TextStyle(
+            //                 fontSize: 16, fontWeight: FontWeight.bold),
+            //           ),
+            //         ),
+            //       ),
 
-                  // 정보 영역
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.amber, width: 1),
-                    ),
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            Container(
-                              width: propertyWith,
-                              child: Text("포트폴리오 자기소개", style: tsItem),
-                            ),
-                            Expanded(
-                              child: Text(fp.getInfo()['portfolio'][0],
-                                  style: tsContent),
-                            )
-                          ],
-                        ),
-                        Divider(height: 1),
-                        Row(
-                          children: <Widget>[
-                            Container(
-                              width: propertyWith,
-                              child: Text("포트폴리오 자기스펙", style: tsItem),
-                            ),
-                            Expanded(
-                              child: Text(fp.getInfo()['portfolio'][1],
-                                  style: tsContent),
-                            )
-                          ],
-                        ),
-                        Divider(height: 1),
-                        Row(
-                          children: <Widget>[
-                            Container(
-                              width: propertyWith,
-                              child: Text("포트폴리오 태그", style: tsItem),
-                            ),
-                            Expanded(
-                              child: Text(fp.getInfo()['portfolio'][2],
-                                  style: tsContent),
-                            )
-                          ],
-                        ),
-                      ].map((c) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 10),
-                          child: c,
-                        );
-                      }).toList(),
-                    ),
-                  )
-                ],
-              ),
-            ),
+            //       // 정보 영역
+            //       Container(
+            //         decoration: BoxDecoration(
+            //           border: Border.all(color: Colors.amber, width: 1),
+            //         ),
+            //         child: Column(
+            //           children: <Widget>[
+            //             Row(
+            //               children: <Widget>[
+            //                 Container(
+            //                   width: propertyWith,
+            //                   child: Text("포트폴리오 자기소개", style: tsItem),
+            //                 ),
+            //                 Expanded(
+            //                   child: Text(fp.getInfo()['portfolio'][0],
+            //                       style: tsContent),
+            //                 )
+            //               ],
+            //             ),
+            //             Divider(height: 1),
+            //             Row(
+            //               children: <Widget>[
+            //                 Container(
+            //                   width: propertyWith,
+            //                   child: Text("포트폴리오 자기스펙", style: tsItem),
+            //                 ),
+            //                 Expanded(
+            //                   child: Text(fp.getInfo()['portfolio'][1],
+            //                       style: tsContent),
+            //                 )
+            //               ],
+            //             ),
+            //             Divider(height: 1),
+            //             Row(
+            //               children: <Widget>[
+            //                 Container(
+            //                   width: propertyWith,
+            //                   child: Text("포트폴리오 태그", style: tsItem),
+            //                 ),
+            //                 Expanded(
+            //                   child: Text(fp.getInfo()['portfolio'][2],
+            //                       style: tsContent),
+            //                 )
+            //               ],
+            //             ),
+            //           ].map((c) {
+            //             return Padding(
+            //               padding: const EdgeInsets.symmetric(
+            //                   vertical: 10, horizontal: 10),
+            //               child: c,
+            //             );
+            //           }).toList(),
+            //         ),
+            //       )
+            //     ],
+            //   ),
+            // ),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: ElevatedButton(
