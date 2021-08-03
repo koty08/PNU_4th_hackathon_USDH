@@ -2,24 +2,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:usdh/chat/chatting.dart';
 import 'package:usdh/chat/const.dart';
-import 'package:usdh/login/firebase_provider.dart';
 import 'package:usdh/chat/widget/loading.dart';
 
 // 현재 내가 포함된 채팅방 목록
 class HomeScreen extends StatefulWidget {
-  final String currentUserId;
+  final String myId;
 
-  HomeScreen({Key? key, required this.currentUserId}) : super(key: key);
+  HomeScreen({Key? key, required this.myId}) : super(key: key);
 
   @override
-  State createState() => HomeScreenState(currentUserId: currentUserId);
+  State createState() => HomeScreenState(myId: myId);
 }
 
 class HomeScreenState extends State<HomeScreen> {
   // currentUserId : 현재 접속한 user Email
-  HomeScreenState({Key? key, required this.currentUserId});
+  HomeScreenState({Key? key, required this.myId});
 
-  final String currentUserId;
+  final String myId;
   //final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
   // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   //     FlutterLocalNotificationsPlugin();
@@ -28,13 +27,12 @@ class HomeScreenState extends State<HomeScreen> {
   int _limit = 20; // 한 번에 불러오는 채팅 방 수
   int _limitIncrement = 20; // _limit을 넘길 경우 _limitIncrement만큼 추가
   bool isLoading = false;
+  
   // Choice class: 버튼 생성 클래스(title, icon)
   List<Choice> choices = const <Choice>[
     const Choice(title: 'Settings', icon: Icons.settings),
     const Choice(title: 'Log out', icon: Icons.exit_to_app),
   ];
-
-  late FirebaseProvider fp;
 
   @override
   void initState() {
@@ -214,7 +212,6 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("여기는 채팅방");
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -256,7 +253,7 @@ class HomeScreenState extends State<HomeScreen> {
           // firebase에서 limits만큼의 users 정보 가져옴
           Container(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('users').doc(currentUserId).collection('messageWith').limit(_limit).snapshots(),
+              stream: FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').limit(_limit).snapshots(),
               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasData) {
                   return ListView.builder(
@@ -375,11 +372,11 @@ class HomeScreenState extends State<HomeScreen> {
             ],
           ),
           onPressed: () {
-            print(document.id);
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => Chat(
+                  myId: myId,
                   peerIds: peerIds,
                   groupChatId: document.id,
                 ),

@@ -11,10 +11,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 late WriteBoardState pageState;
 late ListBoardState pageState2;
-late showBoardState pageState3;
-late modifyBoardState pageState4;
+late ShowBoardState pageState3;
+late ModifyBoardState pageState4;
 late ApplicantListBoardState pageState5;
-late showApplicantListState pageState6;
+late ShowApplicantListState pageState6;
 
 /* ---------------------- Write Board ---------------------- */
 
@@ -251,7 +251,7 @@ class ListBoardState extends State<ListBoard> {
                           icon: Icon(Icons.message),
                           onPressed: () {
                             var tmp = fp.getInfo();
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(currentUserId: tmp['email'])));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: tmp['email'])));
                           },
                         ),
                       ],
@@ -305,7 +305,7 @@ class ListBoardState extends State<ListBoard> {
                         Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                         InkWell(
                             onTap: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => showBoard(doc.id)));
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => ShowBoard(doc.id)));
                             },
                             child: Container(
                                 margin: EdgeInsets.fromLTRB(50, 17, 10, 0),
@@ -345,18 +345,18 @@ class ListBoardState extends State<ListBoard> {
 
 /* ---------------------- Show Board ---------------------- */
 
-class showBoard extends StatefulWidget {
-  showBoard(this.id);
+class ShowBoard extends StatefulWidget {
+  ShowBoard(this.id);
   final String id;
 
   @override
-  showBoardState createState() {
-    pageState3 = showBoardState();
+  ShowBoardState createState() {
+    pageState3 = ShowBoardState();
     return pageState3;
   }
 }
 
-class showBoardState extends State<showBoard> {
+class ShowBoardState extends State<ShowBoard> {
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
 
@@ -412,7 +412,7 @@ class showBoardState extends State<showBoard> {
                                 style: TextStyle(color: Colors.white),
                               ),
                               onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => modifyBoard(widget.id)));
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => ModifyBoard(widget.id)));
                                 setState(() {});
                               },
                             ),
@@ -565,17 +565,17 @@ class showBoardState extends State<showBoard> {
 
 /* ---------------------- Modify Board ---------------------- */
 
-class modifyBoard extends StatefulWidget {
-  modifyBoard(this.id);
+class ModifyBoard extends StatefulWidget {
+  ModifyBoard(this.id);
   final String id;
   @override
   State<StatefulWidget> createState() {
-    pageState4 = modifyBoardState();
+    pageState4 = ModifyBoardState();
     return pageState4;
   }
 }
 
-class modifyBoardState extends State<modifyBoard> {
+class ModifyBoardState extends State<ModifyBoard> {
   final FirebaseFirestore fs = FirebaseFirestore.instance;
   late TextEditingController titleInput;
   late TextEditingController contentInput;
@@ -744,7 +744,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                           icon: Icon(Icons.message),
                           onPressed: () {
                             var tmp = fp.getInfo();
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(currentUserId: tmp['email'])));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: tmp['email'])));
                           },
                         ),
                       ],
@@ -781,7 +781,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                           Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                           InkWell(
                               onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => showApplicantList(doc.id)));
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => ShowApplicantList(doc.id)));
                               },
                               child: Container(
                                   margin: EdgeInsets.fromLTRB(50, 17, 10, 0),
@@ -818,18 +818,18 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
 
 /* ------------------ Show Applicant Board ------------------ */
 
-class showApplicantList extends StatefulWidget {
-  showApplicantList(this.id);
+class ShowApplicantList extends StatefulWidget {
+  ShowApplicantList(this.id);
   final String id;
 
   @override
-  showApplicantListState createState() {
-    pageState6 = showApplicantListState();
+  ShowApplicantListState createState() {
+    pageState6 = ShowApplicantListState();
     return pageState6;
   }
 }
 
-class showApplicantListState extends State<showApplicantList> {
+class ShowApplicantListState extends State<ShowApplicantList> {
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
 
@@ -890,29 +890,42 @@ class showApplicantListState extends State<showApplicantList> {
                                         style: TextStyle(color: Colors.white),
                                       ),
                                       onPressed: () async {
+                                        var myId = fp.getInfo()['email'];
                                         int currentMember = snapshot.data!.get('currentMember');
                                         int limitedMember = snapshot.data!.get('limitedMember');
+                                        String peerId = isFineForMembers[index].toString();
+                                        String title = widget.id;
+                                        print(peerId);
+                                        print(title);
 
                                         // 제한 인원을 넘지 않았으면 추가
                                         Navigator.of(context).pop();
                                         if (currentMember < limitedMember) {
-                                          await FirebaseFirestore.instance.collection('delivery_board').doc(widget.id).update({
-                                            'members': FieldValue.arrayUnion([isFineForMembers[index].toString()]),
-                                            'isFineForMembers': FieldValue.arrayRemove([isFineForMembers[index].toString()]),
+                                          // board의 정보 수정
+                                          await FirebaseFirestore.instance.collection('delivery_board').doc(title).update({
+                                            'members': FieldValue.arrayUnion([peerId]),
+                                            'isFineForMembers': FieldValue.arrayRemove([peerId]),
                                             'currentMember': currentMember + 1,
                                           });
+                                          // users의 정보 수정
+                                          await FirebaseFirestore.instance.collection('users').doc(peerId).update({
+                                            'joiningIn': FieldValue.arrayUnion([title]),
+                                            'myApplication': FieldValue.arrayRemove([title]),
+                                          });
+
                                           currentMember += 1;
-                                          members.add(isFineForMembers[index]);
-                                          // 인원이 모두 차면 채팅방 생성
-                                          if (currentMember == limitedMember) {
-                                            Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) => Chat(
-                                                          peerIds: members,
-                                                          groupChatId: widget.id,
-                                                        )));
-                                          }
+                                          members.add(peerId);
+                                          // 채팅 시작
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) => Chat(
+                                                        myId: myId,
+                                                        peerIds: members,
+                                                        groupChatId: title,
+                                                      )));
+                                        } else {
+                                          print('인원이 다 찼습니다!');
                                         }
                                       },
                                     ),
@@ -928,9 +941,12 @@ class showApplicantListState extends State<showApplicantList> {
                                         style: TextStyle(color: Colors.white),
                                       ),
                                       onPressed: () async {
+                                        String peerId = isFineForMembers[index].toString();
+                                        String title = widget.id;
+
                                         Navigator.of(context).pop();
-                                        await FirebaseFirestore.instance.collection('delivery_board').doc(widget.id).update({
-                                          'isFineForMembers': FieldValue.arrayRemove([isFineForMembers[index].toString()])
+                                        await FirebaseFirestore.instance.collection('delivery_board').doc(title).update({
+                                          'isFineForMembers': FieldValue.arrayRemove([peerId])
                                         });
                                       },
                                     ),

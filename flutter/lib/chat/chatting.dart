@@ -1,27 +1,88 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
-
-import 'package:usdh/login/firebase_provider.dart';
 import 'package:usdh/chat/const.dart';
+import 'package:usdh/chat/home.dart';
+import 'package:usdh/function/signedin_page.dart';
 import 'package:usdh/chat/widget/loading.dart';
 import 'package:usdh/chat/widget/full_photo.dart';
 
-// 채팅방 내부
-class Chat extends StatelessWidget {
+class Chat extends StatefulWidget {
+  final String myId;
   final List<dynamic> peerIds; // chat에 참가한 유저의 email들
   final String groupChatId;
 
-  Chat({Key? key, required this.peerIds, required this.groupChatId}) : super(key: key);
+  Chat({Key? key, required this.myId, required this.peerIds, required this.groupChatId}) : super(key: key);
 
+  @override
+  State createState() => ChatState(myId: myId, peerIds: peerIds, groupChatId: groupChatId);
+}
+
+// 채팅방 내부
+class ChatState extends State<Chat> {
+  final String myId;
+  final List<dynamic> peerIds; // chat에 참가한 유저의 email들
+  final String groupChatId;
+
+  ChatState({Key? key, required this.myId, required this.peerIds, required this.groupChatId});
+
+  // 설정, 퇴장 버튼 생성(버튼이름, 아이콘)
+  List<Choice> choices = const <Choice>[
+    const Choice(title: '설정', icon: Icons.settings),
+    const Choice(title: '퇴장', icon: Icons.exit_to_app),
+  ];
+
+  // 로그아웃 버튼, 설정(프로필 수정) 버튼
+  void onItemMenuPress(Choice choice) {
+    if (choice.title == '퇴장') {
+      exitChat();
+      print('채팅방 퇴장');
+    } else {
+      print('프로필 설정');
+    }
+  }
+
+  // 채팅방 나가기
+  Future<Null> exitChat() async {
+    // 참가 중인 방 목록에서 제거
+    await FirebaseFirestore.instance.collection('users').doc(myId).update({
+      'joiningIn': FieldValue.arrayRemove([groupChatId])
+    });
+    // 메세지 기록 제거 (본인, 그룹 멤버들)
+    // 본인
+    await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').get().then((value) {
+      if (value.docs.isNotEmpty) {
+        for (DocumentSnapshot ds in value.docs) {
+          ds.reference.delete();
+        }
+      }
+    });
+    await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).delete();
+    // 다른 멤버
+    for (var peerId in peerIds) {
+      await FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).update({
+        'chatMembers': FieldValue.arrayRemove([myId])
+      });
+    }
+    // post의 currentMember - 1 해줌
+    int currentMember = 0;
+    await FirebaseFirestore.instance.collection('delivery_board').doc(groupChatId).get().then((value) {
+      currentMember = value['currentMember'];
+    });
+    await FirebaseFirestore.instance.collection('delivery_board').doc(groupChatId).update({
+      'currentMember': currentMember - 1,
+      'members': FieldValue.arrayRemove([myId]),
+    });
+
+    Navigator.of(context).pop();
+  }
+
+  // 참가한 유저들의 프로필 사진 정보를 얻어옴
   Future<List<String>> getPeerAvatar() async {
     final List<String> peerAvatars = []; // peerIds로 얻어
     for (var peerId in peerIds) {
@@ -37,12 +98,40 @@ class Chat extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'CHAT',
+          '채팅',
           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        // 채팅방 내의 퇴장, 설정 버튼
+        actions: <Widget>[
+          PopupMenuButton<Choice>(
+            onSelected: onItemMenuPress,
+            itemBuilder: (BuildContext context) {
+              return choices.map((Choice choice) {
+                return PopupMenuItem<Choice>(
+                    value: choice,
+                    child: Row(
+                      children: <Widget>[
+                        Icon(
+                          choice.icon,
+                          color: primaryColor,
+                        ),
+                        Container(
+                          width: 10.0,
+                        ),
+                        Text(
+                          choice.title,
+                          style: TextStyle(color: primaryColor),
+                        ),
+                      ],
+                    ));
+              }).toList();
+            },
+          ),
+        ],
       ),
       body: ChatScreen(
+        myId: myId,
         peerIds: peerIds, // 채팅방 멤버들의 emails
         peerAvatars: getPeerAvatar(), // 채팅방 멤버들의 photoUrls
         groupChatId: groupChatId,
@@ -52,28 +141,28 @@ class Chat extends StatelessWidget {
 }
 
 class ChatScreen extends StatefulWidget {
+  final String myId;
   final List<dynamic> peerIds;
   final Future<List<String>> peerAvatars;
   final String groupChatId;
 
-  ChatScreen({Key? key, required this.peerIds, required this.peerAvatars, required this.groupChatId}) : super(key: key);
+  ChatScreen({Key? key, required this.myId, required this.peerIds, required this.peerAvatars, required this.groupChatId}) : super(key: key);
 
   @override
-  State createState() => ChatScreenState(peerIds: peerIds, peerAvatars: peerAvatars, groupChatId: groupChatId);
+  State createState() => ChatScreenState(myId: myId, peerIds: peerIds, peerAvatars: peerAvatars, groupChatId: groupChatId);
 }
 
 class ChatScreenState extends State<ChatScreen> {
-  ChatScreenState({Key? key, required this.peerIds, required this.peerAvatars, required this.groupChatId});
+  ChatScreenState({Key? key, required this.myId, required this.peerIds, required this.peerAvatars, required this.groupChatId});
 
-  List<dynamic> peerIds;
+  final String myId;
+  final List<dynamic> peerIds;
   final Future<List<String>> peerAvatars;
   final String groupChatId;
-  String myId = '';
 
   List<QueryDocumentSnapshot> listMessage = new List.from([]);
   int _limit = 20;
   int _limitIncrement = 20;
-  SharedPreferences? prefs;
 
   File? imageFile;
   bool isLoading = false;
@@ -111,11 +200,9 @@ class ChatScreenState extends State<ChatScreen> {
 
   // 어플을 껐다 켜도 데이터 유지되도록
   void readLocal() async {
-    myId = 'jungse8609@pusan.ac.kr'; // 본인 이메일
-
     // 본인 email is chattingWith 상대방 email
     FirebaseFirestore.instance.collection('users').doc(myId).update({'chattingWith': FieldValue.arrayUnion(peerIds)});
-    
+
     // 상대방 정보를 나의 messageWith에 저장
     // 1. 상대방 정보 local에 저장
     List<String> peerPhotoUrls = [];
@@ -520,6 +607,106 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  // 다시 켜면 끄기 전 상태 유지
+  Widget buildListMessage() {
+    return Flexible(
+      child: peerIds.isNotEmpty
+          ? StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').orderBy('timestamp', descending: true).limit(_limit).snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasData) {
+                  listMessage.addAll(snapshot.data!.docs); // 모든 메세지 get
+                  return ListView.builder(
+                    padding: EdgeInsets.all(10.0),
+                    itemBuilder: (context, index) => buildItem(index, snapshot.data?.docs[index]),
+                    itemCount: snapshot.data?.docs.length,
+                    reverse: true,
+                    controller: listScrollController,
+                  );
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                    ),
+                  );
+                }
+              },
+            )
+          : Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+              ),
+            ),
+    );
+  }
+
+  // 메세지 입력 칸
+  Widget buildInput() {
+    return Container(
+      child: Row(
+        children: <Widget>[
+          // 이미지 전송 버튼
+          Material(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 1.0),
+              child: IconButton(
+                icon: Icon(Icons.image),
+                onPressed: getImage,
+                color: primaryColor,
+              ),
+            ),
+            color: Colors.white,
+          ),
+          Material(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 1.0),
+              child: IconButton(
+                icon: Icon(Icons.face),
+                onPressed: getSticker,
+                color: primaryColor,
+              ),
+            ),
+            color: Colors.white,
+          ),
+
+          // 메세지 텍스트 입력 칸
+          Flexible(
+            child: Container(
+              child: TextField(
+                onSubmitted: (value) {
+                  onSendMessage(textEditingController.text, 0);
+                },
+                style: TextStyle(color: primaryColor, fontSize: 15.0),
+                controller: textEditingController,
+                decoration: InputDecoration.collapsed(
+                  hintText: 'Type your message...',
+                  hintStyle: TextStyle(color: greyColor),
+                ),
+                focusNode: focusNode,
+              ),
+            ),
+          ),
+
+          // 메세지 전송 버튼
+          Material(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 8.0),
+              child: IconButton(
+                icon: Icon(Icons.send),
+                onPressed: () => onSendMessage(textEditingController.text, 0),
+                color: primaryColor,
+              ),
+            ),
+            color: Colors.white,
+          ),
+        ],
+      ),
+      width: double.infinity,
+      height: 50.0,
+      decoration: BoxDecoration(border: Border(top: BorderSide(color: greyColor2, width: 0.5)), color: Colors.white),
+    );
+  }
+
   // 이모티콘 구현
   Widget buildSticker() {
     return Expanded(
@@ -638,104 +825,11 @@ class ChatScreenState extends State<ChatScreen> {
       child: isLoading ? const Loading() : Container(),
     );
   }
+}
 
-  // 메세지 입력 칸
-  Widget buildInput() {
-    return Container(
-      child: Row(
-        children: <Widget>[
-          // 이미지 전송 버튼
-          Material(
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 1.0),
-              child: IconButton(
-                icon: Icon(Icons.image),
-                onPressed: getImage,
-                color: primaryColor,
-              ),
-            ),
-            color: Colors.white,
-          ),
-          Material(
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 1.0),
-              child: IconButton(
-                icon: Icon(Icons.face),
-                onPressed: getSticker,
-                color: primaryColor,
-              ),
-            ),
-            color: Colors.white,
-          ),
+class Choice {
+  const Choice({required this.title, required this.icon});
 
-          // 메세지 텍스트 입력 칸
-          Flexible(
-            child: Container(
-              child: TextField(
-                onSubmitted: (value) {
-                  onSendMessage(textEditingController.text, 0);
-                },
-                style: TextStyle(color: primaryColor, fontSize: 15.0),
-                controller: textEditingController,
-                decoration: InputDecoration.collapsed(
-                  hintText: 'Type your message...',
-                  hintStyle: TextStyle(color: greyColor),
-                ),
-                focusNode: focusNode,
-              ),
-            ),
-          ),
-
-          // 메세지 전송 버튼
-          Material(
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 8.0),
-              child: IconButton(
-                icon: Icon(Icons.send),
-                onPressed: () => onSendMessage(textEditingController.text, 0),
-                color: primaryColor,
-              ),
-            ),
-            color: Colors.white,
-          ),
-        ],
-      ),
-      width: double.infinity,
-      height: 50.0,
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: greyColor2, width: 0.5)), color: Colors.white),
-    );
-  }
-
-  // 다시 켜면 끄기 전 상태 유지
-  Widget buildListMessage() {
-    return Flexible(
-      child: peerIds.isNotEmpty
-          ? StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').orderBy('timestamp', descending: true).limit(_limit).snapshots(),
-              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.hasData) {
-                  listMessage.addAll(snapshot.data!.docs); // 모든 메세지 get
-                  return ListView.builder(
-                    padding: EdgeInsets.all(10.0),
-                    itemBuilder: (context, index) => buildItem(index, snapshot.data?.docs[index]),
-                    itemCount: snapshot.data?.docs.length,
-                    reverse: true,
-                    controller: listScrollController,
-                  );
-                } else {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-                    ),
-                  );
-                }
-              },
-            )
-          : Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-              ),
-            ),
-    );
-  }
+  final String title;
+  final IconData icon;
 }
