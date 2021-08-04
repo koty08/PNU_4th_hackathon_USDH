@@ -78,20 +78,25 @@ Widget cond2Text(String text) {
 
 /* ---------------------- Text Field ---------------------- */
 
-Widget tagField(TextEditingController controller, String hint, String valid) {
-  return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.multiline, maxLines: null,
-      style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 14),
-      decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none),
-      validator: (text) {
-        if (text == null || text.isEmpty) {
-          return valid;
-        }
-        return null;
-      }
-  );
-}
+// Widget tagField(TextEditingController controller, String hint, String valid) {
+//   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
+
+//   return SimpleAutoCompleteTextField(
+//       key: key,
+//       controller: controller,
+//       keyboardType: TextInputType.multiline, 
+//       clearOnSubmit: true,
+//       style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 14),
+//       decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none),
+//       suggestions: [
+//         "#치킨",
+//         "b",
+//         "c",
+//         "d",
+//         "e",
+//       ],
+//   );
+// }
 
 Widget titleField(TextEditingController controller) {
   return TextFormField(

@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:usdh/chat/chatting.dart';
+import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 
 late DeliveryWriteState pageState;
 late DeliveryMapState pageState1;
@@ -56,8 +57,11 @@ class DeliveryWriteState extends State<DeliveryWrite> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
   List urlList = [];
   String gender = "";
+  String tags = "";
+  List tagList = [];
 
   final _formKey = GlobalKey<FormState>();
+  GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
 
   @override
   void initState() {
@@ -120,7 +124,45 @@ class DeliveryWriteState extends State<DeliveryWrite> {
               Padding(
                   padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
                   child: Wrap(direction: Axis.vertical, spacing: -10, children: [
-                    Container(width: MediaQuery.of(context).size.width * 0.8, child: tagField(tagInput, "#태그를 입력하세요.", "태그는 필수 입력 사항입니다.")),
+
+                    //태그 입력하는 컨테이너
+                    Container(width: MediaQuery.of(context).size.width * 0.8, child: 
+                    SimpleAutoCompleteTextField(
+                        key: key,
+                        controller: tagInput,
+                        keyboardType: TextInputType.multiline, 
+                        clearOnSubmit: true,
+                        textSubmitted: (text) {
+                          setState(() {
+                            tags = tags + "#" + text + " ";
+                            tagList.add(text);
+                          });
+                        },
+                        style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 14),
+                        decoration: InputDecoration(hintText: "태그를 입력하세요.", border: InputBorder.none, focusedBorder: InputBorder.none),
+                        suggestions: [
+                          "치킨",
+                          "피자",
+                          "떡볶이",
+                          "부산대",
+                          "test",
+                        ],
+                      ),
+                    ),
+
+                    //태그 입력한거 보여주는 컨테이너
+                    Container(width: MediaQuery.of(context).size.width * 0.8, child: Text(tags),),
+                    // Container(
+                      
+                    //   child: ListView.builder(
+                    //     scrollDirection: Axis.horizontal,
+                    //     itemCount: tagList.length,
+                    //     itemBuilder: (BuildContext context, int idx){
+                    //       return Text(tagList[idx]);
+                    //     },
+                    //   ),
+                    // ),
+
                     Container(width: MediaQuery.of(context).size.width * 0.8, child: titleField(titleInput)),
                   ])),
               Divider(
@@ -185,11 +227,11 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'limitedMember': int.parse(memberInput.text),
       'food': foodInput.text,
       'location': locationInput.text,
-      'tags': tagInput.text,
+      'tags': tags,
       'gender': gender,
       'members': [],
       'isFineForMembers': [],
-      'tags_parse': tagInput.text.split("#").map((tag) => tag.trim()).toList(),
+      'tagList': tagList,
     });
     fp.updateIntInfo('postcount', 1);
   }
@@ -796,13 +838,22 @@ class DeliveryModifyState extends State<DeliveryModify> {
   late TextEditingController locationInput;
   late TextEditingController tagInput;
   String gender = "";
+  String tags = "";
+  List<String> tagList = [];
+  late DateTime d;
+
 
   final _formKey = GlobalKey<FormState>();
+  GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
 
   @override
   void initState() {
     setState(() {
       gender = "상관없음";
+      fs.collection('delivery_board').doc(widget.id).get().then((snapshot) {
+        var tmp = snapshot.data() as Map<String, dynamic>;
+        tags = tmp['tags'];
+      });
     });
     super.initState();
   }
@@ -832,10 +883,12 @@ class DeliveryModifyState extends State<DeliveryModify> {
                     titleInput = TextEditingController(text: snapshot.data!['title']);
                     contentInput = TextEditingController(text: snapshot.data!['contents']);
                     timeInput = TextEditingController(text: formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn]));
+                    d = DateTime.parse(snapshot.data!['time']);
                     memberInput = TextEditingController(text: snapshot.data!['limitedMember'].toString());
                     foodInput = TextEditingController(text: snapshot.data!['food']);
                     locationInput = TextEditingController(text: snapshot.data!['location']);
-                    tagInput = TextEditingController(text: snapshot.data!['tags']);
+                    tagInput = TextEditingController();
+
                     return Form(
                         key: _formKey,
                         child: Column(
@@ -869,9 +922,40 @@ class DeliveryModifyState extends State<DeliveryModify> {
                             Padding(
                                 padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
                                 child: Wrap(direction: Axis.vertical, spacing: -10, children: [
-                                  Container(width: MediaQuery.of(context).size.width * 0.8, child: tagField(tagInput, "#태그를 입력하세요.", "태그는 필수 입력 사항입니다.")),
+                                  //태그 입력하는 컨테이너
+                                  Container(width: MediaQuery.of(context).size.width * 0.8, child: 
+                                  SimpleAutoCompleteTextField(
+                                      key: key,
+                                      controller: tagInput,
+                                      keyboardType: TextInputType.multiline, 
+                                      clearOnSubmit: true,
+                                      textSubmitted: (text) {
+                                        setState(() {
+                                          tags = tags + "#" + text + " ";
+                                          print(tags);
+                                          print(tags);
+                                          print(tags);
+
+                                          tagList.add(text);
+                                        });
+                                      },
+                                      style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 14),
+                                      decoration: InputDecoration(hintText: "태그를 입력하세요.", border: InputBorder.none, focusedBorder: InputBorder.none),
+                                      suggestions: [
+                                        "치킨",
+                                        "피자",
+                                        "떡볶이",
+                                        "부산대",
+                                        "test",
+                                      ],
+                                    ),
+                                  ),
+
+                                  //태그 입력한거 보여주는 컨테이너
+                                  Container(width: MediaQuery.of(context).size.width * 0.8, child: Text(tags),),
                                   Container(width: MediaQuery.of(context).size.width * 0.8, child: titleField(titleInput)),
-                                ])),
+                                ])
+                            ),
                             Divider(
                               color: Colors.indigo[200],
                               thickness: 2,
@@ -929,12 +1013,12 @@ class DeliveryModifyState extends State<DeliveryModify> {
     await fs.collection('delivery_board').doc(widget.id).update({
       'title': titleInput.text,
       'contents': contentInput.text,
-      'time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
+      'time': formatDate(d, [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
       'limitedMember': int.parse(memberInput.text),
       'food': foodInput.text,
       'location': locationInput.text,
-      'tags': tagInput.text,
-      'tags_parse': tagInput.text.split("#").map((tag) => tag.trim()).toList(),
+      'tags': tags,
+      'tagList': tagList,
       'gender': gender,
       'members': [],
       'isFineForMembers': [],

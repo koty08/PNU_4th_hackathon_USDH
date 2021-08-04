@@ -23,7 +23,7 @@ class MyPageState extends State<MyPage> {
       color: Colors.blueGrey, fontSize: 13, fontWeight: FontWeight.bold);
   TextStyle tsContent = const TextStyle(color: Colors.blueGrey, fontSize: 12);
 
-  late TextEditingController myIntroInput;
+  TextEditingController myIntroInput = TextEditingController();
 
   @override
   void dispose() {

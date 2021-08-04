@@ -29,6 +29,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.6.1"
+  autocomplete_textfield:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "83ae83a84cb3674f3c5ba653cc8f97ce293ded9d"
+      url: "https://github.com/Zeswen/flutter-autocomplete-textfield"
+    source: git
+    version: "2.0.0"
   boolean_selector:
     dependency: transitive
     description:
