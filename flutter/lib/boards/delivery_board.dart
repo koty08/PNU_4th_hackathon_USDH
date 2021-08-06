@@ -9,6 +9,7 @@ import 'package:date_format/date_format.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:usdh/chat/chatting.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 
 late DeliveryWriteState pageState;
 late DeliveryMapState pageState1;
@@ -44,7 +45,6 @@ class DeliveryWrite extends StatefulWidget {
 }
 
 class DeliveryWriteState extends State<DeliveryWrite> {
-  late File img;
   late FirebaseProvider fp;
   TextEditingController titleInput = TextEditingController();
   TextEditingController contentInput = TextEditingController();
@@ -55,7 +55,6 @@ class DeliveryWriteState extends State<DeliveryWrite> {
   TextEditingController tagInput = TextEditingController();
   FirebaseStorage storage = FirebaseStorage.instance;
   FirebaseFirestore fs = FirebaseFirestore.instance;
-  List urlList = [];
   String gender = "";
   String tags = "";
   List tagList = [];
@@ -283,6 +282,7 @@ class DeliveryListState extends State<DeliveryList> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController searchInput = TextEditingController();
   String search = "";
+  bool status = false;
 
   @override
   void initState() {
@@ -460,15 +460,27 @@ class DeliveryListState extends State<DeliveryList> {
                 Container(
                     padding: EdgeInsets.fromLTRB(0, 0, 25, 0),
                     child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                      IconButton(
-                        icon: Icon(Icons.check_box_outlined),
-                        onPressed: () {
-                          Navigator.pop(context);
+                      FlutterSwitch(
+                        width: 50.0,
+                        height: 20.0,
+                        valueFontSize: 10.0,
+                        toggleSize: 15.0,
+                        value: status,
+                        onToggle: (val) {
+                          setState(() {
+                            status = val;
+                            if(status){
+                              colstream = FirebaseFirestore.instance.collection('delivery_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).snapshots();
+                            }
+                            else{
+                              colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+                            }
+                          });
                         },
                       ),
                       cSizedBox(2, 0),
                       Text(
-                        "모집완료 보기",
+                        "모집중만 표시",
                         style: TextStyle(
                           fontSize: 15,
                           color: Colors.indigo.shade300,
@@ -853,6 +865,14 @@ class DeliveryModifyState extends State<DeliveryModify> {
       fs.collection('delivery_board').doc(widget.id).get().then((snapshot) {
         var tmp = snapshot.data() as Map<String, dynamic>;
         tags = tmp['tags'];
+        titleInput = TextEditingController(text: tmp['title']);
+        contentInput = TextEditingController(text: tmp['contents']);
+        timeInput = TextEditingController(text: formatDate(DateTime.parse(tmp['time']), [HH, ':', nn]));
+        d = DateTime.parse(tmp['time']);
+        memberInput = TextEditingController(text: tmp['limitedMember'].toString());
+        foodInput = TextEditingController(text: tmp['food']);
+        locationInput = TextEditingController(text: tmp['location']);
+        tagInput = TextEditingController();
       });
     });
     super.initState();
@@ -880,15 +900,6 @@ class DeliveryModifyState extends State<DeliveryModify> {
                 builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                   if (snapshot.hasData && !snapshot.data!.exists) return CircularProgressIndicator();
                   if (snapshot.hasData) {
-                    titleInput = TextEditingController(text: snapshot.data!['title']);
-                    contentInput = TextEditingController(text: snapshot.data!['contents']);
-                    timeInput = TextEditingController(text: formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn]));
-                    d = DateTime.parse(snapshot.data!['time']);
-                    memberInput = TextEditingController(text: snapshot.data!['limitedMember'].toString());
-                    foodInput = TextEditingController(text: snapshot.data!['food']);
-                    locationInput = TextEditingController(text: snapshot.data!['location']);
-                    tagInput = TextEditingController();
-
                     return Form(
                         key: _formKey,
                         child: Column(

@@ -37,6 +37,7 @@ dependencies:
   date_format: ^2.0.2
   autocomplete_textfield:
     git: https://github.com/Zeswen/flutter-autocomplete-textfield
+  flutter_switch: ^0.3.2
   
   fluttertoast: ^8.0.6
   firebase_messaging: ^10.0.4
