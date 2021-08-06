@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:usdh/Widget/widget.dart';
@@ -296,6 +295,16 @@ class DeliveryListState extends State<DeliveryList> {
     super.dispose();
   }
 
+  bool is_today(String time){
+    String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]);
+    if(time.split(" ")[0] == now){
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
@@ -522,8 +531,12 @@ class DeliveryListState extends State<DeliveryList> {
                                         width: MediaQuery.of(context).size.width * 0.5,
                                         child: Text(title.toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w700, fontSize: 15)),
                                       ),
-                                      cSizedBox(70, 40),
+                                      cSizedBox(70, 20),
                                       Container(width: MediaQuery.of(context).size.width * 0.15, child: Text(writer.toString(), textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.blueGrey))),
+                                      //시간 찍기
+                                      is_today(doc['time']) ? 
+                                        Container(width: MediaQuery.of(context).size.width * 0.15, child: Text(doc['time'].substring(10,16), textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.blueGrey))):
+                                        Container(width: MediaQuery.of(context).size.width * 0.15, child: Text(doc['time'].substring(5,7) + "/" + doc['time'].substring(8,10), textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.blueGrey))),
                                     ])
                                   ])))
                         ]);
