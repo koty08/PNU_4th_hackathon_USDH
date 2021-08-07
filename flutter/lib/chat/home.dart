@@ -27,7 +27,7 @@ class HomeScreenState extends State<HomeScreen> {
   int _limit = 20; // 한 번에 불러오는 채팅 방 수
   int _limitIncrement = 20; // _limit을 넘길 경우 _limitIncrement만큼 추가
   bool isLoading = false;
-  
+
   // Choice class: 버튼 생성 클래스(title, icon)
   List<Choice> choices = const <Choice>[
     const Choice(title: 'Settings', icon: Icons.settings),
@@ -282,6 +282,24 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<String> getPeerNicks(List<dynamic> peerIds) async {
+    List<dynamic> temp = [];
+    for (var peerId in peerIds) {
+      await FirebaseFirestore.instance.collection('users').doc(peerId).get().then((value) {
+        temp.add(value['nick']);
+      });
+    }
+    nickForText = '';
+    for (int i = 0; i < temp.length; i++) {
+      if (i < temp.length - 1)
+        nickForText = nickForText + temp[i] + ", ";
+      else
+        nickForText = nickForText + temp[i];
+    }
+    return nickForText;
+  }
+
+  String nickForText = '';
   // 각각의 채팅 기록( 1 block ) - '[chatRoomName]' document 를 인자로
   Widget buildItem(BuildContext context, DocumentSnapshot? document) {
     if (document != null) {
@@ -289,26 +307,6 @@ class HomeScreenState extends State<HomeScreen> {
       List<dynamic> peerIds = document['chatMembers'];
       String photoUrl = 'https://firebasestorage.googleapis.com/v0/b/example-18d75.appspot.com/o/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202021-07-21%20113022.png?alt=media&token=b9b9dfb3-ac59-430c-b35b-04d9fad08ae6';
 
-      List<String> nick = [];
-
-      // 여기 비동기를 어케 시키지??
-      for (var peerId in peerIds) {
-        FirebaseFirestore.instance.collection('users').doc(peerId).get().then((value) {
-          nick.add(value['nick']);
-        });
-      }
-
-      // 채팅방 리스트에 나타날 groupChatName,,
-      String nickForText = '';
-      for (int i = 0; i < nick.length; i++) {
-        if (i < nick.length - 2)
-          nickForText = nickForText + nick[i] + ", ";
-        else
-          nickForText += nickForText;
-      }
-      print(nickForText);
-      
-      // 채팅방 블럭을 리턴함
       return Container(
         child: TextButton(
           child: Row(
@@ -355,15 +353,23 @@ class HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   child: Column(
                     children: <Widget>[
-                      Container(
-                        child: Text(
-                          'Nickname: $nickForText',
-                          maxLines: 1,
-                          style: TextStyle(color: primaryColor),
-                        ),
-                        alignment: Alignment.centerLeft,
-                        margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                      ),
+                      FutureBuilder(
+                          future: getPeerNicks(peerIds),
+                          builder: (BuildContext context, AsyncSnapshot snapshot) {
+                            if (snapshot.hasData) {
+                              return Container(
+                                child: Text(
+                                  'Nickname: $nickForText',
+                                  maxLines: 1,
+                                  style: TextStyle(color: primaryColor),
+                                ),
+                                alignment: Alignment.centerLeft,
+                                margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
+                              );
+                            } else {
+                              return CircularProgressIndicator();
+                            }
+                          }),
                     ],
                   ),
                   margin: EdgeInsets.only(left: 20.0),
