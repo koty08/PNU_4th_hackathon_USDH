@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
@@ -122,13 +123,13 @@ class DeliveryWriteState extends State<DeliveryWrite> {
               Padding(
                   padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
                   child: Wrap(direction: Axis.vertical, spacing: -10, children: [
-
                     //태그 입력하는 컨테이너
-                    Container(width: MediaQuery.of(context).size.width * 0.8, child: 
-                    SimpleAutoCompleteTextField(
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      child: SimpleAutoCompleteTextField(
                         key: key,
                         controller: tagInput,
-                        keyboardType: TextInputType.multiline, 
+                        keyboardType: TextInputType.multiline,
                         clearOnSubmit: true,
                         textSubmitted: (text) {
                           setState(() {
@@ -149,9 +150,12 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                     ),
 
                     //태그 입력한거 보여주는 컨테이너
-                    Container(width: MediaQuery.of(context).size.width * 0.8, child: Text(tags),),
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      child: Text(tags),
+                    ),
                     // Container(
-                      
+
                     //   child: ListView.builder(
                     //     scrollDirection: Axis.horizontal,
                     //     itemCount: tagList.length,
@@ -218,7 +222,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
     var myInfo = fp.getInfo();
     await fs.collection('delivery_board').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
       'title': titleInput.text,
-      'write_time' : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ',  HH, ':', nn, ':', ss]),
+      'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
       'writer': myInfo['name'],
       'contents': contentInput.text,
       'time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
@@ -231,7 +235,9 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'members': [],
       'isFineForMembers': [],
       'tagList': tagList,
-      'views' : 0,
+      'views': 0,
+      'likes': 0,
+      'commentCount': 0,
     });
     fp.updateIntInfo('postcount', 1);
   }
@@ -298,12 +304,11 @@ class DeliveryListState extends State<DeliveryList> {
     super.dispose();
   }
 
-  bool is_today(String time){
+  bool is_today(String time) {
     String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]);
-    if(time.split(" ")[0] == now){
+    if (time.split(" ")[0] == now) {
       return true;
-    }
-    else{
+    } else {
       return false;
     }
   }
@@ -481,11 +486,10 @@ class DeliveryListState extends State<DeliveryList> {
                         onToggle: (val) {
                           setState(() {
                             status = val;
-                            if(status){
+                            if (status) {
                               colstream = FirebaseFirestore.instance.collection('delivery_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).orderBy("time").snapshots();
-                            }
-                            else{
-                              colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending : true).snapshots();
+                            } else {
+                              colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
                             }
                           });
                         },
@@ -519,7 +523,7 @@ class DeliveryListState extends State<DeliveryList> {
                           InkWell(
                               onTap: () {
                                 Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
-                                FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views" : doc["views"] + 1});
+                                FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views": doc["views"] + 1});
                               },
                               child: Container(
                                   margin: EdgeInsets.fromLTRB(30, 17, 10, 0),
@@ -538,9 +542,11 @@ class DeliveryListState extends State<DeliveryList> {
                                       cSizedBox(70, 20),
                                       Container(width: MediaQuery.of(context).size.width * 0.15, child: Text(writer.toString(), textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.blueGrey))),
                                       //시간 찍기
-                                      is_today(doc['time']) ? 
-                                        Container(width: MediaQuery.of(context).size.width * 0.15, child: Text(doc['time'].substring(10,16), textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.blueGrey))):
-                                        Container(width: MediaQuery.of(context).size.width * 0.15, child: Text(doc['time'].substring(5,7) + "/" + doc['time'].substring(8,10), textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.blueGrey))),
+                                      is_today(doc['time'])
+                                          ? Container(width: MediaQuery.of(context).size.width * 0.15, child: Text(doc['time'].substring(10, 16), textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.blueGrey)))
+                                          : Container(
+                                              width: MediaQuery.of(context).size.width * 0.15,
+                                              child: Text(doc['time'].substring(5, 7) + "/" + doc['time'].substring(8, 10), textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.blueGrey))),
                                     ])
                                   ])))
                         ]);
@@ -576,17 +582,37 @@ class DeliveryShow extends StatefulWidget {
 }
 
 class DeliveryShowState extends State<DeliveryShow> {
+  late FirebaseProvider fp;
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
+  TextEditingController commentInput = TextEditingController();
+
+  SharedPreferences? prefs;
+  bool alreadyLiked = false;
+
+  final _formKey = GlobalKey<FormState>();
+  GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
 
   @override
   void initState() {
     super.initState();
+    readLocal();
+  }
+
+  readLocal() async {
+    prefs = await SharedPreferences.getInstance();
+    alreadyLiked = prefs?.getBool('alreadyLiked') ?? false;
+  }
+
+  @override
+  void dispose() {
+    commentInput.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    FirebaseProvider fp = Provider.of<FirebaseProvider>(context);
+    fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
 
     return Scaffold(
@@ -730,7 +756,7 @@ class DeliveryShowState extends State<DeliveryShow> {
                             ],
                           )
                         :
-                        // 참가, 손절
+                        // 참가신청, 신청취소
                         Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -813,12 +839,74 @@ class DeliveryShowState extends State<DeliveryShow> {
                               ),
                             ],
                           ),
+                    // 좋아요
+                    headerDivider(),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(alreadyLiked ? Icons.favorite_border : Icons.favorite),
+                          onPressed: () async {
+                            var myInfo = fp.getInfo();
+                            if (!alreadyLiked) {
+                              await FirebaseFirestore.instance.collection('delivery_board').doc(widget.id).update({'likes': FieldValue.increment(1)});
+                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
+                                'likedBoard': FieldValue.arrayUnion([widget.id])
+                              });
+                            } else {
+                              await FirebaseFirestore.instance.collection('delivery_board').doc(widget.id).update({'likes': FieldValue.increment(-1)});
+                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
+                                'likedBoard': FieldValue.arrayRemove([widget.id])
+                              });
+                            }
+                            alreadyLiked = !alreadyLiked;
+                          },
+                        ),
+                        Text(snapshot.data!['likes'].toString()),
+                      ],
+                    ),
+                    headerDivider(),
+                    // 댓글쓰기
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 30,
+                            child: TextField(
+                              controller: commentInput,
+                              decoration: InputDecoration(hintText: "코멘트를 남기세요."),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.send),
+                          onPressed: () {
+                            FocusScope.of(context).requestFocus(new FocusNode());
+                            commentUploadOnFS();
+                          },
+                        ),
+                      ],
+                    ),
+                    // 댓글들 (추가해야함)
                   ],
                 ));
               } else {
                 return CircularProgressIndicator();
               }
             }));
+  }
+
+  void commentUploadOnFS() async {
+    var myInfo = fp.getInfo();
+    int? commentCount;
+    await fs.collection('delivery_board').doc(widget.id).get().then((value) {
+      commentCount = value['commentCount'];
+    });
+    await fs.collection('delivery_board').doc(widget.id).update({
+      'commentCount': FieldValue.increment(1),
+      'comments.comment$commentCount': FieldValue.arrayUnion([commentInput.text, 0]), // [댓글, 좋아요수]
+    });
+    print(commentInput.text);
+    commentInput.clear();
   }
 }
 
@@ -847,7 +935,6 @@ class DeliveryModifyState extends State<DeliveryModify> {
   String tags = "";
   List<String> tagList = [];
   late DateTime d;
-
 
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
@@ -928,11 +1015,12 @@ class DeliveryModifyState extends State<DeliveryModify> {
                                 padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
                                 child: Wrap(direction: Axis.vertical, spacing: -10, children: [
                                   //태그 입력하는 컨테이너
-                                  Container(width: MediaQuery.of(context).size.width * 0.8, child: 
-                                  SimpleAutoCompleteTextField(
+                                  Container(
+                                    width: MediaQuery.of(context).size.width * 0.8,
+                                    child: SimpleAutoCompleteTextField(
                                       key: key,
                                       controller: tagInput,
-                                      keyboardType: TextInputType.multiline, 
+                                      keyboardType: TextInputType.multiline,
                                       clearOnSubmit: true,
                                       textSubmitted: (text) {
                                         setState(() {
@@ -957,10 +1045,12 @@ class DeliveryModifyState extends State<DeliveryModify> {
                                   ),
 
                                   //태그 입력한거 보여주는 컨테이너
-                                  Container(width: MediaQuery.of(context).size.width * 0.8, child: Text(tags),),
+                                  Container(
+                                    width: MediaQuery.of(context).size.width * 0.8,
+                                    child: Text(tags),
+                                  ),
                                   Container(width: MediaQuery.of(context).size.width * 0.8, child: titleField(titleInput)),
-                                ])
-                            ),
+                                ])),
                             Divider(
                               color: Colors.indigo[200],
                               thickness: 2,
@@ -1083,119 +1173,119 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                       spacing: -5,
                       children: [
                         IconButton(
-                            icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                          //새로고침 기능
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
-                            onPressed: () {
-                              setState(() {
-                                colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
-                              });
-                            },
-                          ),
-                          //검색 기능 팝업
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
-                            onPressed: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (BuildContext con) {
-                                    return StatefulBuilder(builder: (con, setState) {
-                                      return Form(
-                                          key: _formKey,
-                                          child: AlertDialog(
-                                            title: Row(
-                                              children: [
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "제목",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setState(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
+                          icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        //새로고침 기능
+                        IconButton(
+                          icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
+                          onPressed: () {
+                            setState(() {
+                              colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+                            });
+                          },
+                        ),
+                        //검색 기능 팝업
+                        IconButton(
+                          icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext con) {
+                                  return StatefulBuilder(builder: (con, setState) {
+                                    return Form(
+                                        key: _formKey,
+                                        child: AlertDialog(
+                                          title: Row(
+                                            children: [
+                                              Theme(
+                                                data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                                child: Radio(
+                                                    value: "제목",
+                                                    activeColor: Colors.black38,
+                                                    groupValue: search,
+                                                    onChanged: (String? value) {
+                                                      setState(() {
+                                                        search = value!;
+                                                      });
+                                                    }),
+                                              ),
+                                              Text(
+                                                "제목 검색",
+                                                style: TextStyle(
+                                                  fontSize: 10,
                                                 ),
-                                                Text(
-                                                  "제목 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
+                                              ),
+                                              Theme(
+                                                data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                                child: Radio(
+                                                    value: "태그",
+                                                    activeColor: Colors.black38,
+                                                    groupValue: search,
+                                                    onChanged: (String? value) {
+                                                      setState(() {
+                                                        search = value!;
+                                                      });
+                                                    }),
+                                              ),
+                                              Text(
+                                                "태그 검색",
+                                                style: TextStyle(
+                                                  fontSize: 10,
                                                 ),
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "태그",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setState(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
-                                                ),
-                                                Text(
-                                                  "태그 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            content: TextFormField(
-                                                controller: searchInput,
-                                                decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
-                                                validator: (text) {
-                                                  if (text == null || text.isEmpty) {
-                                                    return "검색어를 입력하지 않으셨습니다.";
-                                                  }
-                                                  return null;
-                                                }),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                  onPressed: () {
-                                                    if (_formKey.currentState!.validate()) {
-                                                      if (search == "제목") {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      } else {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').where('tags_parse', arrayContains: searchInput.text).snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      }
-                                                    }
-                                                  },
-                                                  child: Text("검색")),
-                                              TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(con);
-                                                    searchInput.clear();
-                                                  },
-                                                  child: Text("취소")),
+                                              ),
                                             ],
-                                          ));
-                                    });
+                                          ),
+                                          content: TextFormField(
+                                              controller: searchInput,
+                                              decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
+                                              validator: (text) {
+                                                if (text == null || text.isEmpty) {
+                                                  return "검색어를 입력하지 않으셨습니다.";
+                                                }
+                                                return null;
+                                              }),
+                                          actions: <Widget>[
+                                            TextButton(
+                                                onPressed: () {
+                                                  if (_formKey.currentState!.validate()) {
+                                                    if (search == "제목") {
+                                                      setState(() {
+                                                        colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                                                      });
+                                                      searchInput.clear();
+                                                      Navigator.pop(con);
+                                                    } else {
+                                                      setState(() {
+                                                        colstream = FirebaseFirestore.instance.collection('delivery_board').where('tags_parse', arrayContains: searchInput.text).snapshots();
+                                                      });
+                                                      searchInput.clear();
+                                                      Navigator.pop(con);
+                                                    }
+                                                  }
+                                                },
+                                                child: Text("검색")),
+                                            TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(con);
+                                                  searchInput.clear();
+                                                },
+                                                child: Text("취소")),
+                                          ],
+                                        ));
                                   });
-                            },
-                          ),
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                            onPressed: () {
-                              var myInfo = fp.getInfo();
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                            },
-                          ),
+                                });
+                          },
+                        ),
+                        IconButton(
+                          icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
+                          onPressed: () {
+                            var myInfo = fp.getInfo();
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
+                          },
+                        ),
                       ],
                     )
                   ],
