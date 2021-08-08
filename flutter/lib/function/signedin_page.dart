@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,11 +21,13 @@ class SignedInPage extends StatefulWidget {
 
 class SignedInPageState extends State<SignedInPage> {
   late FirebaseProvider fp;
-
+  FirebaseFirestore fs = FirebaseFirestore.instance;
+  
   @override
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+
     return Scaffold(
       body: ListView(
         children: [
@@ -77,9 +81,45 @@ class SignedInPageState extends State<SignedInPage> {
           Padding(padding: EdgeInsets.fromLTRB(0, 15, 0, 0)),
           messageBoard('assets/images/icon/iconclock.png', "마감 임박 게시글", [
             "[택시]", "택시 게시글",
-            "[배달]", "배달 게시글",
             "[공구]", "공구 게시물",
           ]),
+
+          //배달 마감 임박 게시글(시간 제일 가까운거) 연결
+          Column(
+            children : [
+              StreamBuilder<QuerySnapshot>(
+                stream : fs.collection('delivery_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).orderBy('time').limit(1).snapshots(),
+                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+                  if(!snapshot.hasData){
+                    return Row(
+                      children: [
+                        Text("[배달]"),
+                        Text("마감 임박 게시글이 없습니다."),
+                      ],
+                    );
+                  }
+                  else{
+                    DocumentSnapshot doc = snapshot.data!.docs[0];
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
+                        FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views" : doc["views"] + 1});
+                      },
+                      child:
+                        Container(
+                          child: Row(
+                            children: [
+                              Text("[배달]"),
+                              Text(doc['title']),
+                            ],
+                          )
+                        )
+                    );
+                  }
+                }
+              )
+            ],
+          ),
           messageBoard('assets/images/icon/iconfire.png', "실시간 인기 게시글",
               ["[123] 456", "[11] 22", "[33] 44", "[55] 66"]),
         ],

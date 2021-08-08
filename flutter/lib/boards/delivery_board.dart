@@ -218,6 +218,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
     var myInfo = fp.getInfo();
     await fs.collection('delivery_board').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
       'title': titleInput.text,
+      'write_time' : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ',  HH, ':', nn, ':', ss]),
       'writer': myInfo['name'],
       'contents': contentInput.text,
       'time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
@@ -230,6 +231,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'members': [],
       'isFineForMembers': [],
       'tagList': tagList,
+      'views' : 0,
     });
     fp.updateIntInfo('postcount', 1);
   }
@@ -276,12 +278,13 @@ class DeliveryList extends StatefulWidget {
 }
 
 class DeliveryListState extends State<DeliveryList> {
-  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
   late FirebaseProvider fp;
   final _formKey = GlobalKey<FormState>();
   TextEditingController searchInput = TextEditingController();
   String search = "";
   bool status = false;
+  String limit = "";
 
   @override
   void initState() {
@@ -315,7 +318,7 @@ class DeliveryListState extends State<DeliveryList> {
         //당겨서 새로고침
         onRefresh: () async {
           setState(() {
-            colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+            colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
           });
         },
         child: StreamBuilder<QuerySnapshot>(
@@ -353,7 +356,7 @@ class DeliveryListState extends State<DeliveryList> {
                             icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
                             onPressed: () {
                               setState(() {
-                                colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+                                colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
                               });
                             },
                           ),
@@ -479,10 +482,10 @@ class DeliveryListState extends State<DeliveryList> {
                           setState(() {
                             status = val;
                             if(status){
-                              colstream = FirebaseFirestore.instance.collection('delivery_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).snapshots();
+                              colstream = FirebaseFirestore.instance.collection('delivery_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).orderBy("time").snapshots();
                             }
                             else{
-                              colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+                              colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending : true).snapshots();
                             }
                           });
                         },
@@ -516,6 +519,7 @@ class DeliveryListState extends State<DeliveryList> {
                           InkWell(
                               onTap: () {
                                 Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
+                                FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views" : doc["views"] + 1});
                               },
                               child: Container(
                                   margin: EdgeInsets.fromLTRB(30, 17, 10, 0),
@@ -1089,7 +1093,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                             icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
                             onPressed: () {
                               setState(() {
-                                colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+                                colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
                               });
                             },
                           ),
