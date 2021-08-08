@@ -38,11 +38,12 @@ dependencies:
   autocomplete_textfield:
     git: https://github.com/Zeswen/flutter-autocomplete-textfield
   flutter_switch: ^0.3.2
-  
+
   fluttertoast: ^8.0.6
   firebase_messaging: ^10.0.4
   flutter_local_notifications: 5.0.0+4
   photo_view: ^0.11.1
+  material_tag_editor: 0.1.1
 
   cupertino_icons: ^1.0.2
 
@@ -113,6 +114,16 @@ flutter:
           weight: 700
         - asset: assets/fonts/SCDream/SCDream8.otf
           weight: 800
+    - family: NSRound
+      fonts:
+        - asset: assets/fonts/NSRound/NanumSquareRoundL.ttf
+          weight: 100
+        - asset: assets/fonts/NSRound/NanumSquareRoundR.ttf
+          weight: 200
+        - asset: assets/fonts/NSRound/NanumSquareRoundB.ttf
+          weight: 300
+        - asset: assets/fonts/NSRound/NanumSquareRoundEB.ttf
+          weight: 400
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

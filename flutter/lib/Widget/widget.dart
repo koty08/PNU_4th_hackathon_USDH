@@ -25,14 +25,11 @@ Widget headerDivider() {
 
 Widget middleDivider() {
   return Container(
-    margin: EdgeInsets.fromLTRB(20, 5, 20, 0),
-    height: 2.5,
+    margin: EdgeInsets.fromLTRB(0, 3, 0, 3),
+    height: 0.6,
     decoration: BoxDecoration(
+      color: Color(0xffc4c4c4),
       borderRadius: BorderRadius.circular(20),
-      gradient: LinearGradient(
-        begin: Alignment.topLeft, end: Alignment.bottomRight, stops: [0.0, 1.0],
-        colors: [Colors.blue.shade50, Colors.deepPurple.shade50,],
-      ),
     ),
   );
 }
@@ -43,21 +40,45 @@ Widget middleDivider() {
 Widget headerText(String text) {
   return Text(
       text,
-      style: TextStyle(fontFamily: "SCDream", color: Colors.blueGrey, fontWeight: FontWeight.w500, fontSize: 21)
+      style: TextStyle(fontFamily: "SCDream", color: Color(0xff548ee0), fontWeight: FontWeight.w500, fontSize: 18)
   );
 }
 
 Widget tagText(String text) {
   return Text(
     text,
-    style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 14)
+    style: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 13)
+  );
+}
+
+Widget smallText(String text, double size, Color color) {
+  return Text(
+    text,
+    style: TextStyle(fontFamily: "SCDream", color: color, fontWeight: FontWeight.w500, fontSize: size)
+  );
+}
+
+Widget statusText(String text) {
+  Color statuscolor = Color(0xff639ee1);
+  if (text=="모집완료")
+    statuscolor = Color(0xffcacaca);
+  return Container(
+    width: 60,
+    height: 20,
+    decoration: BoxDecoration(
+      color: statuscolor,
+      borderRadius: BorderRadius.circular(5)
+    ),
+    child: Text(text, textAlign: TextAlign.center,
+      style: TextStyle(height: 1.5, fontFamily: "SCDream", color: Colors.white, fontWeight: FontWeight.w500, fontSize: 12.5)
+    )
   );
 }
 
 Widget titleText(String text) {
   return Text(
       text,
-      style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w600, fontSize: 18)
+      style: TextStyle(fontFamily: "SCDream", color: Color(0xff646464), fontWeight: FontWeight.w600, fontSize: 18)
   );
 }
 
@@ -115,26 +136,37 @@ Widget titleField(TextEditingController controller) {
 
 Widget condField(TextEditingController controller, String hint, String valid) {
   return TextFormField(
-      controller: controller,
-      style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
-      decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none),
-      validator: (text) {
-        if (text == null || text.isEmpty) {
-          return valid;
-        }
-        return null;
+    controller: controller,
+    style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
+    decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none),
+    validator: (text) {
+      if (text == null || text.isEmpty) {
+        return valid;
       }
+      return null;
+    }
   );
 }
 
 Widget condWrap(String ctext, TextEditingController controller, String hint, String valid){
   return Wrap(
-    spacing: 40,
+    spacing: 15,
     children: [
       cond2Text(ctext),
-      Container(width: 250, height: 22,
+      Container(width: 250, height: 20,
+        margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
         child: condField(controller, hint, valid)
       )
+    ],
+  );
+}
+
+Widget cond2Wrap(String ctext, String ctext2){
+  return Wrap(
+    spacing: 15,
+    children: [
+      cond2Text(ctext),
+      condText(ctext2)
     ],
   );
 }
