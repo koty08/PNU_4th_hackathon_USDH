@@ -180,6 +180,7 @@ class WriteBoardState extends State<WriteBoard> {
       'email': tmp['email'],
       'photoUrl': tmp['photoUrl'],
       'postName': tmp['name'] + tmp['postcount'].toString(),
+      'views': 0,
     });
     fp.updateIntInfo('postcount', 1);
   }
@@ -310,6 +311,7 @@ class ListBoardState extends State<ListBoard> {
                         InkWell(
                             onTap: () {
                               Navigator.push(context, MaterialPageRoute(builder: (context) => ShowBoard(doc.id)));
+                              FirebaseFirestore.instance.collection('posts').doc(doc.id).update({"views": doc["views"] + 1});
                             },
                             child: Container(
                                 margin: EdgeInsets.fromLTRB(50, 17, 10, 0),

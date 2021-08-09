@@ -3,6 +3,7 @@ import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'board.dart';
@@ -79,11 +80,13 @@ class SignedInPageState extends State<SignedInPage> {
             ],
           ),
           Padding(padding: EdgeInsets.fromLTRB(0, 15, 0, 0)),
-          messageBoard('assets/images/icon/iconclock.png', "마감 임박 게시글", [
-            "[택시]", "택시 게시글",
-            "[공구]", "공구 게시물",
-          ]),
+          
+          // messageBoard('assets/images/icon/iconclock.png', "마감 임박 게시글", [
+          //   "[택시]", "택시 게시글",
+          //   "[공구]", "공구 게시물",
+          // ]),
 
+          Text("마감 임박 게시글"),
           //배달 마감 임박 게시글(시간 제일 가까운거) 연결
           Column(
             children : [
@@ -120,8 +123,52 @@ class SignedInPageState extends State<SignedInPage> {
               )
             ],
           ),
-          messageBoard('assets/images/icon/iconfire.png', "실시간 인기 게시글",
-              ["[123] 456", "[11] 22", "[33] 44", "[55] 66"]),
+          // messageBoard('assets/images/icon/iconfire.png', "실시간 인기 게시글",
+          //     ["[123] 456", "[11] 22", "[33] 44", "[55] 66"]),
+          //실시간 인기 (배달) 게시글 출력
+          Divider(),
+          Text('실시간 인기 게시글'),
+          Column(
+            children : [
+              StreamBuilder<QuerySnapshot>(
+                stream : fs.collection('delivery_board').orderBy('views', descending: true).snapshots(),
+                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+                  if(!snapshot.hasData){
+                    return CircularProgressIndicator();
+                  }
+                  else{
+                    return ListView.builder(
+                      
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        DocumentSnapshot doc = snapshot.data!.docs[index];
+                        if(doc['write_time'].compareTo(formatDate(DateTime.now().subtract(Duration(hours: 6)), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])) == 1){
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
+                              FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views" : doc["views"] + 1});
+                            },
+                            child:
+                              Container(
+                                child: Row(
+                                  children: [
+                                    Text(doc['title']),
+                                  ],
+                                )
+                              )
+                          );
+                        }
+                        else{
+                          return Container();
+                        }
+                      }
+                    );
+                  }
+                }
+              )
+            ],
+          ),
         ],
       ),
     );

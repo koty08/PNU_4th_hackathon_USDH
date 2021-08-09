@@ -463,7 +463,7 @@ class DeliveryListState extends State<DeliveryList> {
                                                         Navigator.pop(con);
                                                       } else {
                                                         setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').where('tags_parse', arrayContains: searchInput.text).snapshots();
+                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: "#"+searchInput.text+" ").snapshots();
                                                         });
                                                         searchInput.clear();
                                                         Navigator.pop(con);
@@ -635,7 +635,6 @@ class DeliveryShowState extends State<DeliveryShow> {
   late FirebaseProvider fp;
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
-  bool stat = false;
   TextEditingController commentInput = TextEditingController();
 
   SharedPreferences? prefs;
@@ -675,8 +674,6 @@ class DeliveryShowState extends State<DeliveryShow> {
               if (snapshot.hasData && !snapshot.data!.exists) {
                 return CircularProgressIndicator();
               } else if (snapshot.hasData) {
-                fp.setInfo();
-                if (fp.getInfo()['name'] == snapshot.data!['writer']) stat = true;
                 String info = snapshot.data!['time'].substring(5,7) + "/" + snapshot.data!['time'].substring(8,10) + snapshot.data!['write_time'].substring(10,16)+ ' | ';
                 String time = snapshot.data!['time'].substring(10,16) + ' | ';
                 String writer = snapshot.data!['writer'] ;
@@ -812,7 +809,8 @@ class DeliveryShowState extends State<DeliveryShow> {
           if (snapshot.hasData && !snapshot.data!.exists) {
             return CircularProgressIndicator();
           } else if (snapshot.hasData) {
-            if (stat == true){
+            fp.setInfo();
+            if (fp.getInfo()['name'] == snapshot.data!['writer']){
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
