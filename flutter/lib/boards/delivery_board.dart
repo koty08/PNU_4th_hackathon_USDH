@@ -398,7 +398,7 @@ class DeliveryListState extends State<DeliveryList> {
                               showDialog(
                                   context: context,
                                   builder: (BuildContext con) {
-                                    return StatefulBuilder(builder: (con, setState) {
+                                    return StatefulBuilder(builder: (con, setS) {
                                       return Form(
                                           key: _formKey,
                                           child: AlertDialog(
@@ -411,7 +411,7 @@ class DeliveryListState extends State<DeliveryList> {
                                                       activeColor: Colors.black38,
                                                       groupValue: search,
                                                       onChanged: (String? value) {
-                                                        setState(() {
+                                                        setS(() {
                                                           search = value!;
                                                         });
                                                       }),
@@ -429,7 +429,7 @@ class DeliveryListState extends State<DeliveryList> {
                                                       activeColor: Colors.black38,
                                                       groupValue: search,
                                                       onChanged: (String? value) {
-                                                        setState(() {
+                                                        setS(() {
                                                           search = value!;
                                                         });
                                                       }),

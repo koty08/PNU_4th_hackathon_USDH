@@ -3,7 +3,6 @@ import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'board.dart';
