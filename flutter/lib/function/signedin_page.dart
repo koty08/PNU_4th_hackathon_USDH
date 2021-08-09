@@ -80,65 +80,81 @@ class SignedInPageState extends State<SignedInPage> {
             ],
           ),
           Padding(padding: EdgeInsets.fromLTRB(0, 15, 0, 0)),
-          
-          // messageBoard('assets/images/icon/iconclock.png', "마감 임박 게시글", [
-          //   "[택시]", "택시 게시글",
-          //   "[공구]", "공구 게시물",
-          // ]),
 
-          Text("마감 임박 게시글"),
           //배달 마감 임박 게시글(시간 제일 가까운거) 연결
-          Column(
-            children : [
-              StreamBuilder<QuerySnapshot>(
+          messageBoard('assets/images/icon/iconclock.png', "마감 임박 게시글"),
+          Padding(
+            padding: EdgeInsets.fromLTRB(70, 20, 55, 0),
+            child: SizedBox(
+              height: 80,
+              child: StreamBuilder<QuerySnapshot>(
                 stream : fs.collection('delivery_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).orderBy('time').limit(1).snapshots(),
                 builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
                   if(!snapshot.hasData){
-                    return Row(
-                      children: [
-                        Text("[배달]"),
-                        Text("마감 임박 게시글이 없습니다."),
-                      ],
+                    return Text(
+                      "마감 임박 게시물이 없습니다.",
+                      style: TextStyle(
+                        fontFamily: "SCDream",
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12.5,
+                        color: Color(0xffDD373C44)),
                     );
                   }
                   else{
-                    DocumentSnapshot doc = snapshot.data!.docs[0];
-                    return InkWell(
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
-                        FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views" : doc["views"] + 1});
-                      },
-                      child:
-                        Container(
-                          child: Row(
+                    return ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        DocumentSnapshot doc = snapshot.data!.docs[0];
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
+                            FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views" : doc["views"] + 1});
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("[배달]"),
-                              Text(doc['title']),
-                            ],
+                              Text(doc['title'],
+                                style: TextStyle(
+                                    fontFamily: "SCDream",
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 12.5,
+                                    color: Color(0xffDD373C44)),
+                              ),
+                              cSizedBox(15, 0)
+                            ]
                           )
-                        )
+                        );
+                      }
                     );
                   }
                 }
               )
-            ],
+            )
           ),
-          // messageBoard('assets/images/icon/iconfire.png', "실시간 인기 게시글",
-          //     ["[123] 456", "[11] 22", "[33] 44", "[55] 66"]),
           //실시간 인기 (배달) 게시글 출력
-          Divider(),
-          Text('실시간 인기 게시글'),
-          Column(
-            children : [
-              StreamBuilder<QuerySnapshot>(
+          messageBoard('assets/images/icon/iconfire.png', "실시간 인기 게시글"),
+          Padding(
+            padding: EdgeInsets.fromLTRB(70, 20, 55, 0),
+            child: SizedBox(
+              height: 100,
+              child: StreamBuilder<QuerySnapshot>(
                 stream : fs.collection('delivery_board').orderBy('views', descending: true).snapshots(),
                 builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
                   if(!snapshot.hasData){
-                    return CircularProgressIndicator();
+                    return Text(
+                      "실시간 인기 게시물이 없습니다.",
+                      style: TextStyle(
+                          fontFamily: "SCDream",
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12.5,
+                          color: Color(0xffDD373C44)),
+                    );
                   }
                   else{
                     return ListView.builder(
-                      
+                      physics: NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
                       itemCount: snapshot.data!.docs.length,
                       itemBuilder: (context, index) {
@@ -149,26 +165,31 @@ class SignedInPageState extends State<SignedInPage> {
                               Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
                               FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views" : doc["views"] + 1});
                             },
-                            child:
-                              Container(
-                                child: Row(
-                                  children: [
-                                    Text(doc['title']),
-                                  ],
-                                )
-                              )
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(doc['title'],
+                                  style: TextStyle(
+                                  fontFamily: "SCDream",
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 12.5,
+                                  color: Color(0xffDD373C44)),
+                                ),
+                                cSizedBox(15, 0)
+                              ]
+                            )
                           );
                         }
                         else{
                           return Container();
                         }
                       }
-                    );
+                      );
                   }
                 }
               )
-            ],
-          ),
+            )
+          )
         ],
       ),
     );
@@ -194,7 +215,7 @@ class SignedInPageState extends State<SignedInPage> {
     );
   }
 
-  Widget messageBoard(String image, String title, List<String> data) {
+  Widget messageBoard(String image, String title) {
     return Column(
       children: [
         Padding(
@@ -220,27 +241,6 @@ class SignedInPageState extends State<SignedInPage> {
         CustomPaint(
           size: Size(310, 4),
           painter: CurvePainter(),
-        ),
-        Padding(
-          padding: EdgeInsets.fromLTRB(70, 10, 55, 0),
-          child: SizedBox(
-            height: 110,
-            child: ListView.builder(
-                physics: NeverScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
-                itemCount: data.length,
-                itemExtent: 30,
-                itemBuilder: (BuildContext context, int index) {
-                  return Text(
-                    data[index],
-                    style: TextStyle(
-                        fontFamily: "SCDream",
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12.5,
-                        color: Color(0xffDD373C44)),
-                  );
-                }),
-          ),
         ),
       ],
     );

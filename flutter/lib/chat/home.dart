@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/chat/chatting.dart';
 import 'package:usdh/chat/const.dart';
 import 'package:usdh/chat/widget/loading.dart';
@@ -210,76 +211,73 @@ class HomeScreenState extends State<HomeScreen> {
   //   }
   // }
 
+
   @override
   Widget build(BuildContext context) {
+    Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').limit(_limit).snapshots();
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '채팅방',
-          style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        // Appbar의 로그아웃, 설정 버튼
-        actions: <Widget>[
-          PopupMenuButton<Choice>(
-            onSelected: onItemMenuPress,
-            itemBuilder: (BuildContext context) {
-              return choices.map((Choice choice) {
-                return PopupMenuItem<Choice>(
-                    value: choice,
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          choice.icon,
-                          color: primaryColor,
-                        ),
-                        Container(
-                          width: 10.0,
-                        ),
-                        Text(
-                          choice.title,
-                          style: TextStyle(color: primaryColor),
-                        ),
-                      ],
-                    ));
-              }).toList();
+      // 채팅 기록 불러오기
+      body: RefreshIndicator(
+        //당겨서 새로고침
+        onRefresh: () async {
+          setState(() {
+            colstream = FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').limit(_limit).snapshots();
+          });
+        },
+        child: StreamBuilder<QuerySnapshot>(
+            stream: colstream,
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.hasData) {
+                return Column(children: [
+                  cSizedBox(35, 0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                      headerText("채팅"),
+                      cSizedBox(0, 50),
+                    ]
+                  ),
+                  headerDivider(),
+                  Expanded(
+                    child: MediaQuery.removePadding(
+                      context: context,
+                      removeTop: true,
+                      child: ListView.builder(
+                        padding: EdgeInsets.all(10.0),
+                        itemBuilder: (context, index) => buildItem(context, snapshot.data?.docs[index]),
+                        itemCount: snapshot.data?.docs.length,
+                        controller: listScrollController,
+                      )
+                    )
+                  )
+                ]);
+              }
+
+                /*
+              }*/ else {
+                return Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                  ),
+                );
+              }
             },
           ),
-        ],
-      ),
-      // 채팅 기록 불러오기
-      body: Stack(
-        children: <Widget>[
-          // firebase에서 limits만큼의 users 정보 가져옴
-          Container(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').limit(_limit).snapshots(),
-              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.hasData) {
-                  return ListView.builder(
-                    padding: EdgeInsets.all(10.0),
-                    itemBuilder: (context, index) => buildItem(context, snapshot.data?.docs[index]),
-                    itemCount: snapshot.data?.docs.length,
-                    controller: listScrollController,
-                  );
-                } else {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-                    ),
-                  );
-                }
-              },
-            ),
-          ),
+        ),
 
           // Loading
-          Positioned(
+          /*Positioned(
             child: isLoading ? const Loading() : Container(),
-          )
-        ],
-      ),
-    );
+          )*/
+      );
   }
 
   Future<String> getPeerNicks(List<dynamic> peerIds) async {
