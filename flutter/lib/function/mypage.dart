@@ -59,8 +59,8 @@ class MyPageState extends State<MyPage> {
     } else {
       return Scaffold(
         //column 하니까 overflow되서 listview 했는데 이거도 이상하네요.. 고쳐주세요 - kty
-        body: ListView(
-          // crossAxisAlignment: CrossAxisAlignment.start,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             cSizedBox(35, 0),
             Row(
@@ -166,15 +166,15 @@ class MyPageState extends State<MyPage> {
             middleDivider(),
 
             Container(
-              padding: EdgeInsets.fromLTRB(40, 0, 0, 0),
+              padding: EdgeInsets.fromLTRB(40, 0, 0, 20),
               child: Wrap(
                 direction: Axis.vertical,
                 crossAxisAlignment: WrapCrossAlignment.start,
                 spacing: 10,
                 children: [
-                  cSizedBox(3, 0),
+                  cSizedBox(5, 0),
                   Container(padding: EdgeInsets.fromLTRB(10, 0, 0, 0), child: titleText("내 정보")),
-                  cSizedBox(3, 0),
+                  cSizedBox(5, 0),
                   touchableText(() {
                     fp.PWReset();
                     fp.setMessage("reset-pw");
@@ -230,84 +230,105 @@ class MyPageState extends State<MyPage> {
 
             middleDivider(),
 
-            touchableText(() {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => ApplicantListBoard()));
-            },"신청 이력"),
+            Container(
+              padding: EdgeInsets.fromLTRB(40, 0, 0, 20),
+              child: Wrap(
+                direction: Axis.vertical,
+                crossAxisAlignment: WrapCrossAlignment.start,
+                spacing: 10,
+                children: [
+                  cSizedBox(5, 0),
+                  Container(padding: EdgeInsets.fromLTRB(10, 0, 0, 0), child: titleText("신청 이력")),
+                  cSizedBox(5, 0),
+                  touchableText(() {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => ApplicantListBoard()));
+                  },"신청자 목록"),
+                  touchableText(() {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => MyApplicationListBoard()));
+                  },"신청한 글"),
+                ],
+              ),
+            ),
 
             middleDivider(),
 
-            touchableText((){
-              var tmp = fp.getInfo();
-              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: tmp['email'])));
-            },"채팅 이력"),
+            Container(
+              padding: EdgeInsets.fromLTRB(40, 0, 0, 0),
+              child: Wrap(
+                direction: Axis.vertical,
+                crossAxisAlignment: WrapCrossAlignment.start,
+                spacing: 10,
+                children: [
+                  cSizedBox(5, 0),
+                  Container(padding: EdgeInsets.fromLTRB(10, 0, 0, 0), child: titleText("이용 정보")),
+                  cSizedBox(5, 0),
+                  touchableText(() async {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                    fp.signOut();
+                  }, "로그아웃"),
+                  touchableText(() {
+                    showDialog(context: context,
+                        builder: (BuildContext con){
+                          return Form(
+                              key: _formKey2,
+                              child:
+                              AlertDialog(
+                                title: Text("탈퇴하시려면 현재 웹메일과 비밀번호를 입력해주세요."),
+                                content: Column(
+                                  children: [
+                                    TextFormField(
+                                        controller: emailInput,
+                                        decoration: InputDecoration(hintText: "이메일을 입력하세요."),
+                                        validator: (text) {
+                                          if (text == null || text.isEmpty) {
+                                            return "이메일을 입력하지 않으셨습니다.";
+                                          }
+                                          return null;
+                                        }
+                                    ),
+                                    TextFormField(
+                                        controller: pwdInput,
+                                        decoration: InputDecoration(hintText: "비밀번호를 입력하세요."),
+                                        validator: (text) {
+                                          if (text == null || text.isEmpty) {
+                                            return "비밀번호를 입력하지 않으셨습니다.";
+                                          }
+                                          return null;
+                                        }
+                                    ),
+                                  ],
+                                ),
+                                actions: <Widget>[
+                                  TextButton(onPressed: () {
+                                    if(_formKey2.currentState!.validate()){
+                                      if(fp.signIn(emailInput.text, pwdInput.text) == true){
+                                        fp.withdraw();
+                                        Navigator.popUntil(con, (route) => route.isFirst);
+                                      }
+                                      else{
+                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                        showErrorMessage();
+                                        Navigator.pop(con);
+                                      }
+                                    }
+                                  },
+                                      child: Text("확인")
+                                  ),
+                                  TextButton(onPressed: (){
+                                    Navigator.pop(con);
+                                  },
+                                      child: Text("취소")
+                                  ),
+                                ],
+                              )
+                          );
+                        });
+                  }, "계정 탈퇴"),
+                ],
+              ),
+            ),
 
-            middleDivider(),
 
-            titleText("이용정보"),
-
-            touchableText(() async {
-              Navigator.popUntil(context, (route) => route.isFirst);
-              fp.signOut();
-            }, "로그아웃"),
-
-            touchableText(() {
-              showDialog(context: context,
-                builder: (BuildContext con){
-                  return Form(
-                    key: _formKey2,
-                    child: 
-                      AlertDialog(
-                      title: Text("탈퇴하시려면 현재 웹메일과 비밀번호를 입력해주세요."),
-                      content: Column(
-                        children: [
-                          TextFormField(
-                            controller: emailInput,
-                            decoration: InputDecoration(hintText: "이메일을 입력하세요."),
-                            validator: (text) {
-                              if (text == null || text.isEmpty) {
-                                return "이메일을 입력하지 않으셨습니다.";
-                              }
-                              return null;
-                            }
-                          ),
-                          TextFormField(
-                            controller: pwdInput,
-                            decoration: InputDecoration(hintText: "비밀번호를 입력하세요."),
-                            validator: (text) {
-                              if (text == null || text.isEmpty) {
-                                return "비밀번호를 입력하지 않으셨습니다.";
-                              }
-                              return null;
-                            }
-                          ),
-                        ],
-                      ),
-                      actions: <Widget>[
-                        TextButton(onPressed: () {
-                          if(_formKey2.currentState!.validate()){
-                            if(fp.signIn(emailInput.text, pwdInput.text) == true){
-                              fp.withdraw();
-                              Navigator.popUntil(con, (route) => route.isFirst);
-                            }
-                            else{
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              showErrorMessage();
-                              Navigator.pop(con);
-                            }
-                          }
-                        },
-                          child: Text("확인")
-                        ),
-                        TextButton(onPressed: (){
-                          Navigator.pop(con);
-                        },
-                          child: Text("취소")
-                        ),
-                      ],
-                    )
-                  );
-              });
-            }, "계정 탈퇴"),
           ],
         ),
       );
