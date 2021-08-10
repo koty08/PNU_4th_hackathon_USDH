@@ -232,8 +232,8 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'isFineForMembers': [],
       'tagList': tagList,
       'views': 0,
-      'likes': 0,
-      'commentCount': 0,
+      // 'likes': 0,
+      // 'commentCount': 0,
     });
     fp.updateIntInfo('postcount', 1);
   }
@@ -640,19 +640,19 @@ class DeliveryShowState extends State<DeliveryShow> {
   SharedPreferences? prefs;
   bool alreadyLiked = false;
 
-  final _formKey = GlobalKey<FormState>();
+  // final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    readLocal();
+    // readLocal();
   }
 
-  readLocal() async {
-    prefs = await SharedPreferences.getInstance();
-    alreadyLiked = prefs?.getBool('alreadyLiked') ?? false;
-  }
+  // readLocal() async {
+  //   prefs = await SharedPreferences.getInstance();
+  //   alreadyLiked = prefs?.getBool('alreadyLiked') ?? false;
+  // }
 
   @override
   void dispose() {
@@ -748,52 +748,52 @@ class DeliveryShowState extends State<DeliveryShow> {
                       child: Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
                     ),
                     // 좋아요
-                    headerDivider(),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(alreadyLiked ? Icons.favorite_border : Icons.favorite),
-                          onPressed: () async {
-                            var myInfo = fp.getInfo();
-                            if (!alreadyLiked) {
-                              await FirebaseFirestore.instance.collection('delivery_board').doc(widget.id).update({'likes': FieldValue.increment(1)});
-                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
-                                'likedBoard': FieldValue.arrayUnion([widget.id])
-                              });
-                            } else {
-                              await FirebaseFirestore.instance.collection('delivery_board').doc(widget.id).update({'likes': FieldValue.increment(-1)});
-                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
-                                'likedBoard': FieldValue.arrayRemove([widget.id])
-                              });
-                            }
-                            alreadyLiked = !alreadyLiked;
-                          },
-                        ),
-                        Text(snapshot.data!['likes'].toString()),
-                      ],
-                    ),
-                    headerDivider(),
+                    // headerDivider(),
+                    // Row(
+                    //   children: [
+                    //     IconButton(
+                    //       icon: Icon(alreadyLiked ? Icons.favorite_border : Icons.favorite),
+                    //       onPressed: () async {
+                    //         var myInfo = fp.getInfo();
+                    //         if (!alreadyLiked) {
+                    //           await FirebaseFirestore.instance.collection('delivery_board').doc(widget.id).update({'likes': FieldValue.increment(1)});
+                    //           await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
+                    //             'likedBoard': FieldValue.arrayUnion([widget.id])
+                    //           });
+                    //         } else {
+                    //           await FirebaseFirestore.instance.collection('delivery_board').doc(widget.id).update({'likes': FieldValue.increment(-1)});
+                    //           await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
+                    //             'likedBoard': FieldValue.arrayRemove([widget.id])
+                    //           });
+                    //         }
+                    //         alreadyLiked = !alreadyLiked;
+                    //       },
+                    //     ),
+                    //     Text(snapshot.data!['likes'].toString()),
+                    //   ],
+                    // ),
+                    // headerDivider(),
                     // 댓글쓰기
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 30,
-                            child: TextField(
-                              controller: commentInput,
-                              decoration: InputDecoration(hintText: "코멘트를 남기세요."),
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.send),
-                          onPressed: () {
-                            FocusScope.of(context).requestFocus(new FocusNode());
-                            commentUploadOnFS();
-                          },
-                        ),
-                      ],
-                    ),
+                    // Row(
+                    //   children: [
+                    //     Expanded(
+                    //       child: Container(
+                    //         height: 30,
+                    //         child: TextField(
+                    //           controller: commentInput,
+                    //           decoration: InputDecoration(hintText: "코멘트를 남기세요."),
+                    //         ),
+                    //       ),
+                    //     ),
+                    //     IconButton(
+                    //       icon: Icon(Icons.send),
+                    //       onPressed: () {
+                    //         FocusScope.of(context).requestFocus(new FocusNode());
+                    //         commentUploadOnFS();
+                    //       },
+                    //     ),
+                    //   ],
+                    // ),
                     // 댓글들 (추가해야함)
                   ],
                 ));
@@ -936,19 +936,19 @@ class DeliveryShowState extends State<DeliveryShow> {
     );
   }
 
-  void commentUploadOnFS() async {
-    var myInfo = fp.getInfo();
-    int? commentCount;
-    await fs.collection('delivery_board').doc(widget.id).get().then((value) {
-      commentCount = value['commentCount'];
-    });
-    await fs.collection('delivery_board').doc(widget.id).update({
-      'commentCount': FieldValue.increment(1),
-      'comments.comment$commentCount': FieldValue.arrayUnion([commentInput.text, 0]), // [댓글, 좋아요수]
-    });
-    print(commentInput.text);
-    commentInput.clear();
-  }
+  // void commentUploadOnFS() async {
+  // var myInfo = fp.getInfo();
+  //   int? commentCount;
+  //   await fs.collection('delivery_board').doc(widget.id).get().then((value) {
+  //     commentCount = value['commentCount'];
+  //   });
+  //   await fs.collection('delivery_board').doc(widget.id).update({
+  //     'commentCount': FieldValue.increment(1),
+  //     'comments.comment$commentCount': FieldValue.arrayUnion([commentInput.text, 0]), // [댓글, 좋아요수]
+  //   });
+  //   print(commentInput.text);
+  //   commentInput.clear();
+  // }
 }
 
 /* ---------------------- Modify Board (Delivery) ---------------------- */

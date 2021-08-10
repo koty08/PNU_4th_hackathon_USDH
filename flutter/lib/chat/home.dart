@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/chat/chatting.dart';
 import 'package:usdh/chat/const.dart';
-import 'package:usdh/chat/widget/loading.dart';
+// import 'package:usdh/chat/widget/loading.dart';
 
 // 현재 내가 포함된 채팅방 목록
 class HomeScreen extends StatefulWidget {
