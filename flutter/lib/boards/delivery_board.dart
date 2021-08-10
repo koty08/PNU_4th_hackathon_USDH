@@ -192,8 +192,8 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                 color: Color(0xffe9e9e9),
                 thickness: 2.5,
               ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(40, 10, 40, 30),
+              Container(
+                padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
                 child: TextFormField(
                     controller: contentInput,
                     keyboardType: TextInputType.multiline,
@@ -208,7 +208,9 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                         return "내용은 필수 입력 사항입니다.";
                       }
                       return null;
-                    })),
+                    })
+              ),
+              cSizedBox(350, 0)
             ],
           ),
         )));
@@ -993,6 +995,7 @@ class DeliveryModifyState extends State<DeliveryModify> {
       fs.collection('delivery_board').doc(widget.id).get().then((snapshot) {
         var tmp = snapshot.data() as Map<String, dynamic>;
         tags = tmp['tags'];
+        tagList = tmp['tagList'];
         titleInput = TextEditingController(text: tmp['title']);
         contentInput = TextEditingController(text: tmp['contents']);
         timeInput = TextEditingController(text: formatDate(DateTime.parse(tmp['time']), [HH, ':', nn]));
@@ -1122,9 +1125,9 @@ class DeliveryModifyState extends State<DeliveryModify> {
                               color: Color(0xffe9e9e9),
                               thickness: 2.5,
                             ),
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
-                              child: TextFormField(
+                            Container(
+                                padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
+                                child: TextFormField(
                                   controller: contentInput,
                                   keyboardType: TextInputType.multiline,
                                   maxLines: null,
@@ -1138,9 +1141,9 @@ class DeliveryModifyState extends State<DeliveryModify> {
                                       return "내용은 필수 입력 사항입니다.";
                                     }
                                     return null;
-                                  }
-                              )
+                                  })
                             ),
+                            cSizedBox(350, 0)
                           ],
                         ));
                   }

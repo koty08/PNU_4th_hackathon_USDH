@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:usdh/Widget/widget.dart';
@@ -161,62 +162,71 @@ class MyPageState extends State<MyPage> {
                 }
               }
             ),
-            
-
 
             middleDivider(),
 
-            titleText("내 정보"),
+            Container(
+              padding: EdgeInsets.fromLTRB(40, 0, 0, 0),
+              child: Wrap(
+                direction: Axis.vertical,
+                crossAxisAlignment: WrapCrossAlignment.start,
+                spacing: 10,
+                children: [
+                  cSizedBox(3, 0),
+                  Container(padding: EdgeInsets.fromLTRB(10, 0, 0, 0), child: titleText("내 정보")),
+                  cSizedBox(3, 0),
+                  touchableText(() {
+                    fp.PWReset();
+                    fp.setMessage("reset-pw");
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    showMessage();
+                  }, "비밀번호 변경"),
 
-            touchableText(() {
-              fp.PWReset();
-              fp.setMessage("reset-pw");
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              showMessage();
-            }, "비밀번호 변경"),
+                  touchableText(() {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => Portfolio()));
+                  }, "포트폴리오 변경"),
 
-            touchableText(() {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => Portfolio()));
-            }, "포트폴리오 변경"),
-
-            touchableText(() {
-              if(fp.getInfo()['myintro'] == ""){
-                myIntroInput = TextEditingController();
-              }
-              else{
-                myIntroInput = TextEditingController(text: fp.getInfo()['myintro']);
-              }
-              showDialog(context: context,
-                builder: (BuildContext con){
-                  return AlertDialog(
-                    title: Text("자기소개 변경"),
-                    content: TextField(
-                      controller: myIntroInput,
-                      decoration: InputDecoration(hintText: "자기소개를 입력하세요."),
-                    ),
-                    actions: <Widget>[
-                      TextButton(onPressed: () {
-                        setState(() {
-                          fs.collection('users').doc(fp.getUser()!.email).update({
-                            'myintro' : myIntroInput.text
-                          });
+                  touchableText(() {
+                    if(fp.getInfo()['myintro'] == ""){
+                      myIntroInput = TextEditingController();
+                    }
+                    else{
+                      myIntroInput = TextEditingController(text: fp.getInfo()['myintro']);
+                    }
+                    showDialog(context: context,
+                        builder: (BuildContext con){
+                          return AlertDialog(
+                            title: Text("자기소개 변경"),
+                            content: TextField(
+                              controller: myIntroInput,
+                              decoration: InputDecoration(hintText: "자기소개를 입력하세요."),
+                            ),
+                            actions: <Widget>[
+                              TextButton(onPressed: () {
+                                setState(() {
+                                  fs.collection('users').doc(fp.getUser()!.email).update({
+                                    'myintro' : myIntroInput.text
+                                  });
+                                });
+                                Navigator.pop(con);
+                                fp.setMessage("intro");
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                showMessage();
+                              },
+                                  child: Text("입력")
+                              ),
+                              TextButton(onPressed: (){
+                                Navigator.pop(con);
+                              },
+                                  child: Text("취소")
+                              ),
+                            ],
+                          );
                         });
-                        Navigator.pop(con);
-                        fp.setMessage("intro");
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        showMessage();
-                      },
-                        child: Text("입력")
-                      ),
-                      TextButton(onPressed: (){
-                        Navigator.pop(con);
-                      },
-                        child: Text("취소")
-                      ),
-                    ],
-                  );
-              });
-            }, "자기소개 변경"),
+                  }, "자기소개 변경"),
+                ],
+              ),
+            ),
 
             middleDivider(),
 
