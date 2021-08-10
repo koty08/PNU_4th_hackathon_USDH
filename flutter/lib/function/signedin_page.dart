@@ -8,6 +8,7 @@ import 'package:usdh/login/firebase_provider.dart';
 import 'board.dart';
 import 'mypage.dart';
 import 'package:usdh/boards/delivery_board.dart';
+import 'package:usdh/boards/community_board.dart';
 
 late SignedInPageState pageState;
 
@@ -64,7 +65,7 @@ class SignedInPageState extends State<SignedInPage> {
               imageAndText('assets/images/icon/icontaxi.png', "택시", ListBoard()),
               imageAndText('assets/images/icon/iconmotorcycle.png', "배달", DeliveryList()),
               imageAndText('assets/images/icon/iconshopping.png', "공구", ListBoard()),
-              imageAndText('assets/images/icon/iconcommunity.png', "커뮤니티", ListBoard()),
+              imageAndText('assets/images/icon/iconcommunity.png', "커뮤니티", CommunityList()),
               cSizedBox(0, 15),
             ],
           ),

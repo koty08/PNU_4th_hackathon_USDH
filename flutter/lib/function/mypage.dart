@@ -18,9 +18,8 @@ class MyPage extends StatefulWidget {
 class MyPageState extends State<MyPage> {
   late FirebaseProvider fp;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
-  
-  TextStyle tsItem = const TextStyle(
-      color: Colors.blueGrey, fontSize: 13, fontWeight: FontWeight.bold);
+
+  TextStyle tsItem = const TextStyle(color: Colors.blueGrey, fontSize: 13, fontWeight: FontWeight.bold);
   TextStyle tsContent = const TextStyle(color: Colors.blueGrey, fontSize: 12);
 
   TextEditingController myIntroInput = TextEditingController();
@@ -55,8 +54,7 @@ class MyPageState extends State<MyPage> {
                     child: Center(
                       child: Text(
                         "포트폴리오 테스트",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -75,8 +73,7 @@ class MyPageState extends State<MyPage> {
                               child: Text("포트폴리오 자기소개", style: tsItem),
                             ),
                             Expanded(
-                              child: Text(fp.getInfo()['portfolio'][0],
-                                  style: tsContent),
+                              child: Text(fp.getInfo()['portfolio'][0], style: tsContent),
                             )
                           ],
                         ),
@@ -88,8 +85,7 @@ class MyPageState extends State<MyPage> {
                               child: Text("포트폴리오 자기스펙", style: tsItem),
                             ),
                             Expanded(
-                              child: Text(fp.getInfo()['portfolio'][1],
-                                  style: tsContent),
+                              child: Text(fp.getInfo()['portfolio'][1], style: tsContent),
                             )
                           ],
                         ),
@@ -101,15 +97,13 @@ class MyPageState extends State<MyPage> {
                               child: Text("포트폴리오 태그", style: tsItem),
                             ),
                             Expanded(
-                              child: Text(fp.getInfo()['portfolio'][2],
-                                  style: tsContent),
+                              child: Text(fp.getInfo()['portfolio'][2], style: tsContent),
                             )
                           ],
                         ),
                       ].map((c) {
                         return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                           child: c,
                         );
                       }).toList(),
@@ -145,8 +139,7 @@ class MyPageState extends State<MyPage> {
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => Portfolio()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Portfolio()));
                 },
               ),
             ),
@@ -161,39 +154,37 @@ class MyPageState extends State<MyPage> {
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: () {
-                  if(fp.getInfo()['myintro'] == ""){
+                  if (fp.getInfo()['myintro'] == "") {
                     myIntroInput = TextEditingController();
-                  }
-                  else{
+                  } else {
                     myIntroInput = TextEditingController(text: fp.getInfo()['myintro']);
                   }
-                  showDialog(context: context,
-                    builder: (BuildContext con){
-                      return AlertDialog(
-                        title: Text("자기소개 변경"),
-                        content: TextField(
-                          controller: myIntroInput,
-                          decoration: InputDecoration(hintText: "자기소개를 입력하세요."),
-                        ),
-                        actions: <Widget>[
-                          TextButton(onPressed: () {
-                            setState(() {
-                              fs.collection('users').doc(fp.getUser()!.email).update({
-                                'myintro' : myIntroInput.text
-                              });
-                            });
-                            Navigator.pop(con);
-                          },
-                            child: Text("입력")
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext con) {
+                        return AlertDialog(
+                          title: Text("자기소개 변경"),
+                          content: TextField(
+                            controller: myIntroInput,
+                            decoration: InputDecoration(hintText: "자기소개를 입력하세요."),
                           ),
-                          TextButton(onPressed: (){
-                            Navigator.pop(con);
-                          },
-                            child: Text("취소")
-                          ),
-                        ],
-                      );
-                  });
+                          actions: <Widget>[
+                            TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    fs.collection('users').doc(fp.getUser()!.email).update({'myintro': myIntroInput.text});
+                                  });
+                                  Navigator.pop(con);
+                                },
+                                child: Text("입력")),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.pop(con);
+                                },
+                                child: Text("취소")),
+                          ],
+                        );
+                      });
                 },
               ),
             ),
@@ -220,8 +211,7 @@ class MyPageState extends State<MyPage> {
                     style: TextStyle(color: Colors.black),
                   ),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => WriteBoard()));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => WriteBoard()));
                   }),
             ),
             Container(
@@ -232,8 +222,7 @@ class MyPageState extends State<MyPage> {
                     style: TextStyle(color: Colors.black),
                   ),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => ListBoard()));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => ListBoard()));
                   }),
             ),
             Container(
@@ -243,8 +232,9 @@ class MyPageState extends State<MyPage> {
                     "신청자 목록",
                     style: TextStyle(color: Colors.black),
                   ),
-                  onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => ApplicantListBoard()));
+                  onPressed: () {
+                    var myInfo = fp.getInfo();
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => ApplicantListBoard(myId: myInfo['email'])));
                   }),
             ),
             Container(
@@ -254,7 +244,7 @@ class MyPageState extends State<MyPage> {
                     "신청한 글",
                     style: TextStyle(color: Colors.black),
                   ),
-                  onPressed: (){
+                  onPressed: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => MyApplicationListBoard()));
                   }),
             ),

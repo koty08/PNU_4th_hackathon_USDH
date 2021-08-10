@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/chat/chatting.dart';
 import 'package:usdh/chat/const.dart';
-import 'package:usdh/chat/widget/loading.dart';
 
 // 현재 내가 포함된 채팅방 목록
 class HomeScreen extends StatefulWidget {
@@ -20,9 +19,6 @@ class HomeScreenState extends State<HomeScreen> {
   HomeScreenState({Key? key, required this.myId});
 
   final String myId;
-  //final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-  // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  //     FlutterLocalNotificationsPlugin();
   final ScrollController listScrollController = ScrollController();
 
   int _limit = 20; // 한 번에 불러오는 채팅 방 수
@@ -38,40 +34,8 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    //registerNotification();
-    //configLocalNotification();
     listScrollController.addListener(scrollListener);
   }
-
-  // void registerNotification() {
-  //   firebaseMessaging.requestPermission();
-  //   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-  //     print('onMessage: $message');
-  //     if (message.notification != null) {
-  //       showNotification(message.notification!);
-  //     }
-  //     return;
-  //   });
-  //   firebaseMessaging.getToken().then((token) {
-  //     print('token: $token');
-  //     FirebaseFirestore.instance
-  //         .collection('users')
-  //         .doc(currentUserId)
-  //         .update({'pushToken': token});
-  //   }).catchError((err) {
-  //     Fluttertoast.showToast(msg: err.message.toString());
-  //   });
-  // }
-  // android, ios 초기화
-  // void configLocalNotification() {
-  //   AndroidInitializationSettings initializationSettingsAndroid =
-  //       AndroidInitializationSettings('app_icon');
-  //   IOSInitializationSettings initializationSettingsIOS =
-  //       IOSInitializationSettings();
-  //   InitializationSettings initializationSettings = InitializationSettings(
-  //       android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
-  //   flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  // }
 
   void scrollListener() {
     if (listScrollController.offset >= listScrollController.position.maxScrollExtent && !listScrollController.position.outOfRange) {
@@ -89,128 +53,6 @@ class HomeScreenState extends State<HomeScreen> {
       print('navigate to setting');
     }
   }
-
-  // 앱 푸쉬 알람 기능
-  // void showNotification(RemoteNotification remoteNotification) async {
-  //   AndroidNotificationDetails androidPlatformChannelSpecifics =
-  //       AndroidNotificationDetails(
-  //     Platform.isAndroid
-  //         ? 'com.dfa.flutterchatdemo'
-  //         : 'com.duytq.flutterchatdemo',
-  //     'Flutter chat demo',
-  //     'your channel description',
-  //     playSound: true,
-  //     enableVibration: true,
-  //     importance: Importance.max,
-  //     priority: Priority.high,
-  //   );
-  //   IOSNotificationDetails iOSPlatformChannelSpecifics =
-  //       IOSNotificationDetails();
-  //   NotificationDetails platformChannelSpecifics = NotificationDetails(
-  //       android: androidPlatformChannelSpecifics,
-  //       iOS: iOSPlatformChannelSpecifics);
-  //   print(remoteNotification);
-  //   await flutterLocalNotificationsPlugin.show(
-  //     0,
-  //     remoteNotification.title,
-  //     remoteNotification.body,
-  //     platformChannelSpecifics,
-  //     payload: null,
-  //   );
-  // }
-
-  // 앱 종료 (뒤로 가기를 누르면 종료 확인 팝업창이 뜸)
-  // Future<bool> onBackPress() {
-  //   openDialog();
-  //   return Future.value(false);
-  // }
-  // Future<Null> openDialog() async {
-  //   switch (await showDialog(
-  //       context: context,
-  //       builder: (BuildContext context) {
-  //         return SimpleDialog(
-  //           contentPadding:
-  //               EdgeInsets.only(left: 0.0, right: 0.0, top: 0.0, bottom: 0.0),
-  //           children: <Widget>[
-  //             Container(
-  //               color: themeColor,
-  //               margin: EdgeInsets.all(0.0),
-  //               padding: EdgeInsets.only(bottom: 10.0, top: 10.0),
-  //               height: 100.0,
-  //               child: Column(
-  //                 children: <Widget>[
-  //                   Container(
-  //                     child: Icon(
-  //                       Icons.exit_to_app,
-  //                       size: 30.0,
-  //                       color: Colors.white,
-  //                     ),
-  //                     margin: EdgeInsets.only(bottom: 10.0),
-  //                   ),
-  //                   Text(
-  //                     'Exit app',
-  //                     style: TextStyle(
-  //                         color: Colors.white,
-  //                         fontSize: 18.0,
-  //                         fontWeight: FontWeight.bold),
-  //                   ),
-  //                   Text(
-  //                     'Are you sure to exit app?',
-  //                     style: TextStyle(color: Colors.white70, fontSize: 14.0),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //             SimpleDialogOption(
-  //               onPressed: () {
-  //                 Navigator.pop(context, 0);
-  //               },
-  //               child: Row(
-  //                 children: <Widget>[
-  //                   Container(
-  //                     child: Icon(
-  //                       Icons.cancel,
-  //                       color: primaryColor,
-  //                     ),
-  //                     margin: EdgeInsets.only(right: 10.0),
-  //                   ),
-  //                   Text(
-  //                     'CANCEL',
-  //                     style: TextStyle(
-  //                         color: primaryColor, fontWeight: FontWeight.bold),
-  //                   )
-  //                 ],
-  //               ),
-  //             ),
-  //             SimpleDialogOption(
-  //               onPressed: () {
-  //                 Navigator.pop(context);
-  //               },
-  //               child: Row(
-  //                 children: <Widget>[
-  //                   Container(
-  //                     child: Icon(
-  //                       Icons.check_circle,
-  //                       color: primaryColor,
-  //                     ),
-  //                     margin: EdgeInsets.only(right: 10.0),
-  //                   ),
-  //                   Text(
-  //                     'YES',
-  //                     style: TextStyle(
-  //                         color: primaryColor, fontWeight: FontWeight.bold),
-  //                   )
-  //                 ],
-  //               ),
-  //             ),
-  //           ],
-  //         );
-  //       })) {
-  //     case 0:
-  //       break;
-  //   }
-  // }
-
 
   @override
   Widget build(BuildContext context) {

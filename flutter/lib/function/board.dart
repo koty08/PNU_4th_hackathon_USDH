@@ -684,15 +684,23 @@ class CurvePainter extends CustomPainter {
 /* -----------------Applicant Board List -------------------- */
 
 class ApplicantListBoard extends StatefulWidget {
+  final String myId;
+
+  ApplicantListBoard({Key? key, required this.myId}) : super(key: key);
+
   @override
   ApplicantListBoardState createState() {
-    pageState5 = ApplicantListBoardState();
+    pageState5 = ApplicantListBoardState(myId: myId);
     return pageState5;
   }
 }
 
 class ApplicantListBoardState extends State<ApplicantListBoard> {
-  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+  ApplicantListBoardState({Key? key, required this.myId});
+
+  String myId;
+
+  Stream<QuerySnapshot>? colstream;
   late FirebaseProvider fp;
   final _formKey = GlobalKey<FormState>();
   TextEditingController searchInput = TextEditingController();
@@ -703,7 +711,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
-
+    colstream = FirebaseFirestore.instance.collection('users').doc(myId).collection('applicants').snapshots();
     return Scaffold(
       body: StreamBuilder<QuerySnapshot>(
           stream: colstream,
@@ -743,7 +751,8 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                           icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
                           onPressed: () {
                             setState(() {
-                              colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+                              colstream = FirebaseFirestore.instance.collection('users').doc(myId).collection('applicants').snapshots();
+                              ;
                             });
                           },
                         ),
@@ -839,6 +848,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                                 });
                           },
                         ),
+                        //채팅 기능
                         IconButton(
                           icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
                           onPressed: () {
@@ -901,29 +911,42 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
                       final DocumentSnapshot doc = snapshot.data!.docs[index];
-                      if (fp.getInfo()['name'] == doc['writer']) {
-                        String title = doc['title'] + '[' + doc['currentMember'].toString() + '/' + doc['limitedMember'].toString() + ']';
-                        String writer = doc['writer'];
-                        //String tags = doc['tags'];
-                        return Column(children: [
-                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
-                          InkWell(
-                              onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => ShowApplicantList(doc.id)));
-                              },
-                              child: Container(
-                                  margin: EdgeInsets.fromLTRB(50, 17, 10, 0),
-                                  child: Column(children: [
-                                    Row(children: [
-                                      Text(title.toString(), style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w600, fontSize: 18)),
-                                      cSizedBox(70, 20),
-                                      Text(writer.toString(), style: TextStyle(fontSize: 19, color: Colors.blueGrey)),
-                                    ])
-                                  ])))
-                        ]);
-                      } else {
-                        return Container();
-                      }
+                      String where = doc['where'];
+                      String id = doc.id;
+                      //String title = '';
+                      //String tags = doc['tags'];
+                      return FutureBuilder(
+                          future: getBoardInfo(where, id),
+                          builder: (BuildContext context, AsyncSnapshot snapshot) {
+                            if (!snapshot.hasData) {
+                              return CircularProgressIndicator();
+                            } else if (snapshot.hasError) {
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Error: ${snapshot.error}',
+                                  style: TextStyle(fontSize: 15),
+                                ),
+                              );
+                            } else {
+                              return Column(children: [
+                                Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                                InkWell(
+                                    onTap: () {
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => ShowApplicantList(doc.id)));
+                                    },
+                                    child: Container(
+                                        margin: EdgeInsets.fromLTRB(50, 17, 10, 0),
+                                        child: Column(children: [
+                                          Row(children: [
+                                            Text(where.toString(), style: TextStyle(fontSize: 19, color: Colors.blueGrey)),
+                                            cSizedBox(0, 20),
+                                            Text(snapshot.data.toString(), style: TextStyle(fontSize: 19, color: Colors.blueGrey)),
+                                          ])
+                                        ]))),
+                              ]);
+                            }
+                          });
                     }),
               )),
             ]);
@@ -936,6 +959,14 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
       height: h,
       width: w,
     );
+  }
+
+  Future<String> getBoardInfo(String where, String id) async {
+    String title = '';
+    await FirebaseFirestore.instance.collection(where).doc(id).get().then((value) {
+      title = value['title'];
+    });
+    return title;
   }
 }
 
@@ -971,7 +1002,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
           title: Text(widget.id),
         ),
         body: StreamBuilder(
-            stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
+            stream: fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               fp.setInfo();
               if (snapshot.hasData && !snapshot.data!.exists) {
@@ -980,8 +1011,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                 fp.setInfo();
                 return Column(
                   children: [
-                    Text('[' + snapshot.data!['currentMember'].toString() + '/' + snapshot.data!['limitedMember'].toString() + ']'),
-                    Text('현재 멤버: ' + snapshot.data!['members'].toString()),
+                    Text('board: ' + snapshot.data!['where'].toString()),
                     Expanded(
                         child: MediaQuery.removePadding(
                       context: context,
@@ -1014,23 +1044,28 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                       ),
                                       onPressed: () async {
                                         var myId = fp.getInfo()['email'];
-                                        int currentMember = snapshot.data!.get('currentMember');
-                                        int limitedMember = snapshot.data!.get('limitedMember');
+                                        int currentMember = 0;
+                                        int limitedMember = 0;
                                         String peerId = isFineForMembers[index].toString();
                                         String title = widget.id;
-                                        print(peerId);
-                                        print(title);
+                                        String board = snapshot.data!.get('where');
+
+                                        await FirebaseFirestore.instance.collection(board).doc(title).get().then((value) {
+                                          currentMember = value['currentMember'];
+                                          limitedMember = value['limitedMember'];
+                                        });
 
                                         // 제한 인원을 넘지 않았으면 추가
-                                        Navigator.of(context).pop();
                                         if (currentMember < limitedMember) {
                                           // board의 정보 수정
-                                          await FirebaseFirestore.instance.collection('delivery_board').doc(title).update({
-                                            'members': FieldValue.arrayUnion([peerId]),
-                                            'isFineForMembers': FieldValue.arrayRemove([peerId]),
+                                          await FirebaseFirestore.instance.collection(board).doc(title).update({
                                             'currentMember': currentMember + 1,
                                           });
-                                          // users의 정보 수정
+                                          await FirebaseFirestore.instance.collection('users').doc(myId).collection('applicants').doc(title).update({
+                                            'members': FieldValue.arrayUnion([peerId]),
+                                            'isFineForMembers': FieldValue.arrayRemove([peerId]),
+                                          });
+                                          // peer의 정보 수정(참가 신청 제거, 참가한 방 추가)
                                           await FirebaseFirestore.instance.collection('users').doc(peerId).update({
                                             'joiningIn': FieldValue.arrayUnion([title]),
                                             'myApplication': FieldValue.arrayRemove([title]),
@@ -1047,6 +1082,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                                         peerIds: members,
                                                         groupChatId: title,
                                                       )));
+                                          print(peerId + '를 ' + title + '에 추가합니다.');
                                         } else {
                                           print('인원이 다 찼습니다!');
                                         }
@@ -1064,13 +1100,17 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                         style: TextStyle(color: Colors.white),
                                       ),
                                       onPressed: () async {
+                                        var myId = fp.getInfo()['email'];
                                         String peerId = isFineForMembers[index].toString();
                                         String title = widget.id;
 
-                                        Navigator.of(context).pop();
-                                        await FirebaseFirestore.instance.collection('delivery_board').doc(title).update({
+                                        await FirebaseFirestore.instance.collection('users').doc(myId).collection('applicants').doc(title).update({
                                           'isFineForMembers': FieldValue.arrayRemove([peerId])
                                         });
+                                        await FirebaseFirestore.instance.collection('users').doc(peerId).update({
+                                          'myApplication': FieldValue.arrayRemove([title])
+                                        });
+                                        print(peerId);
                                       },
                                     ),
                                   ),
