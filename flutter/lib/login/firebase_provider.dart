@@ -96,8 +96,8 @@ class FirebaseProvider with ChangeNotifier {
       logger.e(e.toString());
       List<String> result = e.toString().split(", ");
       setMessage(result[0]);
+      return false;
     }
-    return false;
   }
 
   // 로그아웃
@@ -151,6 +151,10 @@ class FirebaseProvider with ChangeNotifier {
         return "해당 입력한 정보를 가진 사용자를 찾을 수 없습니다. 이메일과 이름을 다시 한번 확인해주세요.";
       case "not-submit":
         return "필수 입력란을 전부 입력하지 않으셨습니다. 다시 한번 확인해주세요.";
+      case "intro":
+        return "자기소개가 변경되었습니다.";
+      case "nick":
+        return "닉네임이 변경되었습니다.";
       default:
         return tmp;
     }

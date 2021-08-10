@@ -71,13 +71,6 @@ class WriteBoardState extends State<WriteBoard> {
             children: <Widget>[
               Container(
                 height: 30,
-                child: TextField(
-                  controller: limitedMember,
-                  decoration: InputDecoration(hintText: "인원을 선택하세요."),
-                ),
-              ),
-              Container(
-                height: 30,
                 child: TextFormField(
                     controller: titleInput,
                     decoration: InputDecoration(hintText: "제목을 입력하세요."),
