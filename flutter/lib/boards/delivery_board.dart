@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:usdh/chat/home.dart';
-import 'package:usdh/chat/chatting.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 
 late DeliveryWriteState pageState;
@@ -28,6 +27,20 @@ bool is_available(String time, int n1, int n2) {
   if (diff.isNegative) {
     return true;
   } else {
+    return false;
+  }
+}
+
+bool is_tomorrow(String time) {
+  String now = formatDate(DateTime.now(), [HH, ':', nn, ':', ss]);
+  print("마감 " + time);
+  print("현재 " + now);
+  if(time.compareTo(now) == -1){
+    print("내일");
+    return true;
+  }
+  else{
+    print("오늘");
     return false;
   }
 }
@@ -53,7 +66,6 @@ class DeliveryWriteState extends State<DeliveryWrite> {
   TextEditingController tagInput = TextEditingController();
   FirebaseStorage storage = FirebaseStorage.instance;
   FirebaseFirestore fs = FirebaseFirestore.instance;
-  String gender = "";
   String tags = "";
   List tagList = [];
 
@@ -68,9 +80,6 @@ class DeliveryWriteState extends State<DeliveryWrite> {
 
   @override
   void initState() {
-    setState(() {
-      gender = "상관없음";
-    });
     super.initState();
   }
 
@@ -222,17 +231,15 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
       'writer': myInfo['name'],
       'contents': contentInput.text,
-      'time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
+      'time': is_tomorrow(timeInput.text+":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00"
+      : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
       'currentMember': 1,
       'limitedMember': int.parse(memberInput.text),
       'food': foodInput.text,
       'location': locationInput.text,
       'tags': tags,
-      'gender': gender,
       'tagList': tagList,
       'views': 0,
-      // 'likes': 0,
-      // 'commentCount': 0,
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
       'where': 'delivery_board',
@@ -661,19 +668,12 @@ class DeliveryShowState extends State<DeliveryShow> {
   SharedPreferences? prefs;
   bool alreadyLiked = false;
 
-  // final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    // readLocal();
   }
-
-  // readLocal() async {
-  //   prefs = await SharedPreferences.getInstance();
-  //   alreadyLiked = prefs?.getBool('alreadyLiked') ?? false;
-  // }
 
   @override
   void dispose() {
@@ -695,8 +695,8 @@ class DeliveryShowState extends State<DeliveryShow> {
               if (snapshot.hasData && !snapshot.data!.exists) {
                 return CircularProgressIndicator();
               } else if (snapshot.hasData) {
-                String info = snapshot.data!['time'].substring(5, 7) + "/" + snapshot.data!['time'].substring(8, 10) + snapshot.data!['write_time'].substring(10, 16) + ' | ';
-                String time = snapshot.data!['time'].substring(10, 16) + ' | ';
+                String info = snapshot.data!['write_time'].substring(5, 7) + "/" + snapshot.data!['write_time'].substring(8, 10) + snapshot.data!['write_time'].substring(10, 16) + ' | ';
+                String time = snapshot.data!['time'].substring(10, 16);
                 String writer = snapshot.data!['writer'];
                 return SingleChildScrollView(
                     child: Column(
@@ -733,7 +733,7 @@ class DeliveryShowState extends State<DeliveryShow> {
                             child: tagText(snapshot.data!['tagList'].join('')),
                           ),
                           Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
-                          smallText("등록일 " + info + "마감 " + time + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
+                          smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
                         ])),
                     Divider(
                       color: Color(0xffe9e9e9),
@@ -752,7 +752,7 @@ class DeliveryShowState extends State<DeliveryShow> {
                                   direction: Axis.vertical,
                                   spacing: 15,
                                   children: [
-                                    cond2Wrap("모집기간", formatDate(DateTime.parse(snapshot.data!['time']), [HH, ':', nn])),
+                                    cond2Wrap("모집기간", time),
                                     cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
                                     cond2Wrap("음식종류", snapshot.data!['food']),
                                     cond2Wrap("배분위치", snapshot.data!['location']),
@@ -808,8 +808,12 @@ class DeliveryShowState extends State<DeliveryShow> {
                         ),
                         child: GestureDetector(
                           child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryModify(widget.id)));
+                          onTap: () async {
+                            var tmp;
+                            await fs.collection('delivery_board').doc(widget.id).get().then((snap) {
+                              tmp = snap.data() as Map<String, dynamic>;
+                            });
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryModify(widget.id, tmp)));
                             setState(() {});
                           },
                         ),
@@ -929,8 +933,9 @@ class DeliveryShowState extends State<DeliveryShow> {
 /* ---------------------- Modify Board (Delivery) ---------------------- */
 
 class DeliveryModify extends StatefulWidget {
-  DeliveryModify(this.id);
+  DeliveryModify(this.id, this.datas);
   final String id;
+  final Map<String, dynamic> datas;
   @override
   State<StatefulWidget> createState() {
     pageState4 = DeliveryModifyState();
@@ -948,9 +953,8 @@ class DeliveryModifyState extends State<DeliveryModify> {
   late TextEditingController foodInput;
   late TextEditingController locationInput;
   late TextEditingController tagInput;
-  String gender = "";
   String tags = "";
-  List<String> tagList = [];
+  List<dynamic> tagList = [];
   late DateTime d;
 
   final _formKey = GlobalKey<FormState>();
@@ -965,20 +969,16 @@ class DeliveryModifyState extends State<DeliveryModify> {
   @override
   void initState() {
     setState(() {
-      gender = "상관없음";
-      fs.collection('delivery_board').doc(widget.id).get().then((snapshot) {
-        var tmp = snapshot.data() as Map<String, dynamic>;
-        tags = tmp['tags'];
-        tagList = tmp['tagList'];
-        titleInput = TextEditingController(text: tmp['title']);
-        contentInput = TextEditingController(text: tmp['contents']);
-        timeInput = TextEditingController(text: formatDate(DateTime.parse(tmp['time']), [HH, ':', nn]));
-        d = DateTime.parse(tmp['time']);
-        memberInput = TextEditingController(text: tmp['limitedMember'].toString());
-        foodInput = TextEditingController(text: tmp['food']);
-        locationInput = TextEditingController(text: tmp['location']);
-        tagInput = TextEditingController();
-      });
+      tags = widget.datas['tags'];
+      tagList = widget.datas['tagList'];
+      d = DateTime.parse(widget.datas['time']);
+      titleInput = TextEditingController(text: widget.datas['title']);
+      timeInput = TextEditingController(text: formatDate(d, [HH, ':', nn]));
+      contentInput = TextEditingController(text: widget.datas['contents']);
+      memberInput = TextEditingController(text: widget.datas['limitedMember'].toString());
+      foodInput = TextEditingController(text: widget.datas['food']);
+      locationInput = TextEditingController(text: widget.datas['location']);
+      tagInput = TextEditingController();
     });
     super.initState();
   }
@@ -1136,13 +1136,14 @@ class DeliveryModifyState extends State<DeliveryModify> {
     await fs.collection('delivery_board').doc(widget.id).update({
       'title': titleInput.text,
       'contents': contentInput.text,
-      'time': formatDate(d, [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
+      //원래 이전 날짜 기억하려 d 사용했다가 현재 잠시 바꿈 (오늘, 내일 테스트용)
+      'time': is_tomorrow(timeInput.text+":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00"
+      : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
       'limitedMember': int.parse(memberInput.text),
       'food': foodInput.text,
       'location': locationInput.text,
       'tags': tags,
       'tagList': tagList,
-      'gender': gender,
       'members': [],
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({

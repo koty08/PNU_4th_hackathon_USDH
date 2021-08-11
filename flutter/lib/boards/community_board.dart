@@ -1,9 +1,7 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:material_tag_editor/tag_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/login/firebase_provider.dart';
@@ -11,7 +9,6 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:usdh/chat/home.dart';
-import 'package:usdh/chat/chatting.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 
 late CommunityWriteState pageState;
@@ -211,35 +208,35 @@ class CommunityWriteState extends State<CommunityWrite> {
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({
-    required this.label,
-    required this.onDeleted,
-    required this.index,
-  });
+// class _Chip extends StatelessWidget {
+//   const _Chip({
+//     required this.label,
+//     required this.onDeleted,
+//     required this.index,
+//   });
 
-  final String label;
-  final ValueChanged<int> onDeleted;
-  final int index;
+//   final String label;
+//   final ValueChanged<int> onDeleted;
+//   final int index;
 
-  @override
-  Widget build(BuildContext context) {
-    return Chip(
-      labelStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 11.5),
-      labelPadding: EdgeInsets.only(left: 10),
-      backgroundColor: Color(0xff639ee1).withOpacity(0.7),
-      label: smallText(label, 11, Colors.white),
-      deleteIcon: const Icon(
-        Icons.close,
-        color: Colors.white,
-        size: 13,
-      ),
-      onDeleted: () {
-        onDeleted(index);
-      },
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Chip(
+//       labelStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 11.5),
+//       labelPadding: EdgeInsets.only(left: 10),
+//       backgroundColor: Color(0xff639ee1).withOpacity(0.7),
+//       label: smallText(label, 11, Colors.white),
+//       deleteIcon: const Icon(
+//         Icons.close,
+//         color: Colors.white,
+//         size: 13,
+//       ),
+//       onDeleted: () {
+//         onDeleted(index);
+//       },
+//     );
+//   }
+// }
 
 /* ---------------------- Board Map (Community) ---------------------- */
 /* ----------------------    지우지 말아주세요    ---------------------- */
