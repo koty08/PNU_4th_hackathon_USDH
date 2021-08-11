@@ -75,6 +75,20 @@ Widget statusText(String text) {
   );
 }
 
+Widget infoText(String text) {
+  return Text(
+      text,
+      style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 16)
+  );
+}
+
+Widget info2Text(String text) {
+  return Text(
+      text,
+      style: TextStyle(fontFamily: "SCDream", color: Color(0xB2000000), fontWeight: FontWeight.w500, fontSize: 13)
+  );
+}
+
 Widget titleText(String text) {
   return Text(
       text,
