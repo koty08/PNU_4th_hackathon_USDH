@@ -73,20 +73,16 @@ class HomeScreenState extends State<HomeScreen> {
             if (snapshot.hasData) {
               return Column(children: [
                 cSizedBox(35, 0),
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      headerText("채팅"),
-                      cSizedBox(0, 50),
-                    ]
-                ),
+                Row(mainAxisAlignment: MainAxisAlignment.spaceAround, crossAxisAlignment: CrossAxisAlignment.center, children: [
+                  IconButton(
+                    icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  headerText("채팅"),
+                  cSizedBox(0, 50),
+                ]),
                 headerDivider(),
                 Expanded(
                     child: MediaQuery.removePadding(
@@ -94,17 +90,18 @@ class HomeScreenState extends State<HomeScreen> {
                         removeTop: true,
                         child: ListView.builder(
                           padding: EdgeInsets.all(10.0),
-                          itemBuilder: (context, index) => buildItem(context, snapshot.data?.docs[index]),
+                          itemBuilder: (context, index) {
+                            return buildItem(context, snapshot.data?.docs[index]);
+                          },
                           itemCount: snapshot.data?.docs.length,
                           controller: listScrollController,
-                        )
-                    )
-                )
+                        )))
               ]);
             }
 
             /*
-              }*/ else {
+              }*/
+            else {
               return Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
@@ -129,7 +126,7 @@ class HomeScreenState extends State<HomeScreen> {
         temp.add(value['nick']);
       });
     }
-    nickForText = '';
+    String nickForText = '';
     for (int i = 0; i < temp.length; i++) {
       if (i < temp.length - 1)
         nickForText = nickForText + temp[i] + ", ";
@@ -139,55 +136,40 @@ class HomeScreenState extends State<HomeScreen> {
     return nickForText;
   }
 
-  String nickForText = '';
+  Future<String> getPeerAvatar(List<dynamic> peerIds) async {
+    final List<String> peerAvatars = [];
+    for (var peerId in peerIds) {
+      await FirebaseFirestore.instance.collection('users').doc(peerId).get().then((value) {
+        peerAvatars.add(value['photoUrl']);
+      });
+    }
+    String photoUrl = peerAvatars[0];
+    return photoUrl;
+  }
+
   // 각각의 채팅 기록( 1 block ) - '[chatRoomName]' document 를 인자로
   Widget buildItem(BuildContext context, DocumentSnapshot? document) {
     if (document != null) {
-      // 다수의 프로필 사진을 어케 처리하지
       List<dynamic> peerIds = document['chatMembers'];
-      String photoUrl = 'https://firebasestorage.googleapis.com/v0/b/example-18d75.appspot.com/o/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202021-07-21%20113022.png?alt=media&token=b9b9dfb3-ac59-430c-b35b-04d9fad08ae6';
 
       return Container(
         child: TextButton(
           child: Row(
             children: <Widget>[
               // 프로필 사진
-              Material(
-                child: photoUrl.isNotEmpty
-                    ? Image.network(
-                  photoUrl,
-                  fit: BoxFit.cover,
-                  width: 50.0,
-                  height: 50.0,
-                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      width: 50,
-                      height: 50,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: primaryColor,
-                          value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, object, stackTrace) {
-                    return Icon(
-                      Icons.account_circle,
-                      size: 50.0,
-                      color: greyColor,
-                    );
-                  },
-                )
-                    : Icon(
-                  Icons.account_circle,
-                  size: 50.0,
-                  color: greyColor,
-                ),
-                borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                clipBehavior: Clip.hardEdge,
-              ),
+              FutureBuilder(
+                  future: getPeerAvatar(peerIds),
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    if (snapshot.hasData) {
+                      return Container(
+                        child: CircleAvatar(radius: 20, backgroundImage: NetworkImage(snapshot.data.toString())),
+                        alignment: Alignment.centerLeft,
+                        margin: EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 5.0),
+                      );
+                    } else {
+                      return CircularProgressIndicator();
+                    }
+                  }),
               // 닉네임
               Flexible(
                 child: Container(
@@ -199,7 +181,7 @@ class HomeScreenState extends State<HomeScreen> {
                             if (snapshot.hasData) {
                               return Container(
                                 child: Text(
-                                  'Nickname: $nickForText',
+                                  'Nickname: ${snapshot.data.toString()}',
                                   maxLines: 1,
                                   style: TextStyle(color: primaryColor),
                                 ),

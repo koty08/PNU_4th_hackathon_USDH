@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:usdh/login/firebase_provider.dart';
-import 'board.dart';
-import 'mypage.dart';
+import 'package:usdh/function/board.dart';
+import 'package:usdh/function/mypage.dart';
 import 'package:usdh/boards/delivery_board.dart';
 import 'package:usdh/boards/community_board.dart';
 

@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/function/portfolio.dart';
-import '../login/firebase_provider.dart';
+import 'package:usdh/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
-import 'board.dart';
+import 'package:usdh/function/board.dart';
 
 late MyPageState pageState;
 
