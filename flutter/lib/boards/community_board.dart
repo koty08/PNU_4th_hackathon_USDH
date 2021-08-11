@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:material_tag_editor/tag_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:usdh/Widget/widget.dart';
@@ -33,6 +36,8 @@ class CommunityWriteState extends State<CommunityWrite> {
   TextEditingController contentInput = TextEditingController();
   FirebaseStorage storage = FirebaseStorage.instance;
   FirebaseFirestore fs = FirebaseFirestore.instance;
+  final _picker = ImagePicker();
+  List urlList = [];
 
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
@@ -118,10 +123,76 @@ class CommunityWriteState extends State<CommunityWrite> {
                           return "내용은 필수 입력 사항입니다.";
                         }
                         return null;
-                      })),
+                })),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  ElevatedButton(
+                      child: Text("갤러리에서 불러오기"),
+                      onPressed: () {
+                        uploadImage();
+                      }),
+                ],
+              ),
+              Divider(
+                color: Colors.black,
+              ),
+              urlList.isEmpty
+                  ? Container()
+                  : Container(
+                      height: 300,
+                      child: ListView.builder(
+                          itemCount: urlList.length,
+                          itemBuilder: (BuildContext context, int idx) {
+                            return Card(
+                              child: Column(
+                                children: [
+                                  TextButton(
+                                    onPressed: (){
+                                      deleteImage(urlList[idx]);
+                                    },
+                                    child: Text("X"),
+                                  ),
+                                  Image.network(urlList[idx]),
+                                ],
+                              ),
+                            );
+                          }),
+                    ),
             ],
           ),
         )));
+  }
+  
+  void uploadImage() async {
+    final pickedImgList = await _picker.pickMultiImage();
+
+    List<String> pickUrlList = [];
+
+    var tmp = fp.getInfo();
+
+    late Reference ref;
+    for (int i = 0; i < pickedImgList!.length; i++) {
+      ref = storage.ref().child('board/${tmp['name'] + tmp['piccount'].toString()}');
+      await ref.putFile(File(pickedImgList[i].path));
+      fp.updateIntInfo('piccount', 1);
+      String url = await ref.getDownloadURL();
+      pickUrlList.add(url);
+    }
+
+    setState(() {
+      urlList = pickUrlList;
+    });
+  }
+
+  void deleteImage(String url) async {
+    Reference ref = storage.refFromURL(url);
+    await ref.delete();
+    fp.updateIntInfo("piccount", -1);
+
+    setState(() {
+      urlList.remove(url);
+    });
   }
 
   void uploadOnFS() async {
@@ -130,6 +201,7 @@ class CommunityWriteState extends State<CommunityWrite> {
       'title': titleInput.text,
       'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
       'writer': myInfo['name'],
+      'pic': urlList,
       'contents': contentInput.text,
       'views': 0,
       'likes': 0,
@@ -487,7 +559,7 @@ class CommunityShowState extends State<CommunityShow> {
                         child: Wrap(
                             direction: Axis.vertical,
                             spacing: 15,
-                            children: [Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])), smallText("등록일 " + writeTime + "작성자 " + writer, 11.5, Color(0xffa9aaaf))])),
+                            children: [Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])), smallText("작성일 " + writeTime + "작성자 " + writer+ " | 조회수 " + snapshot.data!['views'].toString(), 11.5, Color(0xffa9aaaf))])),
                     Divider(
                       color: Color(0xffe9e9e9),
                       thickness: 15,
@@ -496,6 +568,16 @@ class CommunityShowState extends State<CommunityShow> {
                       padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
                       child: Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
                     ),
+                    snapshot.data!['pic'].isEmpty
+                          ? Container()
+                          : Container(
+                              height: 300,
+                              child: ListView.builder(
+                                  itemCount: snapshot.data!['pic'].length,
+                                  itemBuilder: (BuildContext context, int idx) {
+                                    return Image.network(snapshot.data!['pic'][idx]);
+                                  }),
+                            ),
                     // 좋아요
                     headerDivider(),
                     Row(
@@ -570,6 +652,11 @@ class CommunityShowState extends State<CommunityShow> {
                         child: GestureDetector(
                           child: Align(alignment: Alignment.center, child: smallText("삭제", 14, Colors.white)),
                           onTap: () async {
+                            var urlList = snapshot.data!['pic'];
+                            for(int i = 0; i < urlList.length; i++){
+                              Reference ref = storage.refFromURL(urlList[i]);
+                              ref.delete();
+                            }
                             Navigator.pop(context);
                             await fs.collection('community_board').doc(widget.id).delete();
                             fp.updateIntInfo('postcount', -1);
@@ -662,11 +749,15 @@ class CommunityModify extends StatefulWidget {
 class CommunityModifyState extends State<CommunityModify> {
   late FirebaseProvider fp;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
-  late TextEditingController titleInput;
-  late TextEditingController contentInput;
+  final FirebaseStorage storage = FirebaseStorage.instance;
+  TextEditingController titleInput = TextEditingController();
+  TextEditingController contentInput = TextEditingController();
+  final _picker = ImagePicker();
 
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
+  List urlList = [];
+
 
   @override
   void initState() {
@@ -675,6 +766,7 @@ class CommunityModifyState extends State<CommunityModify> {
         var tmp = snapshot.data() as Map<String, dynamic>;
         titleInput = TextEditingController(text: tmp['title']);
         contentInput = TextEditingController(text: tmp['contents']);
+        urlList = tmp['pic'];
       });
     });
     super.initState();
@@ -687,84 +779,169 @@ class CommunityModifyState extends State<CommunityModify> {
     super.dispose();
   }
 
-  @override
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        body: SingleChildScrollView(
-            child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              cSizedBox(35, 0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+        body: StreamBuilder(
+            stream: fs.collection('community_board').doc(widget.id).snapshots(),
+            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+              if (snapshot.hasData && !snapshot.data!.exists) {
+                return CircularProgressIndicator();
+              }
+              if (snapshot.hasData) {
+                return Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      cSizedBox(35, 0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          headerText("글 수정"),
+                          cSizedBox(0, 160),
+                          IconButton(
+                              icon: Icon(
+                                Icons.check,
+                                color: Color(0xff639ee1),
+                              ),
+                              onPressed: () {
+                                FocusScope.of(context).requestFocus(new FocusNode());
+                                if (_formKey.currentState!.validate()) {
+                                  updateOnFS();
+                                  Navigator.pop(context);
+                                }
+                              }),
+                        ],
+                      ),
+                      headerDivider(),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
+                        child: Column(
+                          children: [
+                            Container(width: MediaQuery.of(context).size.width * 0.8, child: titleField(titleInput)),
+                          ],
+                        ),
+                      ),
+                      Divider(
+                        color: Color(0xffe9e9e9),
+                        thickness: 2.5,
+                      ),
+                      Padding(
+                          padding: EdgeInsets.fromLTRB(40, 10, 40, 30),
+                          child: TextFormField(
+                              controller: contentInput,
+                              keyboardType: TextInputType.multiline,
+                              maxLines: null,
+                              style: TextStyle(fontSize: 14),
+                              decoration: InputDecoration(
+                                hintText: "내용을 입력하세요.",
+                                border: InputBorder.none,
+                              ),
+                              validator: (text) {
+                                if (text == null || text.isEmpty) {
+                                  return "내용은 필수 입력 사항입니다.";
+                                }
+                                return null;
+                        })),
+                      Divider(
+                        color: Colors.black,
+                      ),
+                      snapshot.data!['pic'].isEmpty
+                          ? Container()
+                          : Container(
+                              height: 300,
+                              child: ListView.builder(
+                                  itemCount: urlList.length,
+                                  itemBuilder: (BuildContext context, int idx) {
+                                    return Card(
+                                      child: Column(
+                                        children: [
+                                          TextButton(
+                                            onPressed: (){
+                                              deleteImage(urlList[idx]);
+                                              setState(() {
+                                              });
+                                            },
+                                            child: Text("X"),
+                                          ),
+                                          Image.network(urlList[idx]),
+                                        ],
+                                      ),
+                                    );
+                                  }),
+                            ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          ElevatedButton(
+                              child: Text("사진 추가"),
+                              onPressed: () {
+                                addImage();
+                              }),
+                        ],
+                      ),
+                    ],
                   ),
-                  headerText("글 작성"),
-                  cSizedBox(0, 160),
-                  IconButton(
-                      icon: Icon(
-                        Icons.check,
-                        color: Color(0xff639ee1),
-                      ),
-                      onPressed: () {
-                        FocusScope.of(context).requestFocus(new FocusNode());
-                        if (_formKey.currentState!.validate()) {
-                          updateOnFS();
-                          Navigator.pop(context);
-                        }
-                      }),
-                ],
-              ),
-              headerDivider(),
-              Padding(
-                padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
-                child: Column(
-                  children: [
-                    Container(width: MediaQuery.of(context).size.width * 0.8, child: titleField(titleInput)),
-                  ],
-                ),
-              ),
-              Divider(
-                color: Color(0xffe9e9e9),
-                thickness: 2.5,
-              ),
-              Padding(
-                  padding: EdgeInsets.fromLTRB(40, 10, 40, 30),
-                  child: TextFormField(
-                      controller: contentInput,
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                      style: TextStyle(fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: "내용을 입력하세요.",
-                        border: InputBorder.none,
-                      ),
-                      validator: (text) {
-                        if (text == null || text.isEmpty) {
-                          return "내용은 필수 입력 사항입니다.";
-                        }
-                        return null;
-                      })),
-            ],
-          ),
-        )));
+                );
+              }
+              return CircularProgressIndicator();
+            }));
+  }
+
+  void addImage() async {
+    final pickedImgList = await _picker.pickMultiImage();
+
+    List<String> pickUrlList = [];
+
+    var  tmp = fp.getInfo();
+
+    late Reference ref;
+    for (int i = 0; i < pickedImgList!.length; i++) {
+      ref = storage.ref().child('board/${tmp['name'] + tmp['piccount'].toString()}');
+      await ref.putFile(File(pickedImgList[i].path));
+      fp.updateIntInfo('piccount', 1);
+      String url = await ref.getDownloadURL();
+      pickUrlList.add(url);
+    }
+
+    setState(() {
+      urlList.addAll(pickUrlList);
+    });
+
+    await fs.collection('community_board').doc(widget.id).update({
+      'pic': urlList,
+    });
+  }
+
+  void deleteImage(String url) async {
+    Reference ref = storage.refFromURL(url);
+    await ref.delete();
+    fp.updateIntInfo("piccount", -1);
+
+    setState(() {
+      urlList.remove(url);
+      fs.collection('community_board').doc(widget.id).update({
+        'pic': urlList,
+      });
+    });
+
   }
 
   void updateOnFS() async {
-    await fs.collection('Community_board').doc(widget.id).update({
+    await fs.collection('community_board').doc(widget.id).update({
       'title': titleInput.text,
       'contents': contentInput.text,
+      'pic' : urlList,
     });
   }
 }

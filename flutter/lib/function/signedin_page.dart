@@ -140,7 +140,7 @@ class SignedInPageState extends State<SignedInPage> {
             child: SizedBox(
               height: 100,
               child: StreamBuilder<QuerySnapshot>(
-                stream : fs.collection('delivery_board').orderBy('views', descending: true).snapshots(),
+                stream : fs.collection('community_board').orderBy('views', descending: true).snapshots(),
                 builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
                   if(!snapshot.hasData){
                     return Text(
@@ -162,8 +162,8 @@ class SignedInPageState extends State<SignedInPage> {
                         if(doc['write_time'].compareTo(formatDate(DateTime.now().subtract(Duration(hours: 6)), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])) == 1){
                           return InkWell(
                             onTap: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
-                              FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views" : doc["views"] + 1});
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommunityShow(doc.id)));
+                              FirebaseFirestore.instance.collection('community_board').doc(doc.id).update({"views" : doc["views"] + 1});
                             },
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
