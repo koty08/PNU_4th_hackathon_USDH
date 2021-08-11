@@ -81,13 +81,13 @@ class MyPageState extends State<MyPage> {
                     headerDivider(),
                     Row(
                       children: [
-                        Padding(padding: EdgeInsets.fromLTRB(60, 100, 0, 10)),
+                        Padding(padding: EdgeInsets.fromLTRB(30, 100, 0, 10)),
                         InkWell(
                           onTap: () {
                             uploadImage();
                           },
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
+                            borderRadius: BorderRadius.circular(60),
                             child: Image.network(
                               snapshot.data!['photoUrl'],
                               width: 60, height: 60,
@@ -156,7 +156,7 @@ class MyPageState extends State<MyPage> {
                     ),
                     middleDivider(),
                     Container(
-                      padding: EdgeInsets.fromLTRB(60, 0, 0, 20),
+                      padding: EdgeInsets.fromLTRB(30, 0, 0, 20),
                       child: Wrap(
                         direction: Axis.vertical,
                         crossAxisAlignment: WrapCrossAlignment.start,
@@ -171,9 +171,13 @@ class MyPageState extends State<MyPage> {
                             showMessage();
                           }, "비밀번호 변경"),
 
+                          cSizedBox(2,0),
+
                           touchableText(() {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => Portfolio()));
                           }, "포트폴리오 변경"),
+
+                          cSizedBox(2,0),
 
                           touchableText(() {
                             if(fp.getInfo()['myintro'] == ""){
@@ -220,7 +224,7 @@ class MyPageState extends State<MyPage> {
                     middleDivider(),
 
                     Container(
-                      padding: EdgeInsets.fromLTRB(60, 0, 0, 20),
+                      padding: EdgeInsets.fromLTRB(30, 0, 0, 20),
                       child: Wrap(
                         direction: Axis.vertical,
                         crossAxisAlignment: WrapCrossAlignment.start,
@@ -231,6 +235,7 @@ class MyPageState extends State<MyPage> {
                           touchableText(() {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => ApplicantListBoard(myId: fp.getInfo()['email'])));
                           },"신청자 목록"),
+                          cSizedBox(2,0),
                           touchableText(() {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => MyApplicationListBoard()));
                           },"신청한 글"),
@@ -241,7 +246,7 @@ class MyPageState extends State<MyPage> {
                     middleDivider(),
 
                     Container(
-                      padding: EdgeInsets.fromLTRB(60, 0, 0, 0),
+                      padding: EdgeInsets.fromLTRB(30, 0, 0, 0),
                       child: Wrap(
                         direction: Axis.vertical,
                         crossAxisAlignment: WrapCrossAlignment.start,
@@ -253,6 +258,10 @@ class MyPageState extends State<MyPage> {
                             Navigator.popUntil(context, (route) => route.isFirst);
                             fp.signOut();
                           }, "로그아웃"),
+
+                          cSizedBox(2,0),
+
+
                           touchableText(() {
                             showDialog(context: context,
                                 builder: (BuildContext con){
