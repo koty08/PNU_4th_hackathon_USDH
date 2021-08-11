@@ -52,286 +52,331 @@ class MyPageState extends State<MyPage> {
     fp.setInfo();
     
     // double propertyWith = 130;
-    if (fp.getUser() == null) {
+    return Scaffold(
+        body: StreamBuilder(
+        stream: fs.collection('users').doc(fp.getInfo()['email']).snapshots(),
+        builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+          if (snapshot.hasData) {
+            return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    cSizedBox(35, 0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        cSizedBox(0, 5),
+                        IconButton(
+                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        cSizedBox(0, 10),
+                        headerText("마이페이지"),
+                        cSizedBox(0, 220),
+                      ],
+                    ),
+                    headerDivider(),
+                  ]
+                )
+            );
+          }
+          else {
+            return CircularProgressIndicator();
+          }
+        }
+        )
+    );
+    /*if (fp.getUser() == null) {
       return CircularProgressIndicator();
     } else {
-      return Scaffold(
-        //column 하니까 overflow되서 listview 했는데 이거도 이상하네요.. 고쳐주세요 - kty
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            cSizedBox(35, 0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
+      return SingleChildScrollView(
+          child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: Column()
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                cSizedBox(35, 0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    headerText("마이페이지"),
+                    cSizedBox(0, 250),
+                  ],
                 ),
-                headerText("마이페이지"),
-                cSizedBox(0, 175),
-              ],
-            ),
 
-            headerDivider(),
+              headerDivider(),
 
-            StreamBuilder(
-              stream: fs.collection('users').doc(fp.getInfo()['email']).snapshots(),
-              builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot){
-                if(snapshot.hasData){
-                  return Row(
-                      children: [
-                        Padding(padding: EdgeInsets.fromLTRB(20, 0, 0, 0)),
-                        InkWell(
-                          onTap: () {
-                            uploadImage();
-                          },
-                          child: CircleAvatar(
-                            radius: 20,
-                            backgroundImage: NetworkImage(snapshot.data!['photoUrl']),
+              StreamBuilder(
+                stream: fs.collection('users').doc(fp.getInfo()['email']).snapshots(),
+                builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot){
+                  if(snapshot.hasData){
+                    return Row(
+                        children: [
+                          Padding(padding: EdgeInsets.fromLTRB(40, 100, 0, 10)),
+                          InkWell(
+                            onTap: () {
+                              uploadImage();
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: Image.network(
+                                snapshot.data!['photoUrl'],
+                                width: 60, height: 60,
+                              ),
+                            ),
                           ),
-                        ),
 
-                        Column(
-                          children: [
-                            Row(
-                              children: [
-                                Text(snapshot.data!['nick']+"("+snapshot.data!['num'].toString()+")"),
-                                IconButton(onPressed: () {  
-                                  nickInput = TextEditingController(text: fp.getInfo()['nick']);
-                                  showDialog(context: context,
-                                      builder: (BuildContext con){
-                                        return Form(
-                                          key: _formKey,
-                                          child: 
-                                          AlertDialog(
-                                            title: Text("닉네임 변경"),
-                                            content: TextFormField(
-                                              controller: nickInput,
-                                              decoration: InputDecoration(hintText: "닉네임을 입력하세요."),
-                                              validator: (text) {
-                                                if (text == null || text.isEmpty) {
-                                                  return "닉네임을 입력하지 않으셨습니다.";
+                          Column(
+                            children: [
+                              Row(
+                                children: [
+                                  cSizedBox(0, 30),
+                                  Text(snapshot.data!['nick']+"("+snapshot.data!['num'].toString()+")", style: TextStyle(fontFamily: "SCDream", color: Colors.black, fontWeight: FontWeight.w600, fontSize: 15),),
+                                  IconButton(onPressed: () {
+                                    nickInput = TextEditingController(text: fp.getInfo()['nick']);
+                                    showDialog(context: context,
+                                        builder: (BuildContext con){
+                                          return Form(
+                                            key: _formKey,
+                                            child:
+                                            AlertDialog(
+                                              title: Text("닉네임 변경"),
+                                              content: TextFormField(
+                                                controller: nickInput,
+                                                decoration: InputDecoration(hintText: "닉네임을 입력하세요."),
+                                                validator: (text) {
+                                                  if (text == null || text.isEmpty) {
+                                                    return "닉네임을 입력하지 않으셨습니다.";
+                                                  }
+                                                  return null;
                                                 }
-                                                return null;
-                                              }
-                                            ),
-                                            actions: <Widget>[
-                                              TextButton(onPressed: () {
-                                                if(_formKey.currentState!.validate()){
-                                                  setState(() {
-                                                    fs.collection('users').doc(fp.getUser()!.email).update({
-                                                      'nick' : nickInput.text
+                                              ),
+                                              actions: <Widget>[
+                                                TextButton(onPressed: () {
+                                                  if(_formKey.currentState!.validate()){
+                                                    setState(() {
+                                                      fs.collection('users').doc(fp.getUser()!.email).update({
+                                                        'nick' : nickInput.text
+                                                      });
                                                     });
-                                                  });
+                                                    Navigator.pop(con);
+                                                    fp.setMessage("nick");
+                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                    showMessage();
+                                                  }
+                                                },
+                                                  child: Text("입력")
+                                                ),
+                                                TextButton(onPressed: (){
                                                   Navigator.pop(con);
-                                                  fp.setMessage("nick");
-                                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                  showMessage();
-                                                }
-                                              },
-                                                child: Text("입력")
-                                              ),
-                                              TextButton(onPressed: (){
-                                                Navigator.pop(con);
-                                              },
-                                                child: Text("취소")
-                                              ),
-                                            ],
-                                          )
-                                        );
-                                      }
-                                  );
-                                },
-                                icon: Icon(Icons.edit)),
-                              ],
-                            ),
-                            Text(snapshot.data!['name']),
-                          ],
-                        )
-                      ],
-                  );
-                }
-                else{
-                  return CircularProgressIndicator();
-                }
-              }
-            ),
-
-            middleDivider(),
-
-            Container(
-              padding: EdgeInsets.fromLTRB(40, 0, 0, 20),
-              child: Wrap(
-                direction: Axis.vertical,
-                crossAxisAlignment: WrapCrossAlignment.start,
-                spacing: 10,
-                children: [
-                  cSizedBox(5, 0),
-                  Container(padding: EdgeInsets.fromLTRB(10, 0, 0, 0), child: titleText("내 정보")),
-                  cSizedBox(5, 0),
-                  touchableText(() {
-                    fp.PWReset();
-                    fp.setMessage("reset-pw");
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    showMessage();
-                  }, "비밀번호 변경"),
-
-                  touchableText(() {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => Portfolio()));
-                  }, "포트폴리오 변경"),
-
-                  touchableText(() {
-                    if(fp.getInfo()['myintro'] == ""){
-                      myIntroInput = TextEditingController();
-                    }
-                    else{
-                      myIntroInput = TextEditingController(text: fp.getInfo()['myintro']);
-                    }
-                    showDialog(context: context,
-                        builder: (BuildContext con){
-                          return AlertDialog(
-                            title: Text("자기소개 변경"),
-                            content: TextField(
-                              controller: myIntroInput,
-                              decoration: InputDecoration(hintText: "자기소개를 입력하세요."),
-                            ),
-                            actions: <Widget>[
-                              TextButton(onPressed: () {
-                                setState(() {
-                                  fs.collection('users').doc(fp.getUser()!.email).update({
-                                    'myintro' : myIntroInput.text
-                                  });
-                                });
-                                Navigator.pop(con);
-                                fp.setMessage("intro");
-                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                showMessage();
-                              },
-                                  child: Text("입력")
+                                                },
+                                                  child: Text("취소")
+                                                ),
+                                              ],
+                                            )
+                                          );
+                                        }
+                                    );
+                                  },
+                                  icon: Icon(Icons.edit)),
+                                ],
                               ),
-                              TextButton(onPressed: (){
-                                Navigator.pop(con);
-                              },
-                                  child: Text("취소")
-                              ),
+                              Text(snapshot.data!['name']),
                             ],
-                          );
-                        });
-                  }, "자기소개 변경"),
-                ],
+                          )
+                        ],
+                    );
+                  }
+                  else{
+                    return CircularProgressIndicator();
+                  }
+                }
               ),
-            ),
 
-            middleDivider(),
+              middleDivider(),
 
-            Container(
-              padding: EdgeInsets.fromLTRB(40, 0, 0, 20),
-              child: Wrap(
-                direction: Axis.vertical,
-                crossAxisAlignment: WrapCrossAlignment.start,
-                spacing: 10,
-                children: [
-                  cSizedBox(5, 0),
-                  Container(padding: EdgeInsets.fromLTRB(10, 0, 0, 0), child: titleText("신청 이력")),
-                  cSizedBox(5, 0),
-                  touchableText(() {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => ApplicantListBoard(myId: fp.getInfo()['email'])));
-                  },"신청자 목록"),
-                  touchableText(() {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => MyApplicationListBoard()));
-                  },"신청한 글"),
-                ],
+              Container(
+                padding: EdgeInsets.fromLTRB(40, 0, 0, 20),
+                child: Wrap(
+                  direction: Axis.vertical,
+                  crossAxisAlignment: WrapCrossAlignment.start,
+                  spacing: 10,
+                  children: [
+                    cSizedBox(5, 0),
+                    Container(padding: EdgeInsets.fromLTRB(10, 0, 0, 0), child: titleText("내 정보")),
+                    cSizedBox(5, 0),
+                    touchableText(() {
+                      fp.PWReset();
+                      fp.setMessage("reset-pw");
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      showMessage();
+                    }, "비밀번호 변경"),
+
+                    touchableText(() {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => Portfolio()));
+                    }, "포트폴리오 변경"),
+
+                    touchableText(() {
+                      if(fp.getInfo()['myintro'] == ""){
+                        myIntroInput = TextEditingController();
+                      }
+                      else{
+                        myIntroInput = TextEditingController(text: fp.getInfo()['myintro']);
+                      }
+                      showDialog(context: context,
+                          builder: (BuildContext con){
+                            return AlertDialog(
+                              title: Text("자기소개 변경"),
+                              content: TextField(
+                                controller: myIntroInput,
+                                decoration: InputDecoration(hintText: "자기소개를 입력하세요."),
+                              ),
+                              actions: <Widget>[
+                                TextButton(onPressed: () {
+                                  setState(() {
+                                    fs.collection('users').doc(fp.getUser()!.email).update({
+                                      'myintro' : myIntroInput.text
+                                    });
+                                  });
+                                  Navigator.pop(con);
+                                  fp.setMessage("intro");
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  showMessage();
+                                },
+                                    child: Text("입력")
+                                ),
+                                TextButton(onPressed: (){
+                                  Navigator.pop(con);
+                                },
+                                    child: Text("취소")
+                                ),
+                              ],
+                            );
+                          });
+                    }, "자기소개 변경"),
+                  ],
+                ),
               ),
-            ),
 
-            middleDivider(),
+              middleDivider(),
 
-            Container(
-              padding: EdgeInsets.fromLTRB(40, 0, 0, 0),
-              child: Wrap(
-                direction: Axis.vertical,
-                crossAxisAlignment: WrapCrossAlignment.start,
-                spacing: 10,
-                children: [
-                  cSizedBox(5, 0),
-                  Container(padding: EdgeInsets.fromLTRB(10, 0, 0, 0), child: titleText("이용 정보")),
-                  cSizedBox(5, 0),
-                  touchableText(() async {
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                    fp.signOut();
-                  }, "로그아웃"),
-                  touchableText(() {
-                    showDialog(context: context,
-                        builder: (BuildContext con){
-                          return Form(
-                              key: _formKey2,
-                              child:
-                              AlertDialog(
-                                title: Text("탈퇴하시려면 현재 웹메일과 비밀번호를 입력해주세요."),
-                                content: Column(
-                                  children: [
-                                    TextFormField(
-                                        controller: emailInput,
-                                        decoration: InputDecoration(hintText: "이메일을 입력하세요."),
-                                        validator: (text) {
-                                          if (text == null || text.isEmpty) {
-                                            return "이메일을 입력하지 않으셨습니다.";
+              Container(
+                padding: EdgeInsets.fromLTRB(40, 0, 0, 20),
+                child: Wrap(
+                  direction: Axis.vertical,
+                  crossAxisAlignment: WrapCrossAlignment.start,
+                  spacing: 10,
+                  children: [
+                    cSizedBox(5, 0),
+                    Container(padding: EdgeInsets.fromLTRB(10, 0, 0, 0), child: titleText("신청 이력")),
+                    cSizedBox(5, 0),
+                    touchableText(() {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => ApplicantListBoard(myId: fp.getInfo()['email'])));
+                    },"신청자 목록"),
+                    touchableText(() {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => MyApplicationListBoard()));
+                    },"신청한 글"),
+                  ],
+                ),
+              ),
+
+              middleDivider(),
+
+              Container(
+                padding: EdgeInsets.fromLTRB(40, 0, 0, 0),
+                child: Wrap(
+                  direction: Axis.vertical,
+                  crossAxisAlignment: WrapCrossAlignment.start,
+                  spacing: 10,
+                  children: [
+                    cSizedBox(5, 0),
+                    Container(padding: EdgeInsets.fromLTRB(10, 0, 0, 0), child: titleText("이용 정보")),
+                    cSizedBox(5, 0),
+                    touchableText(() async {
+                      Navigator.popUntil(context, (route) => route.isFirst);
+                      fp.signOut();
+                    }, "로그아웃"),
+                    touchableText(() {
+                      showDialog(context: context,
+                          builder: (BuildContext con){
+                            return Form(
+                                key: _formKey2,
+                                child:
+                                AlertDialog(
+                                  title: Text("탈퇴하시려면 현재 웹메일과 비밀번호를 입력해주세요."),
+                                  content: Column(
+                                    children: [
+                                      TextFormField(
+                                          controller: emailInput,
+                                          decoration: InputDecoration(hintText: "이메일을 입력하세요."),
+                                          validator: (text) {
+                                            if (text == null || text.isEmpty) {
+                                              return "이메일을 입력하지 않으셨습니다.";
+                                            }
+                                            return null;
                                           }
-                                          return null;
+                                      ),
+                                      TextFormField(
+                                          controller: pwdInput,
+                                          decoration: InputDecoration(hintText: "비밀번호를 입력하세요."),
+                                          validator: (text) {
+                                            if (text == null || text.isEmpty) {
+                                              return "비밀번호를 입력하지 않으셨습니다.";
+                                            }
+                                            return null;
+                                          }
+                                      ),
+                                    ],
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(onPressed: () {
+                                      if(_formKey2.currentState!.validate()){
+                                        if(fp.signIn(emailInput.text, pwdInput.text) == true){
+                                          fp.withdraw();
+                                          Navigator.popUntil(con, (route) => route.isFirst);
                                         }
+                                        else{
+                                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                          showErrorMessage();
+                                          Navigator.pop(con);
+                                        }
+                                      }
+                                    },
+                                        child: Text("확인")
                                     ),
-                                    TextFormField(
-                                        controller: pwdInput,
-                                        decoration: InputDecoration(hintText: "비밀번호를 입력하세요."),
-                                        validator: (text) {
-                                          if (text == null || text.isEmpty) {
-                                            return "비밀번호를 입력하지 않으셨습니다.";
-                                          }
-                                          return null;
-                                        }
+                                    TextButton(onPressed: (){
+                                      Navigator.pop(con);
+                                    },
+                                        child: Text("취소")
                                     ),
                                   ],
-                                ),
-                                actions: <Widget>[
-                                  TextButton(onPressed: () {
-                                    if(_formKey2.currentState!.validate()){
-                                      if(fp.signIn(emailInput.text, pwdInput.text) == true){
-                                        fp.withdraw();
-                                        Navigator.popUntil(con, (route) => route.isFirst);
-                                      }
-                                      else{
-                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                        showErrorMessage();
-                                        Navigator.pop(con);
-                                      }
-                                    }
-                                  },
-                                      child: Text("확인")
-                                  ),
-                                  TextButton(onPressed: (){
-                                    Navigator.pop(con);
-                                  },
-                                      child: Text("취소")
-                                  ),
-                                ],
-                              )
-                          );
-                        });
-                  }, "계정 탈퇴"),
-                ],
+                                )
+                            );
+                          });
+                    }, "계정 탈퇴"),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
-      );
+      )
+      );*/
     }
   }
 
-  void uploadImage() async {
+  /*void uploadImage() async {
     final pickedImg = await _picker.pickImage(source: ImageSource.gallery);
     var tmp = fp.getInfo();
     late Reference ref;
@@ -380,7 +425,7 @@ class MyPageState extends State<MyPage> {
       child: condText(text),
     );
   }
-}
+}*/
 
 //*---------토글입니다 지금 사용 안해요----
 

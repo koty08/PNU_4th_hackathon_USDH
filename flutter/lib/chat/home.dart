@@ -68,12 +68,12 @@ class HomeScreenState extends State<HomeScreen> {
           });
         },
         child: StreamBuilder<QuerySnapshot>(
-            stream: colstream,
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasData) {
-                return Column(children: [
-                  cSizedBox(35, 0),
-                  Row(
+          stream: colstream,
+          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasData) {
+              return Column(children: [
+                cSizedBox(35, 0),
+                Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -86,40 +86,40 @@ class HomeScreenState extends State<HomeScreen> {
                       headerText("채팅"),
                       cSizedBox(0, 50),
                     ]
-                  ),
-                  headerDivider(),
-                  Expanded(
+                ),
+                headerDivider(),
+                Expanded(
                     child: MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      child: ListView.builder(
-                        padding: EdgeInsets.all(10.0),
-                        itemBuilder: (context, index) => buildItem(context, snapshot.data?.docs[index]),
-                        itemCount: snapshot.data?.docs.length,
-                        controller: listScrollController,
-                      )
+                        context: context,
+                        removeTop: true,
+                        child: ListView.builder(
+                          padding: EdgeInsets.all(10.0),
+                          itemBuilder: (context, index) => buildItem(context, snapshot.data?.docs[index]),
+                          itemCount: snapshot.data?.docs.length,
+                          controller: listScrollController,
+                        )
                     )
-                  )
-                ]);
-              }
+                )
+              ]);
+            }
 
-                /*
+            /*
               }*/ else {
-                return Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-                  ),
-                );
-              }
-            },
-          ),
+              return Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                ),
+              );
+            }
+          },
         ),
+      ),
 
-          // Loading
-          /*Positioned(
+      // Loading
+      /*Positioned(
             child: isLoading ? const Loading() : Container(),
           )*/
-      );
+    );
   }
 
   Future<String> getPeerNicks(List<dynamic> peerIds) async {
@@ -155,36 +155,36 @@ class HomeScreenState extends State<HomeScreen> {
               Material(
                 child: photoUrl.isNotEmpty
                     ? Image.network(
-                        photoUrl,
-                        fit: BoxFit.cover,
-                        width: 50.0,
-                        height: 50.0,
-                        loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            width: 50,
-                            height: 50,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                color: primaryColor,
-                                value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
-                              ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, object, stackTrace) {
-                          return Icon(
-                            Icons.account_circle,
-                            size: 50.0,
-                            color: greyColor,
-                          );
-                        },
-                      )
-                    : Icon(
-                        Icons.account_circle,
-                        size: 50.0,
-                        color: greyColor,
+                  photoUrl,
+                  fit: BoxFit.cover,
+                  width: 50.0,
+                  height: 50.0,
+                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      width: 50,
+                      height: 50,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: primaryColor,
+                          value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
+                        ),
                       ),
+                    );
+                  },
+                  errorBuilder: (context, object, stackTrace) {
+                    return Icon(
+                      Icons.account_circle,
+                      size: 50.0,
+                      color: greyColor,
+                    );
+                  },
+                )
+                    : Icon(
+                  Icons.account_circle,
+                  size: 50.0,
+                  color: greyColor,
+                ),
                 borderRadius: BorderRadius.all(Radius.circular(25.0)),
                 clipBehavior: Clip.hardEdge,
               ),

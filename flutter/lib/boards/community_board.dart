@@ -12,7 +12,6 @@ import 'package:usdh/chat/home.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 
 late CommunityWriteState pageState;
-late CommunityMapState pageState1;
 late CommunityListState pageState2;
 late CommunityShowState pageState3;
 late CommunityModifyState pageState4;
@@ -237,36 +236,6 @@ class CommunityWriteState extends State<CommunityWrite> {
 //     );
 //   }
 // }
-
-/* ---------------------- Board Map (Community) ---------------------- */
-/* ----------------------    지우지 말아주세요    ---------------------- */
-
-class CommunityMap extends StatefulWidget {
-  @override
-  CommunityMapState createState() {
-    pageState1 = CommunityMapState();
-    return pageState1;
-  }
-}
-
-class CommunityMapState extends State<CommunityMap> {
-  late FirebaseProvider fp;
-  TextEditingController searchInput = TextEditingController();
-
-  @override
-  void dispose() {
-    searchInput.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    fp = Provider.of<FirebaseProvider>(context);
-    fp.setInfo();
-
-    return Scaffold(body: Container());
-  }
-}
 
 /* ---------------------- Board List (Community) ---------------------- */
 

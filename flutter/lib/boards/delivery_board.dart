@@ -292,8 +292,19 @@ class DeliveryMap extends StatefulWidget {
 }
 
 class DeliveryMapState extends State<DeliveryMap> {
+  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
   late FirebaseProvider fp;
+  final _formKey = GlobalKey<FormState>();
   TextEditingController searchInput = TextEditingController();
+  String search = "";
+  bool status = false;
+  String limit = "";
+
+  @override
+  void initState() {
+    search = "제목";
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -301,12 +312,191 @@ class DeliveryMapState extends State<DeliveryMap> {
     super.dispose();
   }
 
+  bool is_today(String time) {
+    String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]);
+    if (time.split(" ")[0] == now) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
 
-    return Scaffold(body: Container());
+    return Scaffold(
+      body: RefreshIndicator(
+        //당겨서 새로고침
+        onRefresh: () async {
+          setState(() {
+            colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+          });
+        },
+        child: StreamBuilder<QuerySnapshot>(
+            stream: colstream,
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (!snapshot.hasData) {
+                return CircularProgressIndicator();
+              }
+              return Column(children: [
+                cSizedBox(35, 0),
+                Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                      headerText("배달"),
+                      cSizedBox(0, 50),
+                      Wrap(
+                        spacing: -5,
+                        children: [
+                          IconButton(
+                            icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
+                            onPressed: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryMap()));
+                            },
+                          ),
+                          //새로고침 기능
+                          IconButton(
+                            icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
+                            onPressed: () {
+                              setState(() {
+                                colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+                              });
+                            },
+                          ),
+                          //검색 기능 팝업
+                          IconButton(
+                            icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext con) {
+                                    return StatefulBuilder(builder: (con, setS) {
+                                      return Form(
+                                          key: _formKey,
+                                          child: AlertDialog(
+                                            title: Row(
+                                              children: [
+                                                Theme(
+                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                                  child: Radio(
+                                                      value: "제목",
+                                                      activeColor: Colors.black38,
+                                                      groupValue: search,
+                                                      onChanged: (String? value) {
+                                                        setS(() {
+                                                          search = value!;
+                                                        });
+                                                      }),
+                                                ),
+                                                Text(
+                                                  "제목 검색",
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                  ),
+                                                ),
+                                                Theme(
+                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                                  child: Radio(
+                                                      value: "태그",
+                                                      activeColor: Colors.black38,
+                                                      groupValue: search,
+                                                      onChanged: (String? value) {
+                                                        setS(() {
+                                                          search = value!;
+                                                        });
+                                                      }),
+                                                ),
+                                                Text(
+                                                  "태그 검색",
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            content: TextFormField(
+                                                controller: searchInput,
+                                                decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
+                                                validator: (text) {
+                                                  if (text == null || text.isEmpty) {
+                                                    return "검색어를 입력하지 않으셨습니다.";
+                                                  }
+                                                  return null;
+                                                }),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                  onPressed: () {
+                                                    if (_formKey.currentState!.validate()) {
+                                                      if (search == "제목") {
+                                                        setState(() {
+                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                                                        });
+                                                        searchInput.clear();
+                                                        Navigator.pop(con);
+                                                      } else {
+                                                        setState(() {
+                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
+                                                        });
+                                                        searchInput.clear();
+                                                        Navigator.pop(con);
+                                                      }
+                                                    }
+                                                  },
+                                                  child: Text("검색")),
+                                              TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(con);
+                                                    searchInput.clear();
+                                                  },
+                                                  child: Text("취소")),
+                                            ],
+                                          ));
+                                    });
+                                  });
+                            },
+                          ),
+                          IconButton(
+                            icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
+                            onPressed: () {
+                              var myInfo = fp.getInfo();
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
+                            },
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+                headerDivider(),
+                // ------------------------------ 아래에 지도 추가 ------------------------------
+
+
+
+
+              ]);
+            }),
+      ),
+      floatingActionButton: FloatingActionButton(
+          backgroundColor: Color(0xff639ee1),
+          child: Image(
+            image: AssetImage('assets/images/icon/iconpencil.png'),
+            height: 28,
+            width: 28,
+          ),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryWrite()));
+          }),
+    );
   }
 }
 
@@ -390,7 +580,7 @@ class DeliveryListState extends State<DeliveryList> {
                           IconButton(
                             icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
                             onPressed: () {
-                              Navigator.pop(context);
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryMap()));
                             },
                           ),
                           //새로고침 기능
@@ -555,7 +745,7 @@ class DeliveryListState extends State<DeliveryList> {
                         final DocumentSnapshot doc = snapshot.data!.docs[index];
                         String member = doc['currentMember'].toString() + '/' + doc['limitedMember'].toString();
                         String info = doc['time'].substring(5, 7) + "/" + doc['time'].substring(8, 10) + doc['write_time'].substring(10, 16);
-                        String time = ' |' + doc['time'].substring(10, 16) + ' | ';
+                        String time = ' | ' + '마감' + doc['time'].substring(10, 16) + ' | ';
                         String writer = doc['writer'];
                         return Column(children: [
                           Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
@@ -700,74 +890,67 @@ class DeliveryShowState extends State<DeliveryShow> {
                 String writer = snapshot.data!['writer'];
                 return SingleChildScrollView(
                     child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    cSizedBox(35, 0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                        headerText("배달"),
-                        cSizedBox(0, 175),
-                        IconButton(
-                          icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                          onPressed: () {
-                            var myInfo = fp.getInfo();
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                          },
-                        ),
-                      ],
-                    ),
-                    headerDivider(),
-                    Padding(
-                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                        child: Wrap(direction: Axis.vertical, spacing: 15, children: [
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            child: tagText(snapshot.data!['tagList'].join('')),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      cSizedBox(35, 0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
                           ),
-                          Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
-                          smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
-                        ])),
-                    Divider(
-                      color: Color(0xffe9e9e9),
-                      thickness: 15,
-                    ),
-                    Padding(
-                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                        child: Wrap(
-                          direction: Axis.vertical,
-                          spacing: 15,
-                          children: [
-                            Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
-                            Padding(
-                                padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
-                                child: Wrap(
-                                  direction: Axis.vertical,
-                                  spacing: 15,
-                                  children: [
-                                    cond2Wrap("모집기간", time),
-                                    cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
-                                    cond2Wrap("음식종류", snapshot.data!['food']),
-                                    cond2Wrap("배분위치", snapshot.data!['location']),
-                                  ],
-                                ))
-                          ],
-                        )),
-                    Divider(
-                      color: Color(0xffe9e9e9),
-                      thickness: 15,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
-                      child: Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
-                    ),
+                          headerText("배달"),
+                          cSizedBox(0, 250),
+                        ],
+                      ),
+                      headerDivider(),
+                      Padding(
+                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                          child: Wrap(direction: Axis.vertical, spacing: 15, children: [
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              child: tagText(snapshot.data!['tagList'].join('')),
+                            ),
+                            Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
+                            smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
+                          ])),
+                      Divider(
+                        color: Color(0xffe9e9e9),
+                        thickness: 15,
+                      ),
+                      Padding(
+                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                          child: Wrap(
+                            direction: Axis.vertical,
+                            spacing: 15,
+                            children: [
+                              Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                              Padding(
+                                  padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
+                                  child: Wrap(
+                                    direction: Axis.vertical,
+                                    spacing: 15,
+                                    children: [
+                                      cond2Wrap("모집기간", time),
+                                      cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
+                                      cond2Wrap("음식종류", snapshot.data!['food']),
+                                      cond2Wrap("배분위치", snapshot.data!['location']),
+                                    ],
+                                  ))
+                            ],
+                          )),
+                      Divider(
+                        color: Color(0xffe9e9e9),
+                        thickness: 15,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
+                        child: Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
+                      ),
                   ],
                 ));
               } else {
