@@ -38,11 +38,14 @@ class MapSampleState extends State<MapSample> {
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
         },
+        myLocationEnabled: true,
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _goToCurrentLocation,
-        label: Text('Where am I?'),
+        label: Text("내 위치"),
+        icon: Icon(Icons.my_location),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
