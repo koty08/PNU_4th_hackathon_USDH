@@ -1,10 +1,9 @@
 import 'dart:async';
-// import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:flutter_form_builder/flutter_form_builder.dart';
-// import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
+
 
 class DeliveryGoogleMap extends StatelessWidget {
   @override
@@ -24,14 +23,11 @@ class MapSample extends StatefulWidget {
 class MapSampleState extends State<MapSample> {
   Completer<GoogleMapController> _controller = Completer();
 
+  // 초기 위치 : 부산대학교 정문
   CameraPosition _initialCameraPosition = CameraPosition(
     target: LatLng(35.23159301295487, 129.08395882267462),
     zoom: 16,
   );
-
-  CameraPosition _currentLocation = CameraPosition(
-      target: LatLng(35.23216204551208, 129.08079398925074),
-      zoom: 16);
 
   @override
   Widget build(BuildContext context) {
@@ -44,15 +40,27 @@ class MapSampleState extends State<MapSample> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _goToTheLake,
+        onPressed: _goToCurrentLocation,
         label: Text('Where am I?'),
-        icon: Icon(Icons.directions_boat),
       ),
     );
   }
 
-  Future<void> _goToTheLake() async {
+  // Floating 버튼 클릭 시 현재 위치 표시
+  Future<void> _goToCurrentLocation() async {
+    final locData = await Location().getLocation();
+    final lat = locData.latitude;
+    final lng = locData.longitude;
+
+    CameraPosition _currentLocation = CameraPosition(
+      target: LatLng(lat!, lng!),
+      zoom: 16,
+    );
+
     final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(_currentLocation));
+    Location location = new Location();
+    location.onLocationChanged.listen((event) {
+      controller.animateCamera(CameraUpdate.newCameraPosition(_currentLocation));
+    });
   }
 }
