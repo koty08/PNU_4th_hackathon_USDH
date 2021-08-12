@@ -10,6 +10,8 @@ import 'package:date_format/date_format.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:validators/validators.dart';
+import 'package:usdh/maps/delivery.dart';
+import 'dart:async';
 
 late DeliveryWriteState pageState;
 late DeliveryMapState pageState1;
@@ -306,6 +308,7 @@ class _Chip extends StatelessWidget {
 /* ---------------------- Board Map (Delivery) ---------------------- */
 /* ----------------------    지우지 말아주세요    ---------------------- */
 
+
 class DeliveryMap extends StatefulWidget {
   @override
   DeliveryMapState createState() {
@@ -313,6 +316,7 @@ class DeliveryMap extends StatefulWidget {
     return pageState1;
   }
 }
+
 
 class DeliveryMapState extends State<DeliveryMap> {
   Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
@@ -523,6 +527,7 @@ class DeliveryMapState extends State<DeliveryMap> {
   }
 }
 
+
 /* ---------------------- Board List (Delivery) ---------------------- */
 
 class DeliveryList extends StatefulWidget {
@@ -603,7 +608,7 @@ class DeliveryListState extends State<DeliveryList> {
                           IconButton(
                             icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
                             onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryMap()));
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryGoogleMap()));
                             },
                           ),
                           //새로고침 기능
