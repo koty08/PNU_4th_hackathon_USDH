@@ -11,11 +11,10 @@ import 'package:usdh/chat/home.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:validators/validators.dart';
 
-late DeliveryWriteState pageState;
-late DeliveryMapState pageState1;
-late DeliveryListState pageState2;
-late DeliveryShowState pageState3;
-late DeliveryModifyState pageState4;
+late SgroupWriteState pageState;
+late SgroupListState pageState1;
+late SgroupShowState pageState2;
+late SgroupModifyState pageState3;
 
 bool is_available(String time, int n1, int n2) {
   if (n1 >= n2) {
@@ -46,17 +45,17 @@ bool is_tomorrow(String time) {
   }
 }
 
-/* ---------------------- Write Board (Delivery) ---------------------- */
+/* ---------------------- Write Board (Sgroup) ---------------------- */
 
-class DeliveryWrite extends StatefulWidget {
+class SgroupWrite extends StatefulWidget {
   @override
-  DeliveryWriteState createState() {
-    pageState = DeliveryWriteState();
+  SgroupWriteState createState() {
+    pageState = SgroupWriteState();
     return pageState;
   }
 }
 
-class DeliveryWriteState extends State<DeliveryWrite> {
+class SgroupWriteState extends State<SgroupWrite> {
   late FirebaseProvider fp;
   TextEditingController titleInput = TextEditingController();
   TextEditingController contentInput = TextEditingController();
@@ -71,6 +70,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
 
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
+  DateTime selectedDate = DateTime.now();
 
   _onDelete(index) {
     setState(() {
@@ -155,6 +155,29 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                                 spacing: 15,
                                 children: [
                                   cond2Text("모집기간"),
+                                  IconButton(
+                                    onPressed: () {
+                                      Future<DateTime?> future = showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime.now(),
+                                        lastDate: DateTime(2025),
+                                        builder: (BuildContext context, Widget? child){
+                                          return Theme(
+                                            data: ThemeData.light(),
+                                            child: child!,
+                                          );
+                                        },
+                                      );
+
+                                      future.then((date){
+                                        setState(() {
+                                          selectedDate = date!;
+                                        });
+                                      });
+                                    }, 
+                                    icon: Icon(Icons.calendar_today),
+                                  ),
                                   Container(width: 250, height: 20,
                                     margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
                                     child: TextFormField(
@@ -250,7 +273,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
 
   void uploadOnFS() async {
     var myInfo = fp.getInfo();
-    await fs.collection('delivery_board').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
+    await fs.collection('sgroup_board').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
       'title': titleInput.text,
       'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
       'writer': myInfo['name'],
@@ -265,7 +288,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'views': 0,
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
-      'where': 'delivery_board',
+      'where': 'sgroup_board',
       'isFineForMembers': [],
       'members': [],
     });
@@ -303,19 +326,18 @@ class _Chip extends StatelessWidget {
   }
 }
 
-/* ---------------------- Board Map (Delivery) ---------------------- */
-/* ----------------------    지우지 말아주세요    ---------------------- */
+/* ---------------------- Board List (Sgroup) ---------------------- */
 
-class DeliveryMap extends StatefulWidget {
+class SgroupList extends StatefulWidget {
   @override
-  DeliveryMapState createState() {
-    pageState1 = DeliveryMapState();
+  SgroupListState createState() {
+    pageState1 = SgroupListState();
     return pageState1;
   }
 }
 
-class DeliveryMapState extends State<DeliveryMap> {
-  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+class SgroupListState extends State<SgroupList> {
+  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('sgroup_board').orderBy("write_time", descending: true).snapshots();
   late FirebaseProvider fp;
   final _formKey = GlobalKey<FormState>();
   TextEditingController searchInput = TextEditingController();
@@ -354,7 +376,7 @@ class DeliveryMapState extends State<DeliveryMap> {
         //당겨서 새로고침
         onRefresh: () async {
           setState(() {
-            colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+            colstream = FirebaseFirestore.instance.collection('sgroup_board').orderBy("write_time", descending: true).snapshots();
           });
         },
         child: StreamBuilder<QuerySnapshot>(
@@ -381,18 +403,12 @@ class DeliveryMapState extends State<DeliveryMap> {
                       Wrap(
                         spacing: -5,
                         children: [
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
-                            onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryMap()));
-                            },
-                          ),
                           //새로고침 기능
                           IconButton(
                             icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
                             onPressed: () {
                               setState(() {
-                                colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+                                colstream = FirebaseFirestore.instance.collection('sgroup_board').orderBy("write_time", descending: true).snapshots();
                               });
                             },
                           ),
@@ -462,232 +478,13 @@ class DeliveryMapState extends State<DeliveryMap> {
                                                     if (_formKey.currentState!.validate()) {
                                                       if (search == "제목") {
                                                         setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                                                          colstream = FirebaseFirestore.instance.collection('sgroup_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
                                                         });
                                                         searchInput.clear();
                                                         Navigator.pop(con);
                                                       } else {
                                                         setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      }
-                                                    }
-                                                  },
-                                                  child: Text("검색")),
-                                              TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(con);
-                                                    searchInput.clear();
-                                                  },
-                                                  child: Text("취소")),
-                                            ],
-                                          ));
-                                    });
-                                  });
-                            },
-                          ),
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                            onPressed: () {
-                              var myInfo = fp.getInfo();
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                            },
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                headerDivider(),
-                // ------------------------------ 아래에 지도 추가 ------------------------------
-
-
-
-
-              ]);
-            }),
-      ),
-      floatingActionButton: FloatingActionButton(
-          backgroundColor: Color(0xff639ee1),
-          child: Image(
-            image: AssetImage('assets/images/icon/iconpencil.png'),
-            height: 28,
-            width: 28,
-          ),
-          onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryWrite()));
-          }),
-    );
-  }
-}
-
-/* ---------------------- Board List (Delivery) ---------------------- */
-
-class DeliveryList extends StatefulWidget {
-  @override
-  DeliveryListState createState() {
-    pageState2 = DeliveryListState();
-    return pageState2;
-  }
-}
-
-class DeliveryListState extends State<DeliveryList> {
-  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
-  late FirebaseProvider fp;
-  final _formKey = GlobalKey<FormState>();
-  TextEditingController searchInput = TextEditingController();
-  String search = "";
-  bool status = false;
-  String limit = "";
-
-  @override
-  void initState() {
-    search = "제목";
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    searchInput.dispose();
-    super.dispose();
-  }
-
-  bool is_today(String time) {
-    String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]);
-    if (time.split(" ")[0] == now) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    fp = Provider.of<FirebaseProvider>(context);
-    fp.setInfo();
-
-    return Scaffold(
-      body: RefreshIndicator(
-        //당겨서 새로고침
-        onRefresh: () async {
-          setState(() {
-            colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
-          });
-        },
-        child: StreamBuilder<QuerySnapshot>(
-            stream: colstream,
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (!snapshot.hasData) {
-                return CircularProgressIndicator();
-              }
-              return Column(children: [
-                cSizedBox(35, 0),
-                Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      headerText("배달"),
-                      cSizedBox(0, 50),
-                      Wrap(
-                        spacing: -5,
-                        children: [
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
-                            onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryMap()));
-                            },
-                          ),
-                          //새로고침 기능
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
-                            onPressed: () {
-                              setState(() {
-                                colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
-                              });
-                            },
-                          ),
-                          //검색 기능 팝업
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
-                            onPressed: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (BuildContext con) {
-                                    return StatefulBuilder(builder: (con, setS) {
-                                      return Form(
-                                          key: _formKey,
-                                          child: AlertDialog(
-                                            title: Row(
-                                              children: [
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "제목",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setS(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
-                                                ),
-                                                Text(
-                                                  "제목 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "태그",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setS(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
-                                                ),
-                                                Text(
-                                                  "태그 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            content: TextFormField(
-                                                controller: searchInput,
-                                                decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
-                                                validator: (text) {
-                                                  if (text == null || text.isEmpty) {
-                                                    return "검색어를 입력하지 않으셨습니다.";
-                                                  }
-                                                  return null;
-                                                }),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                  onPressed: () {
-                                                    if (_formKey.currentState!.validate()) {
-                                                      if (search == "제목") {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      } else {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
+                                                          colstream = FirebaseFirestore.instance.collection('sgroup_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
                                                         });
                                                         searchInput.clear();
                                                         Navigator.pop(con);
@@ -737,9 +534,9 @@ class DeliveryListState extends State<DeliveryList> {
                                 setState(() {
                                   status = val ?? false;
                                   if (status) {
-                                    colstream = FirebaseFirestore.instance.collection('delivery_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).snapshots();
+                                    colstream = FirebaseFirestore.instance.collection('sgroup_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).snapshots();
                                   } else {
-                                    colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+                                    colstream = FirebaseFirestore.instance.collection('sgroup_board').orderBy("write_time", descending: true).snapshots();
                                   }
                                 });
                               },
@@ -774,8 +571,8 @@ class DeliveryListState extends State<DeliveryList> {
                           Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                           InkWell(
                               onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
-                                FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views": doc["views"] + 1});
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => SgroupShow(doc.id)));
+                                FirebaseFirestore.instance.collection('sgroup_board').doc(doc.id).update({"views": doc["views"] + 1});
                               },
                               child: Container(
                                   margin: EdgeInsets.fromLTRB(25, 17, 10, 0),
@@ -793,7 +590,7 @@ class DeliveryListState extends State<DeliveryList> {
                                                 return GestureDetector(
                                                     onTap: () {
                                                       setState(() {
-                                                        colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: tag).snapshots();
+                                                        colstream = FirebaseFirestore.instance.collection('sgroup_board').where('tagList', arrayContains: tag).snapshots();
                                                       });
                                                     },
                                                     child: smallText(tag, 12, Color(0xffa9aaaf)));
@@ -853,26 +650,26 @@ class DeliveryListState extends State<DeliveryList> {
             width: 28,
           ),
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryWrite()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => SgroupWrite()));
           }),
     );
   }
 }
 
-/* ---------------------- Show Board (Delivery) ---------------------- */
+/* ---------------------- Show Board (Sgroup) ---------------------- */
 
-class DeliveryShow extends StatefulWidget {
-  DeliveryShow(this.id);
+class SgroupShow extends StatefulWidget {
+  SgroupShow(this.id);
   final String id;
 
   @override
-  DeliveryShowState createState() {
-    pageState3 = DeliveryShowState();
-    return pageState3;
+  SgroupShowState createState() {
+    pageState2 = SgroupShowState();
+    return pageState2;
   }
 }
 
-class DeliveryShowState extends State<DeliveryShow> {
+class SgroupShowState extends State<SgroupShow> {
   late FirebaseProvider fp;
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
@@ -901,7 +698,7 @@ class DeliveryShowState extends State<DeliveryShow> {
 
     return Scaffold(
         body: StreamBuilder(
-            stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
+            stream: fs.collection('sgroup_board').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               fp.setInfo();
 
@@ -981,7 +778,7 @@ class DeliveryShowState extends State<DeliveryShow> {
               }
             }),
         bottomNavigationBar: StreamBuilder(
-            stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
+            stream: fs.collection('sgroup_board').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               if (snapshot.hasData && !snapshot.data!.exists) {
                 return CircularProgressIndicator();
@@ -1001,7 +798,7 @@ class DeliveryShowState extends State<DeliveryShow> {
                           child: Align(alignment: Alignment.center, child: smallText("삭제", 14, Colors.white)),
                           onTap: () async {
                             Navigator.pop(context);
-                            await fs.collection('delivery_board').doc(widget.id).delete();
+                            await fs.collection('sgroup_board').doc(widget.id).delete();
                             fp.updateIntInfo('postcount', -1);
                           },
                         ),
@@ -1016,10 +813,10 @@ class DeliveryShowState extends State<DeliveryShow> {
                           child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
                           onTap: () async {
                             var tmp;
-                            await fs.collection('delivery_board').doc(widget.id).get().then((snap) {
+                            await fs.collection('sgroup_board').doc(widget.id).get().then((snap) {
                               tmp = snap.data() as Map<String, dynamic>;
                             });
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryModify(widget.id, tmp)));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => SgroupModify(widget.id, tmp)));
                             setState(() {});
                           },
                         ),
@@ -1136,20 +933,20 @@ class DeliveryShowState extends State<DeliveryShow> {
   }
 }
 
-/* ---------------------- Modify Board (Delivery) ---------------------- */
+/* ---------------------- Modify Board (Sgroup) ---------------------- */
 
-class DeliveryModify extends StatefulWidget {
-  DeliveryModify(this.id, this.datas);
+class SgroupModify extends StatefulWidget {
+  SgroupModify(this.id, this.datas);
   final String id;
   final Map<String, dynamic> datas;
   @override
   State<StatefulWidget> createState() {
-    pageState4 = DeliveryModifyState();
-    return pageState4;
+    pageState3 = SgroupModifyState();
+    return pageState3;
   }
 }
 
-class DeliveryModifyState extends State<DeliveryModify> {
+class SgroupModifyState extends State<SgroupModify> {
   late FirebaseProvider fp;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
   late TextEditingController titleInput;
@@ -1207,7 +1004,7 @@ class DeliveryModifyState extends State<DeliveryModify> {
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
             child: StreamBuilder(
-                stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
+                stream: fs.collection('sgroup_board').doc(widget.id).snapshots(),
                 builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                   if (snapshot.hasData && !snapshot.data!.exists) return CircularProgressIndicator();
                   if (snapshot.hasData) {
@@ -1335,7 +1132,7 @@ class DeliveryModifyState extends State<DeliveryModify> {
 
   void updateOnFS() async {
     var myInfo = fp.getInfo();
-    await fs.collection('delivery_board').doc(widget.id).update({
+    await fs.collection('sgroup_board').doc(widget.id).update({
       'title': titleInput.text,
       'contents': contentInput.text,
       //원래 이전 날짜 기억하려 d 사용했다가 현재 잠시 바꿈 (오늘, 내일 테스트용)
@@ -1348,7 +1145,7 @@ class DeliveryModifyState extends State<DeliveryModify> {
       'members': [],
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({
-      'where': 'delivery_board',
+      'where': 'sgroup_board',
       'isFineForMembers': [],
       'members': [],
     });
