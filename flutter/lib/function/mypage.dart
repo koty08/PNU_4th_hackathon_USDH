@@ -163,7 +163,7 @@ class MyPageState extends State<MyPage> {
                         spacing: 10,
                         children: [
                           cSizedBox(5, 0),
-                          Container(padding: EdgeInsets.fromLTRB(5, 10, 0, 20), child: infoText("내 정보")),
+                          Container(padding: EdgeInsets.fromLTRB(0, 10, 0, 20), child: infoText("내 정보")),
                           touchableText(() {
                             fp.PWReset();
                             fp.setMessage("reset-pw");
@@ -231,7 +231,7 @@ class MyPageState extends State<MyPage> {
                         spacing: 10,
                         children: [
                           cSizedBox(5, 0),
-                          Container(padding: EdgeInsets.fromLTRB(5, 10, 0, 20), child: infoText("신청 이력")),
+                          Container(padding: EdgeInsets.fromLTRB(0, 10, 0, 20), child: infoText("신청 이력")),
                           touchableText(() {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => ApplicantListBoard(myId: fp.getInfo()['email'])));
                           },"신청자 목록"),
@@ -253,7 +253,7 @@ class MyPageState extends State<MyPage> {
                         spacing: 10,
                         children: [
                           cSizedBox(5, 0),
-                          Container(padding: EdgeInsets.fromLTRB(5, 10, 0, 20), child: infoText("이용 정보")),
+                          Container(padding: EdgeInsets.fromLTRB(0, 10, 0, 20), child: infoText("이용 정보")),
                           touchableText(() async {
                             Navigator.popUntil(context, (route) => route.isFirst);
                             fp.signOut();

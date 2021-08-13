@@ -339,15 +339,6 @@ class DeliveryMapState extends State<DeliveryMap> {
     super.dispose();
   }
 
-  bool is_today(String time) {
-    String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]);
-    if (time.split(" ")[0] == now) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
