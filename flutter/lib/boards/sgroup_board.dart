@@ -16,7 +16,7 @@ late SgroupListState pageState1;
 late SgroupShowState pageState2;
 late SgroupModifyState pageState3;
 
-bool is_available(String time, int n1, int n2) {
+bool isAvailable(String time, int n1, int n2) {
   if (n1 >= n2) {
     return false;
   }
@@ -31,7 +31,7 @@ bool is_available(String time, int n1, int n2) {
   }
 }
 
-bool is_tomorrow(String time) {
+bool isTomorrow(String time) {
   String now = formatDate(DateTime.now(), [HH, ':', nn, ':', ss]);
   print("마감 " + time);
   print("현재 " + now);
@@ -61,8 +61,8 @@ class SgroupWriteState extends State<SgroupWrite> {
   TextEditingController contentInput = TextEditingController();
   TextEditingController timeInput = TextEditingController();
   TextEditingController memberInput = TextEditingController();
-  TextEditingController foodInput = TextEditingController();
-  TextEditingController locationInput = TextEditingController();
+  TextEditingController stuidInput = TextEditingController();
+  TextEditingController subjectInput = TextEditingController();
   TextEditingController tagInput = TextEditingController();
   FirebaseStorage storage = FirebaseStorage.instance;
   FirebaseFirestore fs = FirebaseFirestore.instance;
@@ -89,8 +89,8 @@ class SgroupWriteState extends State<SgroupWrite> {
     contentInput.dispose();
     timeInput.dispose();
     memberInput.dispose();
-    foodInput.dispose();
-    locationInput.dispose();
+    stuidInput.dispose();
+    subjectInput.dispose();
     tagInput.dispose();
     super.dispose();
   }
@@ -143,6 +143,41 @@ class SgroupWriteState extends State<SgroupWrite> {
                     spacing: 15,
                     children: [
                       Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                      Wrap(
+                        spacing : 15,
+                        children: [
+                          cond2Text("날짜 선택 ->"),
+                          IconButton(
+                            onPressed: () {
+                              Future<DateTime?> future = showDatePicker(
+                                context: context,
+                                initialDate: selectedDate,
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime(2025),
+                                builder: (BuildContext context, Widget? child){
+                                  return Theme(
+                                    data: ThemeData.light(),
+                                    child: child!,
+                                  );
+                                },
+                              );
+
+                              future.then((date){
+                                if(date == null){
+                                  print("날짜를 선택해주십시오.");
+                                }
+                                else{
+                                  setState(() {
+                                    selectedDate = date;
+                                  });
+                                }
+                              });
+                            }, 
+                            icon: Icon(Icons.calendar_today),
+                          ),
+                          Text("마감 날짜 : " + formatDate(selectedDate, [yyyy, '-', mm, '-', dd,]))
+                        ]
+                      ),
                       Padding(
                           padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
                           child: Wrap(
@@ -154,30 +189,7 @@ class SgroupWriteState extends State<SgroupWrite> {
                               Wrap(
                                 spacing: 15,
                                 children: [
-                                  cond2Text("모집기간"),
-                                  IconButton(
-                                    onPressed: () {
-                                      Future<DateTime?> future = showDatePicker(
-                                        context: context,
-                                        initialDate: DateTime.now(),
-                                        firstDate: DateTime.now(),
-                                        lastDate: DateTime(2025),
-                                        builder: (BuildContext context, Widget? child){
-                                          return Theme(
-                                            data: ThemeData.light(),
-                                            child: child!,
-                                          );
-                                        },
-                                      );
-
-                                      future.then((date){
-                                        setState(() {
-                                          selectedDate = date!;
-                                        });
-                                      });
-                                    }, 
-                                    icon: Icon(Icons.calendar_today),
-                                  ),
+                                  cond2Text("마감시간"),
                                   Container(width: 250, height: 20,
                                     margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
                                     child: TextFormField(
@@ -200,8 +212,8 @@ class SgroupWriteState extends State<SgroupWrite> {
                                 ],
                               ),
                               condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
-                              condWrap("음식종류", foodInput, "음식 종류를 입력하세요.", "음식 종류는 필수 입력 사항입니다."),
-                              condWrap("배분위치", locationInput, "위치를 입력하세요.", "위치는 필수 입력 사항입니다."),
+                              condWrap("학번", stuidInput, "요구학번을 입력하세요. (ex 18~21 or 상관없음)", "필수 입력 사항입니다."),
+                              condWrap("주제", subjectInput, "주제를 입력하세요.", "주제는 필수 입력 사항입니다."),
                             ],
                           )),
                     ],
@@ -276,14 +288,13 @@ class SgroupWriteState extends State<SgroupWrite> {
     await fs.collection('sgroup_board').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
       'title': titleInput.text,
       'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
-      'writer': myInfo['name'],
+      'writer': myInfo['nick'],
       'contents': contentInput.text,
-      'time': is_tomorrow(timeInput.text+":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00"
-      : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
+      'time': formatDate(selectedDate, [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
       'currentMember': 1,
       'limitedMember': int.parse(memberInput.text),
-      'food': foodInput.text,
-      'location': locationInput.text,
+      'stuid': stuidInput.text,
+      'subject': subjectInput.text,
       'tagList': tagList,
       'views': 0,
     });
@@ -357,7 +368,7 @@ class SgroupListState extends State<SgroupList> {
     super.dispose();
   }
 
-  bool is_today(String time) {
+  bool isToday(String time) {
     String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]);
     if (time.split(" ")[0] == now) {
       return true;
@@ -398,7 +409,7 @@ class SgroupListState extends State<SgroupList> {
                           Navigator.pop(context);
                         },
                       ),
-                      headerText("배달"),
+                      headerText("소모임"),
                       cSizedBox(0, 50),
                       Wrap(
                         spacing: -5,
@@ -565,7 +576,7 @@ class SgroupListState extends State<SgroupList> {
                         final DocumentSnapshot doc = snapshot.data!.docs[index];
                         String member = doc['currentMember'].toString() + '/' + doc['limitedMember'].toString();
                         String info = doc['time'].substring(5, 7) + "/" + doc['time'].substring(8, 10) + doc['write_time'].substring(10, 16);
-                        String time = ' | ' + '마감' + doc['time'].substring(10, 16) + ' | ';
+                        String time = ' | ' + '마감 ' + doc['time'].substring(5, 7) + "/" + doc['time'].substring(8, 10) + doc['time'].substring(10, 16) + ' | ';
                         String writer = doc['writer'];
                         return Column(children: [
                           Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
@@ -601,7 +612,7 @@ class SgroupListState extends State<SgroupList> {
                                           child: Row(
                                             crossAxisAlignment: CrossAxisAlignment.end,
                                             children: [
-                                              is_available(doc['time'], doc['currentMember'], doc['limitedMember'])
+                                              isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])
                                                   ? Image(
                                                       image: AssetImage('assets/images/icon/iconminiperson.png'),
                                                       height: 15,
@@ -612,13 +623,15 @@ class SgroupListState extends State<SgroupList> {
                                                       height: 15,
                                                       width: 15,
                                                     ),
-                                              cSizedBox(20, 7),
+
+                                              //overflow돼서 좀 줄였습니다.
+                                              cSizedBox(20, 4),
                                               smallText(member, 13, Color(0xffa9aaaf))
                                             ],
                                           ))
                                     ]),
                                     Row(children: [
-                                      is_available(doc['time'], doc['currentMember'], doc['limitedMember']) ? statusText("모집중") : statusText("모집완료"),
+                                      isAvailable(doc['time'], doc['currentMember'], doc['limitedMember']) ? statusText("모집중") : statusText("모집완료"),
                                       cSizedBox(0, 10),
                                       Container(
                                         width: MediaQuery.of(context).size.width * 0.6,
@@ -634,7 +647,7 @@ class SgroupListState extends State<SgroupList> {
                                         smallText(writer, 10, Color(0xffa9aaaf)),
                                       ],
                                     ),
-                                    cSizedBox(10, 0)
+                                    cSizedBox(10, 0),
                                   ])))
                         ]);
                       }),
@@ -677,6 +690,8 @@ class SgroupShowState extends State<SgroupShow> {
 
   SharedPreferences? prefs;
   bool alreadyLiked = false;
+  bool status = false;
+
 
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
 
@@ -706,8 +721,9 @@ class SgroupShowState extends State<SgroupShow> {
                 return CircularProgressIndicator();
               } else if (snapshot.hasData) {
                 String info = snapshot.data!['write_time'].substring(5, 7) + "/" + snapshot.data!['write_time'].substring(8, 10) + snapshot.data!['write_time'].substring(10, 16) + ' | ';
-                String time = snapshot.data!['time'].substring(10, 16);
+                String time = snapshot.data!['write_time'].substring(5, 7) + "/" + snapshot.data!['write_time'].substring(8, 10) + snapshot.data!['time'].substring(10, 16);
                 String writer = snapshot.data!['writer'];
+
                 return SingleChildScrollView(
                     child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -723,7 +739,7 @@ class SgroupShowState extends State<SgroupShow> {
                               Navigator.pop(context);
                             },
                           ),
-                          headerText("배달"),
+                          headerText("소모임"),
                           cSizedBox(0, 250),
                         ],
                       ),
@@ -755,14 +771,15 @@ class SgroupShowState extends State<SgroupShow> {
                                     direction: Axis.vertical,
                                     spacing: 15,
                                     children: [
-                                      cond2Wrap("모집기간", time),
+                                      cond2Wrap("모집기간", "~ " + time),
                                       cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
-                                      cond2Wrap("음식종류", snapshot.data!['food']),
-                                      cond2Wrap("배분위치", snapshot.data!['location']),
+                                      cond2Wrap("학번", snapshot.data!['stuid']),
+                                      cond2Wrap("주제", snapshot.data!['subject']),
                                     ],
                                   ))
                             ],
-                          )),
+                          )
+                      ),
                       Divider(
                         color: Color(0xffe9e9e9),
                         thickness: 15,
@@ -770,6 +787,84 @@ class SgroupShowState extends State<SgroupShow> {
                       Padding(
                         padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
                         child: Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
+                      ),
+                      Padding(
+                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                          child: Wrap(
+                            direction: Axis.vertical,
+                            spacing: 15,
+                            children: [
+                              Text("팀장 정보", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                              FutureBuilder<QuerySnapshot>(
+                                future: fs.collection('users').where('nick', isEqualTo: writer).get(),
+                                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap){
+                                  if(snap.hasData){
+                                    DocumentSnapshot doc = snap.data!.docs[0];
+                                    return Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(60),
+                                              child: Image.network(
+                                                doc['photoUrl'],
+                                                width: 60, height: 60,
+                                              ),
+                                            ),
+                                            cSizedBox(10, 20),
+                                            cond2Text(doc['nick'] + "(" + doc['num'].toString() + ")"),
+                                          ],
+                                        ),
+                                        Text(doc['myintro']),
+                                        TextButton(
+                                          onPressed: () {
+                                            if(status == false){
+                                              setState(() {
+                                                status = true;
+                                              });
+                                            }
+                                            else{
+                                              setState(() {
+                                                status = false;
+                                              });
+                                            }
+                                          },
+                                          child: Text("팀장 자기소개서 V"),
+                                        ),
+                                        //자기소개서 onoff표시
+                                        (doc['portfolio'] == List.empty())?
+                                          Visibility(
+                                            visible: status,
+                                            child: Column(
+                                              children: [
+                                                Text("포트폴리오를 작성하지 않으셨습니다."),
+                                              ],
+                                            )
+                                          ):
+
+                                          Visibility(
+                                            visible: status,
+                                            child: Column(
+                                              children: [
+                                                
+                                                cond2Text(doc['portfolio'][2]),
+                                                Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
+                                                cond2Text(doc['portfolio'][0]),
+                                                Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
+                                                cond2Text(doc['portfolio'][1]),
+                                              ],
+                                            )
+                                          )
+                                      ],
+                                    );
+                                  }
+                                  else{
+                                    return CircularProgressIndicator();
+                                  }
+                                }
+                              ),
+                            ],
+                          )
                       ),
                   ],
                 ));
@@ -953,11 +1048,11 @@ class SgroupModifyState extends State<SgroupModify> {
   late TextEditingController contentInput;
   late TextEditingController timeInput;
   late TextEditingController memberInput;
-  late TextEditingController foodInput;
-  late TextEditingController locationInput;
+  late TextEditingController stuidInput;
+  late TextEditingController subjectInput;
   late TextEditingController tagInput;
   List<dynamic> tagList = [];
-  late DateTime d;
+  late DateTime selectedDate;
 
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
@@ -972,13 +1067,13 @@ class SgroupModifyState extends State<SgroupModify> {
   void initState() {
     setState(() {
       tagList = widget.datas['tagList'];
-      d = DateTime.parse(widget.datas['time']);
+      selectedDate = DateTime.parse(widget.datas['time']);
       titleInput = TextEditingController(text: widget.datas['title']);
-      timeInput = TextEditingController(text: formatDate(d, [HH, ':', nn]));
+      timeInput = TextEditingController(text: formatDate(selectedDate, [HH, ':', nn]));
       contentInput = TextEditingController(text: widget.datas['contents']);
       memberInput = TextEditingController(text: widget.datas['limitedMember'].toString());
-      foodInput = TextEditingController(text: widget.datas['food']);
-      locationInput = TextEditingController(text: widget.datas['location']);
+      stuidInput = TextEditingController(text: widget.datas['stuid']);
+      subjectInput = TextEditingController(text: widget.datas['subject']);
       tagInput = TextEditingController();
     });
     super.initState();
@@ -990,8 +1085,8 @@ class SgroupModifyState extends State<SgroupModify> {
     contentInput.dispose();
     timeInput.dispose();
     memberInput.dispose();
-    foodInput.dispose();
-    locationInput.dispose();
+    stuidInput.dispose();
+    subjectInput.dispose();
     tagInput.dispose();
     super.dispose();
   }
@@ -1048,16 +1143,75 @@ class SgroupModifyState extends State<SgroupModify> {
                                   spacing: 15,
                                   children: [
                                     Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                                    Wrap(
+                                      spacing : 15,
+                                      children: [
+                                        cond2Text("날짜 선택 ->"),
+                                        IconButton(
+                                          onPressed: () {
+                                            Future<DateTime?> future = showDatePicker(
+                                              context: context,
+                                              initialDate: selectedDate,
+                                              firstDate: DateTime.now(),
+                                              lastDate: DateTime(2025),
+                                              builder: (BuildContext context, Widget? child){
+                                                return Theme(
+                                                  data: ThemeData.light(),
+                                                  child: child!,
+                                                );
+                                              },
+                                            );
+
+                                            future.then((date){
+                                              if(date == null){
+                                                print("날짜를 선택해주십시오.");
+                                              }
+                                              else{
+                                                setState(() {
+                                                  selectedDate = date;
+                                                });
+                                              }
+                                            });
+                                          }, 
+                                          icon: Icon(Icons.calendar_today),
+                                        ),
+                                        Text("마감 날짜 : " + formatDate(selectedDate, [yyyy, '-', mm, '-', dd,]))
+                                      ]
+                                    ),
                                     Padding(
                                         padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
                                         child: Wrap(
                                           direction: Axis.vertical,
                                           spacing: 15,
                                           children: [
-                                            condWrap("모집기간", timeInput, "마감 시간 입력 : xx:xx (ex 21:32 형태)", "마감 시간은 필수 입력 사항입니다."),
+                                            Wrap(
+                                              spacing: 15,
+                                              children: [
+                                                cond2Text("마감시간"),
+                                                Container(width: 250, height: 20,
+                                                  margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
+                                                  child: TextFormField(
+                                                    controller: timeInput,
+                                                    style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
+                                                    decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)", border: InputBorder.none, focusedBorder: InputBorder.none),
+                                                    validator: (text) {
+                                                      if (text == null || text.isEmpty) {
+                                                        return "마감 시간은 필수 입력 사항입니다.";
+                                                      }
+                                                      else if(isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])){
+                                                        return null;
+                                                      }
+                                                      else{
+                                                        return "올바른 형식으로 입력해주세요. (ex 09:10)";
+                                                      }
+                                                    }
+                                                  ),
+                                                )
+                                              ],
+                                            ),
                                             condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
-                                            condWrap("음식종류", foodInput, "음식 종류를 입력하세요.", "음식 종류는 필수 입력 사항입니다."),
-                                            condWrap("배분위치", locationInput, "위치를 입력하세요.", "위치는 필수 입력 사항입니다."),
+                                            condWrap("학번", stuidInput, "요구학번을 입력하세요. (ex 18~21 or 상관없음)", "필수 입력 사항입니다."),
+                                            condWrap("주제", subjectInput, "주제를 입력하세요.", "주제는 필수 입력 사항입니다."),
                                           ],
                                         )),
                                   ],
@@ -1135,12 +1289,10 @@ class SgroupModifyState extends State<SgroupModify> {
     await fs.collection('sgroup_board').doc(widget.id).update({
       'title': titleInput.text,
       'contents': contentInput.text,
-      //원래 이전 날짜 기억하려 d 사용했다가 현재 잠시 바꿈 (오늘, 내일 테스트용)
-      'time': is_tomorrow(timeInput.text+":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00"
-      : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
+      'time': formatDate(selectedDate, [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
       'limitedMember': int.parse(memberInput.text),
-      'food': foodInput.text,
-      'location': locationInput.text,
+      'stuid': stuidInput.text,
+      'subject': subjectInput.text,
       'tagList': tagList,
       'members': [],
     });
