@@ -47,11 +47,9 @@ class ChatState extends State<Chat> {
 
   // 채팅방 나가기
   Future<Null> exitChat() async {
-    // 참가 중인 방 목록에서 제거
     await FirebaseFirestore.instance.collection('users').doc(myId).update({
       'joiningIn': FieldValue.arrayRemove([groupChatId])
     });
-    // 메세지 기록 제거 (본인, 그룹 멤버들)
     // 본인
     await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').get().then((value) {
       if (value.docs.isNotEmpty) {
@@ -67,7 +65,7 @@ class ChatState extends State<Chat> {
         'chatMembers': FieldValue.arrayRemove([myId])
       });
     }
-    // post의 currentMember - 1 해줌
+    // post의 currentMember - 1
     int currentMember = 0;
     await FirebaseFirestore.instance.collection('delivery_board').doc(groupChatId).get().then((value) {
       currentMember = value['currentMember'];
@@ -196,7 +194,6 @@ class ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // 어플을 껐다 켜도 데이터 유지되도록
   void readLocal() async {
     // 본인 email is chattingWith 상대방 email
     FirebaseFirestore.instance.collection('users').doc(myId).update({'chattingWith': FieldValue.arrayUnion(peerIds)});
@@ -215,6 +212,7 @@ class ChatScreenState extends State<ChatScreen> {
     // 2. 내 messageWith에 추가
     await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).set({
       'chatMembers': peerIds,
+      'lastTimeSeen': DateTime.now().millisecondsSinceEpoch.toString(),
     });
 
     // 내 정보를 상대방 messageWith에 저장
@@ -237,6 +235,7 @@ class ChatScreenState extends State<ChatScreen> {
       _peerIds.add(myId);
       await FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).set({
         'chatMembers': _peerIds,
+        'lastTimeSeen': DateTime.now().millisecondsSinceEpoch.toString(),
       });
     }
 
@@ -293,9 +292,9 @@ class ChatScreenState extends State<ChatScreen> {
     if (content.trim() != '') {
       textEditingController.clear();
 
-      var myDocumentReference = FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString());
+      DocumentReference myDocumentReference = FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString());
 
-      var peersDocumentReference = [];
+      List<DocumentReference> peersDocumentReference = [];
       for (var peerId in peerIds) {
         peersDocumentReference.add(FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString()));
       }

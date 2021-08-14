@@ -16,7 +16,7 @@ late DeliveryListState pageState2;
 late DeliveryShowState pageState3;
 late DeliveryModifyState pageState4;
 
-bool is_available(String time, int n1, int n2) {
+bool isAvailable(String time, int n1, int n2) {
   if (n1 >= n2) {
     return false;
   }
@@ -31,7 +31,7 @@ bool is_available(String time, int n1, int n2) {
   }
 }
 
-bool is_tomorrow(String time) {
+bool isTomorrow(String time) {
   String now = formatDate(DateTime.now(), [HH, ':', nn, ':', ss]);
   print("마감 " + time);
   print("현재 " + now);
@@ -231,7 +231,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
       'writer': myInfo['name'],
       'contents': contentInput.text,
-      'time': is_tomorrow(timeInput.text+":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00"
+      'time': isTomorrow(timeInput.text+":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00"
       : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
       'currentMember': 1,
       'limitedMember': int.parse(memberInput.text),
@@ -781,7 +781,7 @@ class DeliveryListState extends State<DeliveryList> {
                                           child: Row(
                                             crossAxisAlignment: CrossAxisAlignment.end,
                                             children: [
-                                              is_available(doc['time'], doc['currentMember'], doc['limitedMember'])
+                                              isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])
                                                   ? Image(
                                                       image: AssetImage('assets/images/icon/iconminiperson.png'),
                                                       height: 15,
@@ -798,7 +798,7 @@ class DeliveryListState extends State<DeliveryList> {
                                           ))
                                     ]),
                                     Row(children: [
-                                      is_available(doc['time'], doc['currentMember'], doc['limitedMember']) ? statusText("모집중") : statusText("모집완료"),
+                                      isAvailable(doc['time'], doc['currentMember'], doc['limitedMember']) ? statusText("모집중") : statusText("모집완료"),
                                       cSizedBox(0, 10),
                                       Container(
                                         width: MediaQuery.of(context).size.width * 0.6,
@@ -1320,7 +1320,7 @@ class DeliveryModifyState extends State<DeliveryModify> {
       'title': titleInput.text,
       'contents': contentInput.text,
       //원래 이전 날짜 기억하려 d 사용했다가 현재 잠시 바꿈 (오늘, 내일 테스트용)
-      'time': is_tomorrow(timeInput.text+":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00"
+      'time': isTomorrow(timeInput.text+":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00"
       : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
       'limitedMember': int.parse(memberInput.text),
       'food': foodInput.text,
@@ -1336,4 +1336,3 @@ class DeliveryModifyState extends State<DeliveryModify> {
     });
   }
 }
-
