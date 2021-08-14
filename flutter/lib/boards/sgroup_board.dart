@@ -64,6 +64,7 @@ class SgroupWriteState extends State<SgroupWrite> {
   TextEditingController stuidInput = TextEditingController();
   TextEditingController subjectInput = TextEditingController();
   TextEditingController tagInput = TextEditingController();
+  TextEditingController myintroInput = TextEditingController();
   FirebaseStorage storage = FirebaseStorage.instance;
   FirebaseFirestore fs = FirebaseFirestore.instance;
   List tagList = [];
@@ -92,6 +93,7 @@ class SgroupWriteState extends State<SgroupWrite> {
     stuidInput.dispose();
     subjectInput.dispose();
     tagInput.dispose();
+    myintroInput.dispose();
     super.dispose();
   }
 
@@ -277,6 +279,7 @@ class SgroupWriteState extends State<SgroupWrite> {
                       return null;
                     })
               ),
+              condWrap("자기소개", myintroInput, "자기소개 혹은 어필을 할 수 있는 칸", "자기소개는 필수 입력 사항입니다."),
               cSizedBox(350, 0)
             ],
           ),
@@ -296,6 +299,7 @@ class SgroupWriteState extends State<SgroupWrite> {
       'stuid': stuidInput.text,
       'subject': subjectInput.text,
       'tagList': tagList,
+      'myintro' : myintroInput.text,
       'views': 0,
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
@@ -721,7 +725,7 @@ class SgroupShowState extends State<SgroupShow> {
                 return CircularProgressIndicator();
               } else if (snapshot.hasData) {
                 String info = snapshot.data!['write_time'].substring(5, 7) + "/" + snapshot.data!['write_time'].substring(8, 10) + snapshot.data!['write_time'].substring(10, 16) + ' | ';
-                String time = snapshot.data!['write_time'].substring(5, 7) + "/" + snapshot.data!['write_time'].substring(8, 10) + snapshot.data!['time'].substring(10, 16);
+                String time = snapshot.data!['time'].substring(5, 7) + "/" + snapshot.data!['time'].substring(8, 10) + snapshot.data!['time'].substring(10, 16);
                 String writer = snapshot.data!['writer'];
 
                 return SingleChildScrollView(
@@ -815,7 +819,7 @@ class SgroupShowState extends State<SgroupShow> {
                                             cond2Text(doc['nick'] + "(" + doc['num'].toString() + ")"),
                                           ],
                                         ),
-                                        Text(doc['myintro']),
+                                        Text(snapshot.data!['myintro']),
                                         TextButton(
                                           onPressed: () {
                                             if(status == false){
@@ -832,12 +836,12 @@ class SgroupShowState extends State<SgroupShow> {
                                           child: Text("팀장 자기소개서 V"),
                                         ),
                                         //자기소개서 onoff표시
-                                        (doc['portfolio'] == List.empty())?
+                                        (doc['coverletter'] == List.empty())?
                                           Visibility(
                                             visible: status,
                                             child: Column(
                                               children: [
-                                                Text("포트폴리오를 작성하지 않으셨습니다."),
+                                                Text("자기소개서를 작성하지 않으셨습니다."),
                                               ],
                                             )
                                           ):
@@ -846,12 +850,13 @@ class SgroupShowState extends State<SgroupShow> {
                                             visible: status,
                                             child: Column(
                                               children: [
-                                                
-                                                cond2Text(doc['portfolio'][2]),
+                                                (doc['coverletter_tag'] != List.empty())?
+                                                  tagText(doc['coverletter_tag'].join('')):
+                                                  Text("태그없음"),
                                                 Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                                cond2Text(doc['portfolio'][0]),
+                                                cond2Text(doc['coverletter'][0]),
                                                 Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                                cond2Text(doc['portfolio'][1]),
+                                                cond2Text(doc['coverletter'][1]),
                                               ],
                                             )
                                           )
@@ -1051,6 +1056,7 @@ class SgroupModifyState extends State<SgroupModify> {
   late TextEditingController stuidInput;
   late TextEditingController subjectInput;
   late TextEditingController tagInput;
+  late TextEditingController myintroInput;
   List<dynamic> tagList = [];
   late DateTime selectedDate;
 
@@ -1075,6 +1081,7 @@ class SgroupModifyState extends State<SgroupModify> {
       stuidInput = TextEditingController(text: widget.datas['stuid']);
       subjectInput = TextEditingController(text: widget.datas['subject']);
       tagInput = TextEditingController();
+      myintroInput = TextEditingController(text: widget.datas['myintro']);
     });
     super.initState();
   }
@@ -1276,6 +1283,7 @@ class SgroupModifyState extends State<SgroupModify> {
                                     return null;
                                   })
                             ),
+                            condWrap("자기소개", myintroInput, "자기소개 혹은 어필을 할 수 있는 칸", "자기소개는 필수 입력 사항입니다."),
                             cSizedBox(350, 0)
                           ],
                         ));
@@ -1294,6 +1302,7 @@ class SgroupModifyState extends State<SgroupModify> {
       'stuid': stuidInput.text,
       'subject': subjectInput.text,
       'tagList': tagList,
+      'myintro' : myintroInput.text,
       'members': [],
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({

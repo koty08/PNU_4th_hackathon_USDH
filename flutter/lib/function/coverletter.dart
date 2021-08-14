@@ -8,17 +8,17 @@ import 'package:provider/provider.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/login/firebase_provider.dart';
 
-late PortfolioState pageState;
+late CoverletterState pageState;
 
-class Portfolio extends StatefulWidget {
+class Coverletter extends StatefulWidget {
   @override
-  PortfolioState createState() {
-    pageState = PortfolioState();
+  CoverletterState createState() {
+    pageState = CoverletterState();
     return pageState;
   }
 }
 
-class PortfolioState extends State<Portfolio> {
+class CoverletterState extends State<Coverletter> {
   late FirebaseProvider fp;
   TextEditingController introInput = TextEditingController();
   TextEditingController specInput = TextEditingController();
@@ -49,15 +49,15 @@ class PortfolioState extends State<Portfolio> {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
 
-    if(fp.getInfo()['portfolio'].length != 0){
-      introInput = TextEditingController(text: fp.getInfo()['portfolio'][0]);
-      specInput = TextEditingController(text: fp.getInfo()['portfolio'][1]);
+    if(fp.getInfo()['coverletter'].length != 0){
+      introInput = TextEditingController(text: fp.getInfo()['coverletter'][0]);
+      specInput = TextEditingController(text: fp.getInfo()['coverletter'][1]);
       inputcheck = false;
     }
 
-    if(fp.getInfo()['portfolio_tag'].length != 0){
+    if(fp.getInfo()['coverletter_tag'].length != 0){
       setState(() {
-        tagList = fp.getInfo()['portfolio_tag'];
+        tagList = fp.getInfo()['coverletter_tag'];
       });
     }
 
@@ -79,7 +79,7 @@ class PortfolioState extends State<Portfolio> {
                   },
                 ),
                 cSizedBox(0, 10),
-                headerText("내 포트폴리오"),
+                headerText("내 자기소개서"),
                 cSizedBox(0, 200),
                 ],
             ),
@@ -252,8 +252,8 @@ class PortfolioState extends State<Portfolio> {
     List<dynamic> list = [introInput.text, specInput.text];
 
     await fs.collection('users').doc(fp.getUser()!.email).update({
-      'portfolio': list,
-      'portfolio_tag' : tagList,
+      'coverletter': list,
+      'coverletter_tag' : tagList,
     });
   }
 }
