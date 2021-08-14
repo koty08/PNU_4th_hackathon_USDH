@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:usdh/Widget/widget.dart';
+import 'package:usdh/function/coverletter.dart';
 import 'package:usdh/function/portfolio.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
@@ -163,7 +164,7 @@ class MyPageState extends State<MyPage> {
                         spacing: 10,
                         children: [
                           cSizedBox(5, 0),
-                          Container(padding: EdgeInsets.fromLTRB(5, 10, 0, 20), child: infoText("내 정보")),
+                          Container(padding: EdgeInsets.fromLTRB(0, 10, 0, 20), child: infoText("내 정보")),
                           touchableText(() {
                             fp.PWReset();
                             fp.setMessage("reset-pw");
@@ -180,42 +181,7 @@ class MyPageState extends State<MyPage> {
                           cSizedBox(2,0),
 
                           touchableText(() {
-                            if(fp.getInfo()['myintro'] == ""){
-                              myIntroInput = TextEditingController();
-                            }
-                            else{
-                              myIntroInput = TextEditingController(text: fp.getInfo()['myintro']);
-                            }
-                            showDialog(context: context,
-                                builder: (BuildContext con){
-                                  return AlertDialog(
-                                    title: Text("자기소개 변경"),
-                                    content: TextField(
-                                      controller: myIntroInput,
-                                      decoration: InputDecoration(hintText: "자기소개를 입력하세요."),
-                                    ),
-                                    actions: <Widget>[
-                                      TextButton(onPressed: () {
-                                        setState(() {
-                                          fs.collection('users').doc(fp.getUser()!.email).update({
-                                            'myintro' : myIntroInput.text
-                                          });
-                                        });
-                                        Navigator.pop(con);
-                                        fp.setMessage("intro");
-                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                        showMessage();
-                                      },
-                                          child: Text("입력")
-                                      ),
-                                      TextButton(onPressed: (){
-                                        Navigator.pop(con);
-                                      },
-                                          child: Text("취소")
-                                      ),
-                                    ],
-                                  );
-                                });
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => Coverletter()));
                           }, "자기소개 변경"),
                         ],
                       ),
@@ -231,7 +197,7 @@ class MyPageState extends State<MyPage> {
                         spacing: 10,
                         children: [
                           cSizedBox(5, 0),
-                          Container(padding: EdgeInsets.fromLTRB(5, 10, 0, 20), child: infoText("신청 이력")),
+                          Container(padding: EdgeInsets.fromLTRB(0, 10, 0, 20), child: infoText("신청 이력")),
                           touchableText(() {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => ApplicantListBoard(myId: fp.getInfo()['email'])));
                           },"신청자 목록"),
@@ -253,7 +219,7 @@ class MyPageState extends State<MyPage> {
                         spacing: 10,
                         children: [
                           cSizedBox(5, 0),
-                          Container(padding: EdgeInsets.fromLTRB(5, 10, 0, 20), child: infoText("이용 정보")),
+                          Container(padding: EdgeInsets.fromLTRB(0, 10, 0, 20), child: infoText("이용 정보")),
                           touchableText(() async {
                             Navigator.popUntil(context, (route) => route.isFirst);
                             fp.signOut();

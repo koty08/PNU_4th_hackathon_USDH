@@ -8,6 +8,26 @@ Widget cSizedBox(double h, double w) {
   );
 }
 
+/* ---------------------- inputNav ---------------------- */
+
+Widget inputNav2(String data, String text) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(padding: EdgeInsets.fromLTRB(35, 0, 0, 30)),
+      Image(image: AssetImage(data), height: 19, width: 19,),
+      Container(
+        height: 25,
+        child: Text(
+          text,
+          style: TextStyle(fontFamily: "SCDream", color: Color(0xff548ee0), fontWeight: FontWeight.w500, fontSize: 17),
+          textAlign: TextAlign.left,
+        ),
+      ),
+    ],
+  );
+}
+
 
 /* ---------------------- Divider ---------------------- */
 

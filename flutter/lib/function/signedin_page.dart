@@ -3,6 +3,7 @@ import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:usdh/boards/sgroup_board.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'package:usdh/function/board.dart';
@@ -74,7 +75,7 @@ class SignedInPageState extends State<SignedInPage> {
             children: [
               cSizedBox(0, 40),
               imageAndText('assets/images/icon/iconteam.png', "팀빌딩", ListBoard()),
-              imageAndText('assets/images/icon/iconplay.png', "소모임", ListBoard()),
+              imageAndText('assets/images/icon/iconplay.png', "소모임", SgroupList()),
               imageAndText('assets/images/icon/iconroom.png', "룸메이트", ListBoard()),
               cSizedBox(0, 40),
             ],

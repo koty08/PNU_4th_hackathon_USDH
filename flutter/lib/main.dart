@@ -5,6 +5,7 @@ import 'login/firebase_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'function/signedin_page.dart';
 import 'login/signin_page.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,13 @@ class MyApp extends StatelessWidget {
         title: "1234",
         home: AuthPage(),
         theme: ThemeData(errorColor: Colors.indigo.shade200),
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,        
+          GlobalWidgetsLocalizations.delegate,  
+        ],      
+        supportedLocales: [
+          const Locale('ko', 'KR'),
+        ],
       ),
     );
   }
