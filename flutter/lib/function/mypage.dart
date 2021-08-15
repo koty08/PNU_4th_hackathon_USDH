@@ -85,81 +85,99 @@ class MyPageState extends State<MyPage> {
                     Row(
                       children: [
                         Padding(padding: EdgeInsets.fromLTRB(30, 100, 0, 10)),
-                        InkWell(
-                          onTap: () {
-                            uploadImage();
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(60),
-                            child: Image.network(
-                              snapshot.data!['photoUrl'],
-                              width: 60, height: 60,
-                            ),
-                          ),
-                        ),
-                        Column(
+                        Stack(
                           children: [
-                            Row(
-                              children: [
-                                cSizedBox(0, 30),
-                                Text(snapshot.data!['nick']+"("+snapshot.data!['num'].toString()+")", style: TextStyle(fontFamily: "SCDream", color: Colors.black, fontWeight: FontWeight.w600, fontSize: 15),),
-                                IconButton(onPressed: () {
-                                  nickInput = TextEditingController(text: fp.getInfo()['nick']);
-                                  showDialog(context: context,
-                                      builder: (BuildContext con){
-                                        return Form(
-                                            key: _formKey,
-                                            child:
-                                            AlertDialog(
-                                              title: Text("닉네임 변경"),
-                                              content: TextFormField(
-                                                  controller: nickInput,
-                                                  decoration: InputDecoration(hintText: "닉네임을 입력하세요."),
-                                                  validator: (text) {
-                                                    if (text == null || text.isEmpty) {
-                                                      return "닉네임을 입력하지 않으셨습니다.";
-                                                    }
-                                                    return null;
-                                                  }
-                                              ),
-                                              actions: <Widget>[
-                                                TextButton(onPressed: () {
-                                                  if(_formKey.currentState!.validate()){
-                                                    setState(() {
-                                                      fs.collection('users').doc(fp.getUser()!.email).update({
-                                                        'nick' : nickInput.text
-                                                      });
-                                                    });
-                                                    Navigator.pop(con);
-                                                    fp.setMessage("nick");
-                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                    showMessage();
-                                                  }
-                                                },
-                                                    child: Text("입력")
-                                                ),
-                                                TextButton(onPressed: (){
-                                                  Navigator.pop(con);
-                                                },
-                                                    child: Text("취소")
-                                                ),
-                                              ],
-                                            )
-                                        );
-                                      }
-                                  );
-                                },
-                                    icon: Icon(Icons.edit)),
-                              ],
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(60),
+                              child: Image.network(
+                                snapshot.data!['photoUrl'],
+                                width: 60, height: 60,
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                            Text(snapshot.data!['name']),
-                          ],
+                            Positioned(
+                              top: 27,
+                              left: 26,
+                              child: IconButton(
+                                icon: Image.asset('assets/images/icon/iconcam.png', width: 25, height: 25),
+                                onPressed: () {
+                                  uploadImage();
+                                },
+                              ),
+                            )
+                          ]
                         ),
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(30, 0, 0, 10),
+                          child: Wrap(
+                            direction: Axis.vertical,
+                            spacing: -5,
+                            children: [
+                              Wrap(
+                                spacing: -10,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(snapshot.data!['nick']+"("+snapshot.data!['num'].toString()+")", style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w700, fontSize: 16),),
+                                  IconButton(
+                                    icon: Icon(Icons.edit, size: 18,),
+                                    onPressed: () {
+                                      nickInput = TextEditingController(text: fp.getInfo()['nick']);
+                                      showDialog(context: context,
+                                          builder: (BuildContext con){
+                                            return Form(
+                                                key: _formKey,
+                                                child:
+                                                AlertDialog(
+                                                  title: Text("닉네임 변경"),
+                                                  content: TextFormField(
+                                                      controller: nickInput,
+                                                      decoration: InputDecoration(hintText: "닉네임을 입력하세요."),
+                                                      validator: (text) {
+                                                        if (text == null || text.isEmpty) {
+                                                          return "닉네임을 입력하지 않으셨습니다.";
+                                                        }
+                                                        return null;
+                                                      }
+                                                  ),
+                                                  actions: <Widget>[
+                                                    TextButton(onPressed: () {
+                                                      if(_formKey.currentState!.validate()){
+                                                        setState(() {
+                                                          fs.collection('users').doc(fp.getUser()!.email).update({
+                                                            'nick' : nickInput.text
+                                                          });
+                                                        });
+                                                        Navigator.pop(con);
+                                                        fp.setMessage("nick");
+                                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                        showMessage();
+                                                      }
+                                                    },
+                                                        child: Text("입력")
+                                                    ),
+                                                    TextButton(onPressed: (){
+                                                      Navigator.pop(con);
+                                                    },
+                                                        child: Text("취소")
+                                                    ),
+                                                  ],
+                                                )
+                                            );
+                                          }
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                              condText(snapshot.data!['name']),
+                            ],
+                          ),
+                        )
                       ]
                     ),
                     middleDivider(),
                     Container(
-                      padding: EdgeInsets.fromLTRB(30, 0, 0, 20),
+                      padding: EdgeInsets.fromLTRB(35, 0, 0, 20),
                       child: Wrap(
                         direction: Axis.vertical,
                         crossAxisAlignment: WrapCrossAlignment.start,
@@ -192,7 +210,7 @@ class MyPageState extends State<MyPage> {
                     middleDivider(),
 
                     Container(
-                      padding: EdgeInsets.fromLTRB(30, 0, 0, 20),
+                      padding: EdgeInsets.fromLTRB(35, 0, 0, 20),
                       child: Wrap(
                         direction: Axis.vertical,
                         crossAxisAlignment: WrapCrossAlignment.start,
@@ -205,7 +223,7 @@ class MyPageState extends State<MyPage> {
                           },"신청자 목록"),
                           cSizedBox(2,0),
                           touchableText(() {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => MyApplicationListBoard()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => MyApplicationListBoard(myId: fp.getInfo()['email'])));
                           },"신청한 글"),
                         ],
                       ),
@@ -214,7 +232,7 @@ class MyPageState extends State<MyPage> {
                     middleDivider(),
 
                     Container(
-                      padding: EdgeInsets.fromLTRB(30, 0, 0, 0),
+                      padding: EdgeInsets.fromLTRB(35, 0, 0, 0),
                       child: Wrap(
                         direction: Axis.vertical,
                         crossAxisAlignment: WrapCrossAlignment.start,
@@ -228,7 +246,6 @@ class MyPageState extends State<MyPage> {
                           }, "로그아웃"),
 
                           cSizedBox(2,0),
-
 
                           touchableText(() {
                             showDialog(context: context,

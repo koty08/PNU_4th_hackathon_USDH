@@ -686,7 +686,7 @@ class CommunityShowState extends State<CommunityShow> {
                         Row(
                           children: [
                             IconButton(
-                              icon: Icon(!alreadyLiked ? Icons.favorite_border : Icons.favorite),
+                              icon: Icon(alreadyLiked ? Icons.favorite_border : Icons.favorite, color: Color(0xff548ee0)),
                               onPressed: () async {
                                 var myInfo = fp.getInfo();
                                 if (!alreadyLiked) {
@@ -701,7 +701,7 @@ class CommunityShowState extends State<CommunityShow> {
                                   });
                                 }
                                 alreadyLiked = !alreadyLiked;
-                              },
+                              }
                             ),
                             Text(boardSnapshot.data!['likes'].toString()),
                           ],
@@ -787,41 +787,8 @@ class CommunityShowState extends State<CommunityShow> {
                       ),
                     ],
                   );
-                } else {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Color(0xffcacaca),
-                        ),
-                        child: GestureDetector(
-                          child: Align(alignment: Alignment.center, child: smallText("return Container()하면", 14, Colors.white)),
-                          onTap: () async {
-                            Navigator.pop(context);
-                            await fs.collection('community_board').doc(widget.id).delete();
-                            fp.updateIntInfo('postcount', -1);
-                          },
-                        ),
-                      ),
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Color(0xff639ee1),
-                        ),
-                        child: GestureDetector(
-                          child: Align(alignment: Alignment.center, child: smallText("왜 페이지 전체가 안나오지,,", 14, Colors.white)),
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => CommunityModify(widget.id)));
-                            setState(() {});
-                          },
-                        ),
-                      ),
-                    ],
-                  );
+                }else{
+                  return cSizedBox(0, 10);
                 }
               } else {
                 return CircularProgressIndicator();

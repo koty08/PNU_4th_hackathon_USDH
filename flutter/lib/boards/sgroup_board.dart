@@ -943,25 +943,23 @@ class SgroupShowState extends State<SgroupShow> {
                             String hostId = '';
                             List<String> _myApplication = [];
 
-                            await FirebaseFirestore.instance.collection('users').where('name', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
+                            await fs.collection('users').where('name', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
                               DocumentSnapshot tmp = snap.docs[0];
                               hostId = tmp['email'];
                             });
-                            await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).get().then((value) {
+                            await fs.collection('users').doc(myInfo['email']).get().then((value) {
                               for (String myApplication in value['myApplication']) {
                                 _myApplication.add(myApplication);
                               }
                             });
 
-
                             if (!_myApplication.contains(title)) {
                               print('참가 신청하지 않은 방입니다!!');
-                            } 
-                            else {
-                              await FirebaseFirestore.instance.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                'isFineForMembers': FieldValue.arrayRemove([myInfo['email']]),
+                            } else {
+                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
                               });
-                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
+                              await fs.collection('users').doc(myInfo['email']).update({
                                 'myApplication': FieldValue.arrayRemove([title])
                               });
 
@@ -984,41 +982,43 @@ class SgroupShowState extends State<SgroupShow> {
                             int _currentMember = snapshot.data!['currentMember'];
                             int _limitedMember = snapshot.data!['limitedMember'];
                             String title = widget.id;
-                            String hostId = '';
+                            String? hostId;
                             List<String> _myApplication = [];
                             List<String> _joiningIn = [];
 
-                            await FirebaseFirestore.instance.collection('users').where('name', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
+                            await fs.collection('users').where('name', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
                               DocumentSnapshot tmp = snap.docs[0];
                               hostId = tmp['email'];
                             });
 
-                            await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).get().then((value) {
-                              for (String appliedRoom in value['myApplication']) {
-                                _myApplication.add(appliedRoom);
+                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                              for (DocumentSnapshot doc in snap.docs) {
+                                _myApplication.add(doc.id);
                               }
-                              for (String joinedRoom in value['joiningIn']) {
+                            });
+
+                            await fs.collection('users').doc(myInfo['email']).get().then((DocumentSnapshot snap) {
+                              for (String joinedRoom in snap['joiningIn']) {
                                 _joiningIn.add(joinedRoom);
                               }
-                              
                             });
 
                             if (_myApplication.contains(title) || _joiningIn.contains(title)) {
-                              print('이미 신청한 방입니다!!');
+                              print('이미 신청(가입)한 방입니다!!');
                             } else if (_currentMember >= _limitedMember) {
                               print('This room is full');
                             } else {
                               // 방장에게 날리는 메세지
-                              if (hostId.isNotEmpty) {
-                                await FirebaseFirestore.instance.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                  'isFineForMembers': FieldValue.arrayUnion([myInfo['email']]),
+                              if (hostId!.isNotEmpty) {
+                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                  'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
                                 });
                               } else {
                                 print('hostId is null!!');
                               }
                               // 내 정보에 신청 정보를 기록
-                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
-                                'myApplication': FieldValue.arrayUnion([title])
+                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
+                                'where': "sgroup_board",
                               });
                               print('참가 신청을 보냈습니다.');
                             }
@@ -1303,12 +1303,12 @@ class SgroupModifyState extends State<SgroupModify> {
       'stuid': stuidInput.text,
       'subject': subjectInput.text,
       'tagList': tagList,
-      'myintro' : myintroInput.text,
+      'myintro': myintroInput.text,
       'members': [],
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({
       'where': 'sgroup_board',
-      'title' : titleInput.text,
+      'title': titleInput.text,
       'isFineForMembers': [],
       'members': [],
     });
