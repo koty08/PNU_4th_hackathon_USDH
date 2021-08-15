@@ -268,6 +268,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
       'where': 'delivery_board',
+      'title' : titleInput.text,
       'isFineForMembers': [],
       'members': [],
     });
@@ -753,90 +754,90 @@ class DeliveryListState extends State<DeliveryList> {
                 Expanded(
                     // 아래 간격 두고 싶으면 Container, height 사용
                     //height: MediaQuery.of(context).size.height * 0.8,
-                    child: MediaQuery.removePadding(
-                  context: context,
-                  removeTop: true,
-                  child: ListView.separated(
-                      separatorBuilder: (context, index) => middleDivider(),
-                      shrinkWrap: true,
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        final DocumentSnapshot doc = snapshot.data!.docs[index];
-                        String member = doc['currentMember'].toString() + '/' + doc['limitedMember'].toString();
-                        String info = doc['time'].substring(5, 7) + "/" + doc['time'].substring(8, 10) + doc['write_time'].substring(10, 16);
-                        String time = ' | ' + '마감' + doc['time'].substring(10, 16) + ' | ';
-                        String writer = doc['writer'];
-                        return Column(children: [
-                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
-                          InkWell(
-                              onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
-                                FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views": doc["views"] + 1});
-                              },
-                              child: Container(
-                                  margin: EdgeInsets.fromLTRB(25, 17, 10, 0),
-                                  child: Column(children: [
-                                    Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                                      cSizedBox(0, 10),
-                                      Container(
-                                          width: MediaQuery.of(context).size.width * 0.7,
-                                          height: 13,
-                                          child: ListView.builder(
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount: doc['tagList'].length,
-                                              itemBuilder: (context, index) {
-                                                String tag = doc['tagList'][index].toString();
-                                                return GestureDetector(
-                                                    onTap: () {
-                                                      setState(() {
-                                                        colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: tag).snapshots();
-                                                      });
-                                                    },
-                                                    child: smallText(tag, 12, Color(0xffa9aaaf)));
-                                              })),
-                                      cSizedBox(0, 10),
-                                      Container(
-                                          width: 50,
-                                          child: Row(
-                                            crossAxisAlignment: CrossAxisAlignment.end,
-                                            children: [
-                                              isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])
-                                                  ? Image(
-                                                      image: AssetImage('assets/images/icon/iconminiperson.png'),
-                                                      height: 15,
-                                                      width: 15,
-                                                    )
-                                                  : Image(
-                                                      image: AssetImage('assets/images/icon/iconminiperson2.png'),
-                                                      height: 15,
-                                                      width: 15,
-                                                    ),
-                                              cSizedBox(20, 7),
-                                              smallText(member, 13, Color(0xffa9aaaf))
-                                            ],
-                                          ))
-                                    ]),
-                                    Row(children: [
-                                      isAvailable(doc['time'], doc['currentMember'], doc['limitedMember']) ? statusText("모집중") : statusText("모집완료"),
-                                      cSizedBox(0, 10),
-                                      Container(
-                                        width: MediaQuery.of(context).size.width * 0.6,
-                                        child: Text(doc['title'].toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w700, fontSize: 15)),
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: ListView.separated(
+                        separatorBuilder: (context, index) => middleDivider(),
+                        shrinkWrap: true,
+                        itemCount: snapshot.data!.docs.length,
+                        itemBuilder: (context, index) {
+                          final DocumentSnapshot doc = snapshot.data!.docs[index];
+                          String member = doc['currentMember'].toString() + '/' + doc['limitedMember'].toString();
+                          String info = doc['time'].substring(5, 7) + "/" + doc['time'].substring(8, 10) + doc['write_time'].substring(10, 16);
+                          String time = ' | ' + '마감' + doc['time'].substring(10, 16) + ' | ';
+                          String writer = doc['writer'];
+                          return Column(children: [
+                            Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                            InkWell(
+                                onTap: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
+                                  FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views": doc["views"] + 1});
+                                },
+                                child: Container(
+                                    margin: EdgeInsets.fromLTRB(25, 17, 10, 0),
+                                    child: Column(children: [
+                                      Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                                        cSizedBox(0, 10),
+                                        Container(
+                                            width: MediaQuery.of(context).size.width * 0.7,
+                                            height: 13,
+                                            child: ListView.builder(
+                                                scrollDirection: Axis.horizontal,
+                                                itemCount: doc['tagList'].length,
+                                                itemBuilder: (context, index) {
+                                                  String tag = doc['tagList'][index].toString();
+                                                  return GestureDetector(
+                                                      onTap: () {
+                                                        setState(() {
+                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: tag).snapshots();
+                                                        });
+                                                      },
+                                                      child: smallText(tag, 12, Color(0xffa9aaaf)));
+                                                })),
+                                        cSizedBox(0, 10),
+                                        Container(
+                                            width: 50,
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              children: [
+                                                isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])
+                                                    ? Image(
+                                                        image: AssetImage('assets/images/icon/iconminiperson.png'),
+                                                        height: 15,
+                                                        width: 15,
+                                                      )
+                                                    : Image(
+                                                        image: AssetImage('assets/images/icon/iconminiperson2.png'),
+                                                        height: 15,
+                                                        width: 15,
+                                                      ),
+                                                cSizedBox(20, 7),
+                                                smallText(member, 13, Color(0xffa9aaaf))
+                                              ],
+                                            ))
+                                      ]),
+                                      Row(children: [
+                                        isAvailable(doc['time'], doc['currentMember'], doc['limitedMember']) ? statusText("모집중") : statusText("모집완료"),
+                                        cSizedBox(0, 10),
+                                        Container(
+                                          width: MediaQuery.of(context).size.width * 0.6,
+                                          child: Text(doc['title'].toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w700, fontSize: 15)),
+                                        ),
+                                        cSizedBox(35, 0),
+                                      ]),
+                                      Row(
+                                        children: [
+                                          cSizedBox(20, 5),
+                                          smallText(info, 10, Color(0xffa9aaaf)),
+                                          smallText(time, 10, Color(0xffa9aaaf)),
+                                          smallText(writer, 10, Color(0xffa9aaaf)),
+                                        ],
                                       ),
-                                      cSizedBox(35, 0),
-                                    ]),
-                                    Row(
-                                      children: [
-                                        cSizedBox(20, 5),
-                                        smallText(info, 10, Color(0xffa9aaaf)),
-                                        smallText(time, 10, Color(0xffa9aaaf)),
-                                        smallText(writer, 10, Color(0xffa9aaaf)),
-                                      ],
-                                    ),
-                                    cSizedBox(10, 0)
-                                  ])))
-                        ]);
-                      }),
+                                      cSizedBox(10, 0)
+                                    ])))
+                          ]);
+                        }),
                 )),
               ]);
             }),
@@ -1054,10 +1055,10 @@ class DeliveryShowState extends State<DeliveryShow> {
 
                             if (!_myApplication.contains(title)) {
                               print('참가 신청하지 않은 방입니다!!');
-                            } 
+                            }
                             else {
                               await FirebaseFirestore.instance.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                'isFineForMembers': FieldValue.arrayRemove([myInfo['email']]),
+                                'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
                               });
                               await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
                                 'myApplication': FieldValue.arrayRemove([title])
@@ -1098,7 +1099,7 @@ class DeliveryShowState extends State<DeliveryShow> {
                               for (String joinedRoom in value['joiningIn']) {
                                 _joiningIn.add(joinedRoom);
                               }
-                              
+
                             });
 
                             if (_myApplication.contains(title) || _joiningIn.contains(title)) {
@@ -1109,7 +1110,7 @@ class DeliveryShowState extends State<DeliveryShow> {
                               // 방장에게 날리는 메세지
                               if (hostId.isNotEmpty) {
                                 await FirebaseFirestore.instance.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                  'isFineForMembers': FieldValue.arrayUnion([myInfo['email']]),
+                                  'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
                                 });
                               } else {
                                 print('hostId is null!!');
@@ -1345,6 +1346,7 @@ class DeliveryModifyState extends State<DeliveryModify> {
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({
       'where': 'delivery_board',
+      'title' : titleInput.text,
       'isFineForMembers': [],
       'members': [],
     });

@@ -304,6 +304,7 @@ class SgroupWriteState extends State<SgroupWrite> {
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
       'where': 'sgroup_board',
+      'title' : titleInput.text,
       'isFineForMembers': [],
       'members': [],
     });
@@ -1307,6 +1308,7 @@ class SgroupModifyState extends State<SgroupModify> {
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({
       'where': 'sgroup_board',
+      'title' : titleInput.text,
       'isFineForMembers': [],
       'members': [],
     });

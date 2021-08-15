@@ -11,6 +11,8 @@ import 'package:usdh/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:usdh/function/board.dart';
 
+import 'applicant.dart';
+
 late MyPageState pageState;
 
 class MyPage extends StatefulWidget {

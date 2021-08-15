@@ -134,7 +134,7 @@ class PortfolioState extends State<Portfolio> {
                             return null;
                           }),
                     ),
-                    Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 50)),
+                    Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 40)),
                     inputNav2('assets/images/icon/iconwin.png', "  경력"),
                     Container(
                       height: 140,
@@ -173,7 +173,7 @@ class PortfolioState extends State<Portfolio> {
                           )
                       ),
                     ),
-                    Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 50)),
+                    Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 40)),
                     inputNav2('assets/images/icon/icontag.png', "  태그"),
                     Container(
                       //height: 140,
@@ -190,8 +190,10 @@ class PortfolioState extends State<Portfolio> {
                         textStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 14),
                         inputDecoration:
                         InputDecoration(
+                          hintText: "#파이썬 #C++ #JAVA",
+                          hintStyle: TextStyle(fontFamily: "SCDream", color: Colors.grey[400], fontWeight: FontWeight.w400, fontSize: 12),
                           labelText: "자신을 나타낼 수 있는 태그를 입력해주세요.",
-                          labelStyle: TextStyle(fontFamily: "SCDream", color: Colors.grey[400], fontWeight: FontWeight.w400, fontSize: 14),
+                          labelStyle: TextStyle(fontFamily: "SCDream", color: Colors.grey[400], fontWeight: FontWeight.w500, fontSize: 14),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.grey.shade400, width: 0.5),
                             borderRadius: BorderRadius.circular(10),
@@ -275,10 +277,10 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Chip(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      labelStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 11.5),
+      labelStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 11),
       labelPadding: EdgeInsets.only(left: 10),
       backgroundColor: Colors.grey[350],
-      label: smallText(label, 13, Colors.white),
+      label: smallText(label, 12, Colors.white),
       deleteIcon: const Icon(
         Icons.close,
         color: Colors.white,

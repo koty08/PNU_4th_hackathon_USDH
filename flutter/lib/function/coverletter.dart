@@ -190,8 +190,10 @@ class CoverletterState extends State<Coverletter> {
                         textStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 14),
                         inputDecoration:
                         InputDecoration(
+                          hintText: "#붙임성좋은 #상냥한 #MBTI",
+                          hintStyle: TextStyle(fontFamily: "SCDream", color: Colors.grey[400], fontWeight: FontWeight.w400, fontSize: 12),
                           labelText: "자신을 나타낼 수 있는 태그를 입력해주세요.",
-                          labelStyle: TextStyle(fontFamily: "SCDream", color: Colors.grey[400], fontWeight: FontWeight.w400, fontSize: 14),
+                          labelStyle: TextStyle(fontFamily: "SCDream", color: Colors.grey[400], fontWeight: FontWeight.w500, fontSize: 14),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.grey.shade400, width: 0.5),
                             borderRadius: BorderRadius.circular(10),

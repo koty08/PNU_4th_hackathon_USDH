@@ -101,22 +101,19 @@ class HomeScreenState extends State<HomeScreen> {
                 ]),
                 headerDivider(),
                 Expanded(
-                    child: MediaQuery.removePadding(
-                        context: context,
-                        removeTop: true,
-                        child: ListView.builder(
-                          padding: EdgeInsets.all(10.0),
-                          itemBuilder: (context, index) {
-                            return buildItem(context, snapshot.data?.docs[index]);
-                          },
-                          itemCount: snapshot.data?.docs.length,
-                          controller: listScrollController,
-                        )))
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: ListView.builder(
+                      padding: EdgeInsets.all(10.0),
+                      itemBuilder: (context, index) {
+                        return buildItem(context, snapshot.data?.docs[index]);
+                      },
+                      itemCount: snapshot.data?.docs.length,
+                      controller: listScrollController,
+                    )))
               ]);
             }
-
-            /*
-              }*/
             else {
               return Center(
                 child: CircularProgressIndicator(
@@ -221,136 +218,133 @@ class HomeScreenState extends State<HomeScreen> {
       
       return Container(
         child: TextButton(
-          child: Row(
-            children: <Widget>[
+          child: Column(children: [
+            Row(children: <Widget>[
               // 프로필 사진
               FutureBuilder(
-                  future: getPeerAvatar(peerIds),
-                  builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    if (snapshot.hasData) {
-                      return Container(
-                        child: CircleAvatar(radius: 20, backgroundImage: NetworkImage(snapshot.data.toString())),
-                        alignment: Alignment.centerLeft,
-                        margin: EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 5.0),
-                      );
-                    } else {
-                      return CircularProgressIndicator();
-                    }
-                  }),
+                future: getPeerAvatar(peerIds),
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (snapshot.hasData) {
+                    return Container(
+                      child: CircleAvatar(radius: 20, backgroundImage: NetworkImage(snapshot.data.toString())),
+                      alignment: Alignment.centerLeft,
+                      margin: EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 5.0),
+                    );
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                }
+              ),
               // 닉네임
               Flexible(
                 child: Container(
+                  margin: EdgeInsets.only(left: 20.0),
                   child: Column(
                     children: <Widget>[
                       FutureBuilder(
-                          future: getPeerNicks(peerIds),
-                          builder: (BuildContext context, AsyncSnapshot snapshot) {
-                            if (snapshot.hasData) {
-                              return Container(
-                                child: Text(
-                                  snapshot.data.toString(),
-                                  maxLines: 1,
-                                  style: TextStyle(color: primaryColor),
-                                ),
-                                alignment: Alignment.centerLeft,
-                                margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                              );
-                            } else {
-                              return CircularProgressIndicator();
-                            }
-                          }),
-                    ],
-                  ),
-                  margin: EdgeInsets.only(left: 20.0),
-                ),
-              ),
-              // 막 메세지, 막 메세지 시간, 안 본 메세지
-              StreamBuilder<DocumentSnapshot>(
-                  stream: streamMessageWith,
-                  builder: (context, AsyncSnapshot<DocumentSnapshot> docSnapshotMW) {
-                    return StreamBuilder<QuerySnapshot>(
-                        stream: streamMessages,
-                        builder: (context, AsyncSnapshot<QuerySnapshot> colSnapshotM) {
-                          if (!docSnapshotMW.hasData || !colSnapshotM.hasData) {
+                        future: getPeerNicks(peerIds),
+                        builder: (BuildContext context, AsyncSnapshot snapshot) {
+                          if (snapshot.hasData) {
+                            return Container(
+                              child: Text(
+                                snapshot.data.toString(),
+                                maxLines: 1,
+                                style: TextStyle(color: primaryColor),
+                              ),
+                              alignment: Alignment.centerLeft,
+                              margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
+                            );
+                          } else {
                             return CircularProgressIndicator();
                           }
+                        }),
+                    ],
+                  ),
+                ),
+              ),
+              ]
+            ),
 
-                          QueryDocumentSnapshot lastMessageSnapshot = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1];
+            // 막 메세지, 막 메세지 시간, 안 본 메세지
+            StreamBuilder<DocumentSnapshot>(
+              stream: streamMessageWith,
+              builder: (context, AsyncSnapshot<DocumentSnapshot> docSnapshotMW) {
+                return StreamBuilder<QuerySnapshot>(
+                  stream: streamMessages,
+                  builder: (context, AsyncSnapshot<QuerySnapshot> colSnapshotM) {
+                    if (!docSnapshotMW.hasData || !colSnapshotM.hasData) {
+                      return CircularProgressIndicator();
+                    }
 
-                          String lastTime;
-                          String lastMessage = lastMessageSnapshot.get('content').toString();
+                    QueryDocumentSnapshot lastMessageSnapshot = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1];
 
-                          String lastTimeSeen = docSnapshotMW.data!.get('lastTimeSeen');
-                          int unSeenCount;
+                    String lastTime;
+                    String lastMessage = lastMessageSnapshot.get('content').toString();
+                    String lastTimeSeen = docSnapshotMW.data!.get('lastTimeSeen');
+                    int unSeenCount;
 
+                    var temp = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1].get('timestamp').toString();
 
-                          var temp = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1].get('timestamp').toString();
+                    Timestamp timestamp = Timestamp.fromMillisecondsSinceEpoch(int.parse(temp));
+                    DateTime dateTime = timestamp.toDate();
+                    String formatedTime = formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
+                    if (isTomorrow(formatedTime)) {
+                      lastTime = formatedTime.substring(11, 16);
+                    } else {
+                      lastTime = formatedTime.substring(0, 4) + '.' + formatedTime.substring(5, 7) + '.' + formatedTime.substring(8, 10);
+                    }
 
-                          Timestamp timestamp = Timestamp.fromMillisecondsSinceEpoch(int.parse(temp));
-                          DateTime dateTime = timestamp.toDate();
-                          String formatedTime = formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
-                          if (isTomorrow(formatedTime)) {
-                            lastTime = formatedTime.substring(11, 16);
-                          } else {
-                            lastTime = formatedTime.substring(0, 4) + '.' + formatedTime.substring(5, 7) + '.' + formatedTime.substring(8, 10);
-                          }
+                    Iterable<QueryDocumentSnapshot<Object?>> messages = colSnapshotM.data!.docs.where((element) {
+                      if (int.parse(element.get('timestamp')) > int.parse(lastTimeSeen)) {
+                        print('#####################');
+                        print(element.get('content'));
+                        print(int.parse(element.get('timestamp')));
+                        print(int.parse(lastTimeSeen));
+                        return true;
+                      } else {
+                        print(element.get('content'));
+                        print('@@@@@@@@@@@@@@@@@@@@');
+                        print(int.parse(element.get('timestamp')));
+                        print(int.parse(lastTimeSeen));
+                        return false;
+                      }
+                    });
 
-                          Iterable<QueryDocumentSnapshot<Object?>> messages = colSnapshotM.data!.docs.where((element) {
-                            if (int.parse(element.get('timestamp')) > int.parse(lastTimeSeen)) {
-                              print('#####################');
-                              print(element.get('content'));
-                              print(int.parse(element.get('timestamp')));
-                              print(int.parse(lastTimeSeen));
-                              return true;
-                            } else {
-                              print(element.get('content'));
-                              print('@@@@@@@@@@@@@@@@@@@@');
-                              print(int.parse(element.get('timestamp')));
-                              print(int.parse(lastTimeSeen));
-                              return false;
-                            }
-                          });
+                    unSeenCount = messages.length;
 
-                          unSeenCount = messages.length;
-
-                          return Flexible(
-                            child: Container(
-                              child: Row(
-                                children: <Widget>[
-                                  Container(
-                                    child: Text(
-                                      lastTime,
-                                      maxLines: 1,
-                                      style: TextStyle(color: primaryColor),
-                                    ),
-                                    alignment: Alignment.centerLeft,
-                                    margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                                  ),
-                                  Container(
-                                    child: Text(
-                                      lastMessage,
-                                      maxLines: 1,
-                                      style: TextStyle(color: primaryColor),
-                                    ),
-                                    alignment: Alignment.centerLeft,
-                                    margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                                  ),
-                                  Container(
-                                    child: Text(
-                                      unSeenCount.toString(),
-                                      maxLines: 1,
-                                      style: TextStyle(color: primaryColor),
-                                    ),
-                                    alignment: Alignment.centerLeft,
-                                    margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                                  ),
-                                ],
-                              ),
-                              margin: EdgeInsets.only(left: 20.0),
-                            ),
-                          );
-                        });
-                  }),
+                    return Row(
+                      children: <Widget>[
+                        Container(
+                          child: Text(
+                            lastTime,
+                            maxLines: 1,
+                            style: TextStyle(color: primaryColor),
+                          ),
+                          alignment: Alignment.centerLeft,
+                          margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
+                        ),
+                        Container(
+                          child: Text(
+                            lastMessage,
+                            maxLines: 1,
+                            style: TextStyle(color: primaryColor),
+                          ),
+                          alignment: Alignment.centerLeft,
+                          margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
+                        ),
+                        Container(
+                          child: Text(
+                            unSeenCount.toString(),
+                            maxLines: 1,
+                            style: TextStyle(color: primaryColor),
+                          ),
+                          alignment: Alignment.centerLeft,
+                          margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
+                        ),
+                      ],
+                    );
+                  });
+                }),
             ],
           ),
           onPressed: () async {
