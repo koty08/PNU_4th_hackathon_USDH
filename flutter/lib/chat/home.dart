@@ -101,20 +101,19 @@ class HomeScreenState extends State<HomeScreen> {
                 ]),
                 headerDivider(),
                 Expanded(
-                  child: MediaQuery.removePadding(
-                    context: context,
-                    removeTop: true,
-                    child: ListView.builder(
-                      padding: EdgeInsets.all(10.0),
-                      itemBuilder: (context, index) {
-                        return buildItem(context, snapshot.data?.docs[index]);
-                      },
-                      itemCount: snapshot.data?.docs.length,
-                      controller: listScrollController,
-                    )))
+                    child: MediaQuery.removePadding(
+                        context: context,
+                        removeTop: true,
+                        child: ListView.builder(
+                          padding: EdgeInsets.all(10.0),
+                          itemBuilder: (context, index) {
+                            return buildItem(context, snapshot.data?.docs[index]);
+                          },
+                          itemCount: snapshot.data?.docs.length,
+                          controller: listScrollController,
+                        )))
               ]);
-            }
-            else {
+            } else {
               return Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
@@ -161,51 +160,6 @@ class HomeScreenState extends State<HomeScreen> {
     return photoUrl;
   }
 
-  Future<String> getLastTime(List<dynamic> peerIds, DocumentSnapshot doc) async {
-    var temp = '';
-
-    var snapshot = await FirebaseFirestore.instance.collection('users').doc(peerIds[0]).collection('messageWith').doc(doc.id).collection('messages').get();
-    temp = snapshot.docs[snapshot.docs.length - 1].get('timestamp').toString();
-
-    Timestamp timestamp = Timestamp.fromMillisecondsSinceEpoch(int.parse(temp));
-    DateTime dateTime = timestamp.toDate();
-    String formatedTime = formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
-
-    String lastTime = '';
-    if (isTomorrow(formatedTime)) {
-      lastTime = formatedTime.substring(11, 16);
-    } else {
-      lastTime = formatedTime.substring(0, 4) + '.' + formatedTime.substring(5, 7) + '.' + formatedTime.substring(8, 10);
-    }
-
-    return lastTime;
-  }
-
-  Future<String> getLastMessage(List<dynamic> peerIds, DocumentSnapshot doc) async {
-    String lastMessage = '';
-
-    var snapshot = await FirebaseFirestore.instance.collection('users').doc(peerIds[0]).collection('messageWith').doc(doc.id).collection('messages').get();
-    lastMessage = snapshot.docs[snapshot.docs.length - 1].get('content').toString();
-
-    return lastMessage;
-  }
-
-  Future<int> getUnSeenCount(List<dynamic> peerIds, DocumentSnapshot doc) async {
-    var myId = fp.getInfo()['email'];
-    int unSeenCount = 0;
-
-    String lastTimeSeen = '';
-    await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(doc.id).get().then((value) {
-      lastTimeSeen = value['lastTimeSeen'];
-    });
-
-    var tmp = await FirebaseFirestore.instance.collection('users').doc(peerIds[0]).collection('messageWith').doc(doc.id).collection('messages').where('timestamp', isGreaterThan: lastTimeSeen).get().then((value) {
-      unSeenCount = value.docs.length;
-    });
-
-    return unSeenCount;
-  }
-
   // 각각의 채팅 기록( 1 block ) - '[chatRoomName]' document 를 인자로
   Widget buildItem(BuildContext context, DocumentSnapshot? document) {
     fp.setInfo();
@@ -215,136 +169,128 @@ class HomeScreenState extends State<HomeScreen> {
 
       Stream<DocumentSnapshot> streamMessageWith = FirebaseFirestore.instance.collection('users').doc(peerIds[0]).collection('messageWith').doc(document.id).snapshots();
       Stream<QuerySnapshot> streamMessages = FirebaseFirestore.instance.collection('users').doc(peerIds[0]).collection('messageWith').doc(document.id).collection('messages').snapshots();
-      
+
       return Container(
         child: TextButton(
-          child: Column(children: [
-            Row(children: <Widget>[
-              // 프로필 사진
-              FutureBuilder(
-                future: getPeerAvatar(peerIds),
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  if (snapshot.hasData) {
-                    return Container(
-                      child: CircleAvatar(radius: 20, backgroundImage: NetworkImage(snapshot.data.toString())),
-                      alignment: Alignment.centerLeft,
-                      margin: EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 5.0),
-                    );
-                  } else {
-                    return CircularProgressIndicator();
-                  }
-                }
-              ),
-              // 닉네임
-              Flexible(
-                child: Container(
-                  margin: EdgeInsets.only(left: 20.0),
-                  child: Column(
-                    children: <Widget>[
-                      FutureBuilder(
-                        future: getPeerNicks(peerIds),
-                        builder: (BuildContext context, AsyncSnapshot snapshot) {
-                          if (snapshot.hasData) {
-                            return Container(
-                              child: Text(
-                                snapshot.data.toString(),
-                                maxLines: 1,
-                                style: TextStyle(color: primaryColor),
-                              ),
-                              alignment: Alignment.centerLeft,
-                              margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                            );
-                          } else {
-                            return CircularProgressIndicator();
-                          }
-                        }),
-                    ],
+          child: Column(
+            children: [
+              Row(children: <Widget>[
+                // 프로필 사진
+                FutureBuilder(
+                    future: getPeerAvatar(peerIds),
+                    builder: (BuildContext context, AsyncSnapshot snapshot) {
+                      if (snapshot.hasData) {
+                        return Container(
+                          child: CircleAvatar(radius: 20, backgroundImage: NetworkImage(snapshot.data.toString())),
+                          alignment: Alignment.centerLeft,
+                          margin: EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 5.0),
+                        );
+                      } else {
+                        return CircularProgressIndicator();
+                      }
+                    }),
+                // 닉네임
+                Flexible(
+                  child: Container(
+                    margin: EdgeInsets.only(left: 20.0),
+                    child: Column(
+                      children: <Widget>[
+                        FutureBuilder(
+                            future: getPeerNicks(peerIds),
+                            builder: (BuildContext context, AsyncSnapshot snapshot) {
+                              if (snapshot.hasData) {
+                                return Container(
+                                  child: Text(
+                                    snapshot.data.toString(),
+                                    maxLines: 1,
+                                    style: TextStyle(color: primaryColor),
+                                  ),
+                                  alignment: Alignment.centerLeft,
+                                  margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
+                                );
+                              } else {
+                                return CircularProgressIndicator();
+                              }
+                            }),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              ]
-            ),
+              ]),
 
-            // 막 메세지, 막 메세지 시간, 안 본 메세지
-            StreamBuilder<DocumentSnapshot>(
-              stream: streamMessageWith,
-              builder: (context, AsyncSnapshot<DocumentSnapshot> docSnapshotMW) {
-                return StreamBuilder<QuerySnapshot>(
-                  stream: streamMessages,
-                  builder: (context, AsyncSnapshot<QuerySnapshot> colSnapshotM) {
-                    if (!docSnapshotMW.hasData || !colSnapshotM.hasData) {
-                      return CircularProgressIndicator();
-                    }
+              // 막 메세지, 막 메세지 시간, 안 본 메세지
+              StreamBuilder<DocumentSnapshot>(
+                  stream: streamMessageWith,
+                  builder: (context, AsyncSnapshot<DocumentSnapshot> docSnapshotMW) {
+                    return StreamBuilder<QuerySnapshot>(
+                        stream: streamMessages,
+                        builder: (context, AsyncSnapshot<QuerySnapshot> colSnapshotM) {
+                          if (!docSnapshotMW.hasData || !colSnapshotM.hasData) {
+                            return CircularProgressIndicator();
+                          }
+                          var myInfo = fp.getInfo();
 
-                    QueryDocumentSnapshot lastMessageSnapshot = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1];
+                          QueryDocumentSnapshot lastMessageSnapshot = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1];
 
-                    String lastTime;
-                    String lastMessage = lastMessageSnapshot.get('content').toString();
-                    String lastTimeSeen = docSnapshotMW.data!.get('lastTimeSeen');
-                    int unSeenCount;
+                          String lastTime;
+                          String lastMessage = lastMessageSnapshot.get('content').toString();
+                          String lastTimeSeen = docSnapshotMW.data!.get('lastTimeSeen');
+                          int unSeenCount;
 
-                    var temp = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1].get('timestamp').toString();
+                          var temp = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1].get('timestamp').toString();
 
-                    Timestamp timestamp = Timestamp.fromMillisecondsSinceEpoch(int.parse(temp));
-                    DateTime dateTime = timestamp.toDate();
-                    String formatedTime = formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
-                    if (isTomorrow(formatedTime)) {
-                      lastTime = formatedTime.substring(11, 16);
-                    } else {
-                      lastTime = formatedTime.substring(0, 4) + '.' + formatedTime.substring(5, 7) + '.' + formatedTime.substring(8, 10);
-                    }
+                          Timestamp timestamp = Timestamp.fromMillisecondsSinceEpoch(int.parse(temp));
+                          DateTime dateTime = timestamp.toDate();
+                          String formatedTime = formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
+                          if (isTomorrow(formatedTime)) {
+                            lastTime = formatedTime.substring(11, 16);
+                          } else {
+                            lastTime = formatedTime.substring(0, 4) + '.' + formatedTime.substring(5, 7) + '.' + formatedTime.substring(8, 10);
+                          }
 
-                    Iterable<QueryDocumentSnapshot<Object?>> messages = colSnapshotM.data!.docs.where((element) {
-                      if (int.parse(element.get('timestamp')) > int.parse(lastTimeSeen)) {
-                        print('#####################');
-                        print(element.get('content'));
-                        print(int.parse(element.get('timestamp')));
-                        print(int.parse(lastTimeSeen));
-                        return true;
-                      } else {
-                        print(element.get('content'));
-                        print('@@@@@@@@@@@@@@@@@@@@');
-                        print(int.parse(element.get('timestamp')));
-                        print(int.parse(lastTimeSeen));
-                        return false;
-                      }
-                    });
+                          Iterable<QueryDocumentSnapshot<Object?>> messages = colSnapshotM.data!.docs.where((element) {
+                            if (int.parse(element.get('timestamp')) > int.parse(lastTimeSeen) && element.get('idFrom') != myInfo['email']) {
+                              return true;
+                            } else {
+                              return false;
+                            }
+                          });
 
-                    unSeenCount = messages.length;
+                          unSeenCount = messages.length;
 
-                    return Row(
-                      children: <Widget>[
-                        Container(
-                          child: Text(
-                            lastTime,
-                            maxLines: 1,
-                            style: TextStyle(color: primaryColor),
-                          ),
-                          alignment: Alignment.centerLeft,
-                          margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                        ),
-                        Container(
-                          child: Text(
-                            lastMessage,
-                            maxLines: 1,
-                            style: TextStyle(color: primaryColor),
-                          ),
-                          alignment: Alignment.centerLeft,
-                          margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                        ),
-                        Container(
-                          child: Text(
-                            unSeenCount.toString(),
-                            maxLines: 1,
-                            style: TextStyle(color: primaryColor),
-                          ),
-                          alignment: Alignment.centerLeft,
-                          margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                        ),
-                      ],
-                    );
-                  });
-                }),
+                          return Row(
+                            children: <Widget>[
+                              Container(
+                                child: Text(
+                                  lastTime,
+                                  maxLines: 1,
+                                  style: TextStyle(color: primaryColor),
+                                ),
+                                alignment: Alignment.centerLeft,
+                                margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
+                              ),
+                              Container(
+                                child: Text(
+                                  lastMessage,
+                                  maxLines: 1,
+                                  style: TextStyle(color: primaryColor),
+                                ),
+                                alignment: Alignment.centerLeft,
+                                margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
+                              ),
+                              Container(
+                                child: Text(
+                                  unSeenCount.toString(),
+                                  maxLines: 1,
+                                  style: TextStyle(color: primaryColor),
+                                ),
+                                alignment: Alignment.centerLeft,
+                                margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
+                              ),
+                            ],
+                          );
+                        });
+                  }),
             ],
           ),
           onPressed: () async {

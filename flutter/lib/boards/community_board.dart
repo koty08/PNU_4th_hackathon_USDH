@@ -16,6 +16,13 @@ late CommunityListState pageState2;
 late CommunityShowState pageState3;
 late CommunityModifyState pageState4;
 
+class Choice {
+  const Choice({required this.title, required this.icon});
+
+  final String title;
+  final IconData icon;
+}
+
 /* ---------------------- Write Board (Community) ---------------------- */
 
 class CommunityWrite extends StatefulWidget {
@@ -119,7 +126,7 @@ class CommunityWriteState extends State<CommunityWrite> {
                           return "내용은 필수 입력 사항입니다.";
                         }
                         return null;
-                })),
+                      })),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -144,7 +151,7 @@ class CommunityWriteState extends State<CommunityWrite> {
                               child: Column(
                                 children: [
                                   TextButton(
-                                    onPressed: (){
+                                    onPressed: () {
                                       deleteImage(urlList[idx]);
                                     },
                                     child: Text("X"),
@@ -159,7 +166,7 @@ class CommunityWriteState extends State<CommunityWrite> {
           ),
         )));
   }
-  
+
   void uploadImage() async {
     final pickedImgList = await _picker.pickMultiImage();
 
@@ -203,6 +210,7 @@ class CommunityWriteState extends State<CommunityWrite> {
       'likes': 0,
       'commentCount': 0,
     });
+    await fs.collection('community_board').doc(myInfo['name'] + myInfo['postcount'].toString()).collection('comments');
     fp.updateIntInfo('postcount', 1);
   }
 }
@@ -457,6 +465,17 @@ class CommunityShowState extends State<CommunityShow> {
   final FirebaseFirestore fs = FirebaseFirestore.instance;
   TextEditingController commentInput = TextEditingController();
 
+  // 댓글 수정, 삭제 버튼 생성(버튼이름, 아이콘)
+  List<Choice> myChoices = const <Choice>[
+    const Choice(title: '수정', icon: Icons.sports_kabaddi),
+    const Choice(title: '삭제', icon: Icons.delete),
+  ];
+
+  List<Choice> otherChoices = const <Choice>[
+    const Choice(title: '신고', icon: Icons.sports_bar),
+    const Choice(title: '뭔가', icon: Icons.sports_baseball),
+  ];
+
   SharedPreferences? prefs;
   bool alreadyLiked = false;
 
@@ -479,124 +498,247 @@ class CommunityShowState extends State<CommunityShow> {
 
   @override
   Widget build(BuildContext context) {
+    Stream<DocumentSnapshot> boardStream = fs.collection('community_board').doc(widget.id).snapshots();
+    Stream<QuerySnapshot> commentsStream = fs.collection('community_board').doc(widget.id).collection('comments').snapshots();
+
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
 
+    Widget commentsSection(AsyncSnapshot<QuerySnapshot> commentsSnapshot, String myNick) {
+      if (commentsSnapshot.data != null) {
+        return Container(
+          child: ListView.builder(
+            primary: false,
+            shrinkWrap: true,
+            itemCount: commentsSnapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              if (myNick == commentsSnapshot.data!.docs[index].get('commentFrom')) {
+                DateTime dateTime = Timestamp.fromMillisecondsSinceEpoch(int.parse(commentsSnapshot.data!.docs[index].get('timestamp'))).toDate();
+                return Column(children: [
+                  Row(
+                    children: [
+                      Text(commentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
+                      cSizedBox(0, 35),
+                      Text(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))
+                    ],
+                  ),
+                  Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                  Row(
+                    children: [
+                      Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
+                      cSizedBox(0, 35),
+                      IconButton(
+                        icon: Icon(Icons.favorite_border),
+                        onPressed: () async {
+                          await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({'like': FieldValue.increment(1)});
+                        },
+                      ),
+                      cSizedBox(0, 35),
+                      Text(commentsSnapshot.data!.docs[index].get('like').toString(), style: TextStyle(fontSize: 14)),
+                      cSizedBox(0, 35),
+                      PopupMenuButton<Choice>(
+                        itemBuilder: (BuildContext context) {
+                          return myChoices.map((Choice choice) {
+                            return PopupMenuItem<Choice>(
+                              value: choice,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    choice.icon,
+                                  ),
+                                  Container(
+                                    width: 10.0,
+                                  ),
+                                  Text(
+                                    choice.title,
+                                  )
+                                ],
+                              ),
+                            );
+                          }).toList();
+                        },
+                      ),
+                    ],
+                  ),
+                ]);
+              } else {
+                return Column(children: [
+                  Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                  Row(
+                    children: [
+                      //댓글 내용, 좋아요
+                      Row(
+                        children: [
+                          Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
+                          cSizedBox(0, 35),
+                          IconButton(
+                            icon: Icon(Icons.favorite_border),
+                            onPressed: () async {
+                              await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({'like': FieldValue.increment(1)});
+                            },
+                          ),
+                          cSizedBox(0, 35),
+                          Text(commentsSnapshot.data!.docs[index].get('like').toString(), style: TextStyle(fontSize: 14)),
+                          cSizedBox(0, 35),
+                          PopupMenuButton<Choice>(
+                            itemBuilder: (BuildContext context) {
+                              return otherChoices.map((Choice choice) {
+                                return PopupMenuItem<Choice>(
+                                  value: choice,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        choice.icon,
+                                      ),
+                                      Container(
+                                        width: 10.0,
+                                      ),
+                                      Text(
+                                        choice.title,
+                                      )
+                                    ],
+                                  ),
+                                );
+                              }).toList();
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ]);
+              }
+            },
+          ),
+        );
+      }
+      return Container();
+    }
+
     return Scaffold(
         body: StreamBuilder(
-            stream: fs.collection('community_board').doc(widget.id).snapshots(),
-            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-              fp.setInfo();
+            stream: boardStream,
+            builder: (context, AsyncSnapshot<DocumentSnapshot> boardSnapshot) {
+              return StreamBuilder(
+                stream: commentsStream,
+                builder: (context, AsyncSnapshot<QuerySnapshot> commentsSnapshot) {
+                  fp.setInfo();
 
-              if (snapshot.hasData && !snapshot.data!.exists) {
-                return CircularProgressIndicator();
-              } else if (snapshot.hasData) {
-                String writeTime = snapshot.data!['write_time'].substring(10, 16) + ' | ';
-                String writer = snapshot.data!['writer'];
-                return SingleChildScrollView(
-                    child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    cSizedBox(35, 0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                  if (boardSnapshot.hasData && !boardSnapshot.data!.exists) {
+                    return CircularProgressIndicator();
+                  } else if (boardSnapshot.hasData) {
+                    var myInfo = fp.getInfo();
+                    String writeTime = boardSnapshot.data!['write_time'].substring(10, 16) + ' | ';
+                    String writer = boardSnapshot.data!['writer'];
+                    return SingleChildScrollView(
+                        child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        IconButton(
-                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                        headerText("커뮤니티"),
-                        cSizedBox(0, 175),
-                        IconButton(
-                          icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                          onPressed: () {
-                            var myInfo = fp.getInfo();
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                          },
-                        ),
-                      ],
-                    ),
-                    headerDivider(),
-                    Padding(
-                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                        child: Wrap(
-                            direction: Axis.vertical,
-                            spacing: 15,
-                            children: [Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])), smallText("작성일 " + writeTime + "작성자 " + writer+ " | 조회수 " + snapshot.data!['views'].toString(), 11.5, Color(0xffa9aaaf))])),
-                    Divider(
-                      color: Color(0xffe9e9e9),
-                      thickness: 15,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
-                      child: Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
-                    ),
-                    snapshot.data!['pic'].isEmpty
-                          ? Container()
-                          : Container(
-                              height: 300,
-                              child: ListView.builder(
-                                  itemCount: snapshot.data!['pic'].length,
-                                  itemBuilder: (BuildContext context, int idx) {
-                                    return Image.network(snapshot.data!['pic'][idx]);
-                                  }),
+                        cSizedBox(35, 0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
                             ),
-                    // 좋아요
-                    headerDivider(),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(alreadyLiked ? Icons.favorite_border : Icons.favorite),
-                          onPressed: () async {
-                            var myInfo = fp.getInfo();
-                            if (!alreadyLiked) {
-                              await FirebaseFirestore.instance.collection('community_board').doc(widget.id).update({'likes': FieldValue.increment(1)});
-                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
-                                'likedBoard': FieldValue.arrayUnion([widget.id])
-                              });
-                            } else {
-                              await FirebaseFirestore.instance.collection('community_board').doc(widget.id).update({'likes': FieldValue.increment(-1)});
-                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
-                                'likedBoard': FieldValue.arrayRemove([widget.id])
-                              });
-                            }
-                            alreadyLiked = !alreadyLiked;
-                          },
-                        ),
-                        Text(snapshot.data!['likes'].toString()),
-                      ],
-                    ),
-                    headerDivider(),
-                    // 댓글쓰기
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 30,
-                            child: TextField(
-                              controller: commentInput,
-                              decoration: InputDecoration(hintText: "코멘트를 남기세요."),
+                            headerText("커뮤니티"),
+                            cSizedBox(0, 175),
+                            IconButton(
+                              icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
+                              onPressed: () {
+                                var myInfo = fp.getInfo();
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
+                              },
                             ),
-                          ),
+                          ],
                         ),
-                        IconButton(
-                          icon: Icon(Icons.send),
-                          onPressed: () {
-                            FocusScope.of(context).requestFocus(new FocusNode());
-                            commentUploadOnFS();
-                          },
+                        headerDivider(),
+                        Padding(
+                            padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                            child: Wrap(direction: Axis.vertical, spacing: 15, children: [
+                              Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(boardSnapshot.data!['title'])),
+                              smallText("작성일 " + writeTime + "작성자 " + writer + " | 조회수 " + boardSnapshot.data!['views'].toString(), 11.5, Color(0xffa9aaaf))
+                            ])),
+                        Divider(
+                          color: Color(0xffe9e9e9),
+                          thickness: 15,
                         ),
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
+                          child: Text(boardSnapshot.data!['contents'], style: TextStyle(fontSize: 14)),
+                        ),
+                        boardSnapshot.data!['pic'].isEmpty
+                            ? Container()
+                            : Container(
+                                height: 300,
+                                child: ListView.builder(
+                                    itemCount: boardSnapshot.data!['pic'].length,
+                                    itemBuilder: (BuildContext context, int idx) {
+                                      return Image.network(boardSnapshot.data!['pic'][idx]);
+                                    }),
+                              ),
+                        // 좋아요
+                        headerDivider(),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(!alreadyLiked ? Icons.favorite_border : Icons.favorite),
+                              onPressed: () async {
+                                var myInfo = fp.getInfo();
+                                if (!alreadyLiked) {
+                                  await FirebaseFirestore.instance.collection('community_board').doc(widget.id).update({'likes': FieldValue.increment(1)});
+                                  await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
+                                    'likedBoard': FieldValue.arrayUnion([widget.id])
+                                  });
+                                } else {
+                                  await FirebaseFirestore.instance.collection('community_board').doc(widget.id).update({'likes': FieldValue.increment(-1)});
+                                  await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
+                                    'likedBoard': FieldValue.arrayRemove([widget.id])
+                                  });
+                                }
+                                alreadyLiked = !alreadyLiked;
+                              },
+                            ),
+                            Text(boardSnapshot.data!['likes'].toString()),
+                          ],
+                        ),
+                        headerDivider(),
+                        // 댓글쓰기
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 30,
+                                child: TextField(
+                                  controller: commentInput,
+                                  decoration: InputDecoration(hintText: "코멘트를 남기세요."),
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.send),
+                              onPressed: () {
+                                FocusScope.of(context).requestFocus(new FocusNode());
+                                if (commentInput.text.isNotEmpty) {
+                                  commentUploadOnFS();
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                        // 댓글들
+                        commentsSection(commentsSnapshot, myInfo['nick']),
                       ],
-                    ),
-                    // 댓글들 (추가해야함)
-                  ],
-                ));
-              } else {
-                return CircularProgressIndicator();
-              }
+                    ));
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                },
+              );
             }),
         bottomNavigationBar: StreamBuilder(
             stream: fs.collection('community_board').doc(widget.id).snapshots(),
@@ -619,7 +761,7 @@ class CommunityShowState extends State<CommunityShow> {
                           child: Align(alignment: Alignment.center, child: smallText("삭제", 14, Colors.white)),
                           onTap: () async {
                             var urlList = snapshot.data!['pic'];
-                            for(int i = 0; i < urlList.length; i++){
+                            for (int i = 0; i < urlList.length; i++) {
                               Reference ref = storage.refFromURL(urlList[i]);
                               ref.delete();
                             }
@@ -688,14 +830,15 @@ class CommunityShowState extends State<CommunityShow> {
   }
 
   void commentUploadOnFS() async {
-    int? commentCount;
-    await fs.collection('community_board').doc(widget.id).get().then((value) {
-      commentCount = value['commentCount'];
-    });
-    await fs.collection('community_board').doc(widget.id).update({
-      'commentCount': FieldValue.increment(1),
-      'comments.comment$commentCount': FieldValue.arrayUnion([commentInput.text, 0]), // [댓글, 좋아요수]
-    });
+    var myInfo = fp.getInfo();
+    await fs.collection('community_board').doc(widget.id).update({'commentCount': FieldValue.increment(1)});
+    await fs
+        .collection('community_board')
+        .doc(widget.id)
+        .collection('comments')
+        .doc(DateTime.now().millisecondsSinceEpoch.toString())
+        .set({'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), 'commentFrom': myInfo['nick'], 'comment': commentInput.text, 'like': 0});
+
     commentInput.clear();
   }
 }
@@ -723,7 +866,6 @@ class CommunityModifyState extends State<CommunityModify> {
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
   List urlList = [];
-
 
   @override
   void initState() {
@@ -818,7 +960,7 @@ class CommunityModifyState extends State<CommunityModify> {
                                   return "내용은 필수 입력 사항입니다.";
                                 }
                                 return null;
-                        })),
+                              })),
                       Divider(
                         color: Colors.black,
                       ),
@@ -833,10 +975,9 @@ class CommunityModifyState extends State<CommunityModify> {
                                       child: Column(
                                         children: [
                                           TextButton(
-                                            onPressed: (){
+                                            onPressed: () {
                                               deleteImage(urlList[idx]);
-                                              setState(() {
-                                              });
+                                              setState(() {});
                                             },
                                             child: Text("X"),
                                           ),
@@ -869,7 +1010,7 @@ class CommunityModifyState extends State<CommunityModify> {
 
     List<String> pickUrlList = [];
 
-    var  tmp = fp.getInfo();
+    var tmp = fp.getInfo();
 
     late Reference ref;
     for (int i = 0; i < pickedImgList!.length; i++) {
@@ -900,14 +1041,13 @@ class CommunityModifyState extends State<CommunityModify> {
         'pic': urlList,
       });
     });
-
   }
 
   void updateOnFS() async {
     await fs.collection('community_board').doc(widget.id).update({
       'title': titleInput.text,
       'contents': contentInput.text,
-      'pic' : urlList,
+      'pic': urlList,
     });
   }
 }
