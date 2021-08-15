@@ -38,11 +38,10 @@ bool isTomorrow(String time) {
   String now = formatDate(DateTime.now(), [HH, ':', nn, ':', ss]);
   print("마감 " + time);
   print("현재 " + now);
-  if(time.compareTo(now) == -1){
+  if (time.compareTo(now) == -1) {
     print("내일");
     return true;
-  }
-  else{
+  } else {
     print("오늘");
     return false;
   }
@@ -157,24 +156,23 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                                 spacing: 15,
                                 children: [
                                   cond2Text("모집기간"),
-                                  Container(width: 250, height: 20,
+                                  Container(
+                                    width: 250,
+                                    height: 20,
                                     margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
                                     child: TextFormField(
-                                      controller: timeInput,
-                                      style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
-                                      decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)", border: InputBorder.none, focusedBorder: InputBorder.none),
-                                      validator: (text) {
-                                        if (text == null || text.isEmpty) {
-                                          return "마감 시간은 필수 입력 사항입니다.";
-                                        }
-                                        else if(isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])){
-                                          return null;
-                                        }
-                                        else{
-                                          return "올바른 형식으로 입력해주세요. (ex 09:10)";
-                                        }
-                                      }
-                                    ),
+                                        controller: timeInput,
+                                        style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
+                                        decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)", border: InputBorder.none, focusedBorder: InputBorder.none),
+                                        validator: (text) {
+                                          if (text == null || text.isEmpty) {
+                                            return "마감 시간은 필수 입력 사항입니다.";
+                                          } else if (isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])) {
+                                            return null;
+                                          } else {
+                                            return "올바른 형식으로 입력해주세요. (ex 09:10)";
+                                          }
+                                        }),
                                   )
                                 ],
                               ),
@@ -227,23 +225,22 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                 thickness: 2.5,
               ),
               Container(
-                padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
-                child: TextFormField(
-                    controller: contentInput,
-                    keyboardType: TextInputType.multiline,
-                    maxLines: null,
-                    style: TextStyle(fontSize: 14),
-                    decoration: InputDecoration(
-                      hintText: "내용을 입력하세요.",
-                      border: InputBorder.none,
-                    ),
-                    validator: (text) {
-                      if (text == null || text.isEmpty) {
-                        return "내용은 필수 입력 사항입니다.";
-                      }
-                      return null;
-                    })
-              ),
+                  padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
+                  child: TextFormField(
+                      controller: contentInput,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
+                      style: TextStyle(fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: "내용을 입력하세요.",
+                        border: InputBorder.none,
+                      ),
+                      validator: (text) {
+                        if (text == null || text.isEmpty) {
+                          return "내용은 필수 입력 사항입니다.";
+                        }
+                        return null;
+                      })),
               cSizedBox(350, 0)
             ],
           ),
@@ -257,8 +254,8 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
       'writer': myInfo['name'],
       'contents': contentInput.text,
-      'time': isTomorrow(timeInput.text+":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00"
-      : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
+      'time':
+          isTomorrow(timeInput.text + ":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00" : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
       'currentMember': 1,
       'limitedMember': int.parse(memberInput.text),
       'food': foodInput.text,
@@ -268,7 +265,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
       'where': 'delivery_board',
-      'title' : titleInput.text,
+      'title': titleInput.text,
       'isFineForMembers': [],
       'members': [],
     });
@@ -307,8 +304,6 @@ class _Chip extends StatelessWidget {
 }
 
 /* ---------------------- Board Map (Delivery) ---------------------- */
-/* ----------------------    지우지 말아주세요    ---------------------- */
-
 
 class DeliveryMap extends StatefulWidget {
   @override
@@ -317,7 +312,6 @@ class DeliveryMap extends StatefulWidget {
     return pageState1;
   }
 }
-
 
 class DeliveryMapState extends State<DeliveryMap> {
   Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
@@ -498,10 +492,6 @@ class DeliveryMapState extends State<DeliveryMap> {
                 ),
                 headerDivider(),
                 // ------------------------------ 아래에 지도 추가 ------------------------------
-
-
-
-
               ]);
             }),
       ),
@@ -518,7 +508,6 @@ class DeliveryMapState extends State<DeliveryMap> {
     );
   }
 }
-
 
 /* ---------------------- Board List (Delivery) ---------------------- */
 
@@ -754,90 +743,90 @@ class DeliveryListState extends State<DeliveryList> {
                 Expanded(
                     // 아래 간격 두고 싶으면 Container, height 사용
                     //height: MediaQuery.of(context).size.height * 0.8,
-                  child: MediaQuery.removePadding(
-                    context: context,
-                    removeTop: true,
-                    child: ListView.separated(
-                        separatorBuilder: (context, index) => middleDivider(),
-                        shrinkWrap: true,
-                        itemCount: snapshot.data!.docs.length,
-                        itemBuilder: (context, index) {
-                          final DocumentSnapshot doc = snapshot.data!.docs[index];
-                          String member = doc['currentMember'].toString() + '/' + doc['limitedMember'].toString();
-                          String info = doc['time'].substring(5, 7) + "/" + doc['time'].substring(8, 10) + doc['write_time'].substring(10, 16);
-                          String time = ' | ' + '마감' + doc['time'].substring(10, 16) + ' | ';
-                          String writer = doc['writer'];
-                          return Column(children: [
-                            Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
-                            InkWell(
-                                onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
-                                  FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views": doc["views"] + 1});
-                                },
-                                child: Container(
-                                    margin: EdgeInsets.fromLTRB(25, 17, 10, 0),
-                                    child: Column(children: [
-                                      Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                                        cSizedBox(0, 10),
-                                        Container(
-                                            width: MediaQuery.of(context).size.width * 0.7,
-                                            height: 13,
-                                            child: ListView.builder(
-                                                scrollDirection: Axis.horizontal,
-                                                itemCount: doc['tagList'].length,
-                                                itemBuilder: (context, index) {
-                                                  String tag = doc['tagList'][index].toString();
-                                                  return GestureDetector(
-                                                      onTap: () {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: tag).snapshots();
-                                                        });
-                                                      },
-                                                      child: smallText(tag, 12, Color(0xffa9aaaf)));
-                                                })),
-                                        cSizedBox(0, 10),
-                                        Container(
-                                            width: 50,
-                                            child: Row(
-                                              crossAxisAlignment: CrossAxisAlignment.end,
-                                              children: [
-                                                isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])
-                                                    ? Image(
-                                                        image: AssetImage('assets/images/icon/iconminiperson.png'),
-                                                        height: 15,
-                                                        width: 15,
-                                                      )
-                                                    : Image(
-                                                        image: AssetImage('assets/images/icon/iconminiperson2.png'),
-                                                        height: 15,
-                                                        width: 15,
-                                                      ),
-                                                cSizedBox(20, 7),
-                                                smallText(member, 13, Color(0xffa9aaaf))
-                                              ],
-                                            ))
-                                      ]),
-                                      Row(children: [
-                                        isAvailable(doc['time'], doc['currentMember'], doc['limitedMember']) ? statusText("모집중") : statusText("모집완료"),
-                                        cSizedBox(0, 10),
-                                        Container(
-                                          width: MediaQuery.of(context).size.width * 0.6,
-                                          child: Text(doc['title'].toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w700, fontSize: 15)),
-                                        ),
-                                        cSizedBox(35, 0),
-                                      ]),
-                                      Row(
-                                        children: [
-                                          cSizedBox(20, 5),
-                                          smallText(info, 10, Color(0xffa9aaaf)),
-                                          smallText(time, 10, Color(0xffa9aaaf)),
-                                          smallText(writer, 10, Color(0xffa9aaaf)),
-                                        ],
+                    child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: ListView.separated(
+                      separatorBuilder: (context, index) => middleDivider(),
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        final DocumentSnapshot doc = snapshot.data!.docs[index];
+                        String member = doc['currentMember'].toString() + '/' + doc['limitedMember'].toString();
+                        String info = doc['time'].substring(5, 7) + "/" + doc['time'].substring(8, 10) + doc['write_time'].substring(10, 16);
+                        String time = ' | ' + '마감' + doc['time'].substring(10, 16) + ' | ';
+                        String writer = doc['writer'];
+                        return Column(children: [
+                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                          InkWell(
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
+                                FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views": doc["views"] + 1});
+                              },
+                              child: Container(
+                                  margin: EdgeInsets.fromLTRB(25, 17, 10, 0),
+                                  child: Column(children: [
+                                    Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                                      cSizedBox(0, 10),
+                                      Container(
+                                          width: MediaQuery.of(context).size.width * 0.7,
+                                          height: 13,
+                                          child: ListView.builder(
+                                              scrollDirection: Axis.horizontal,
+                                              itemCount: doc['tagList'].length,
+                                              itemBuilder: (context, index) {
+                                                String tag = doc['tagList'][index].toString();
+                                                return GestureDetector(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: tag).snapshots();
+                                                      });
+                                                    },
+                                                    child: smallText(tag, 12, Color(0xffa9aaaf)));
+                                              })),
+                                      cSizedBox(0, 10),
+                                      Container(
+                                          width: 50,
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.end,
+                                            children: [
+                                              isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])
+                                                  ? Image(
+                                                      image: AssetImage('assets/images/icon/iconminiperson.png'),
+                                                      height: 15,
+                                                      width: 15,
+                                                    )
+                                                  : Image(
+                                                      image: AssetImage('assets/images/icon/iconminiperson2.png'),
+                                                      height: 15,
+                                                      width: 15,
+                                                    ),
+                                              cSizedBox(20, 7),
+                                              smallText(member, 13, Color(0xffa9aaaf))
+                                            ],
+                                          ))
+                                    ]),
+                                    Row(children: [
+                                      isAvailable(doc['time'], doc['currentMember'], doc['limitedMember']) ? statusText("모집중") : statusText("모집완료"),
+                                      cSizedBox(0, 10),
+                                      Container(
+                                        width: MediaQuery.of(context).size.width * 0.6,
+                                        child: Text(doc['title'].toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w700, fontSize: 15)),
                                       ),
-                                      cSizedBox(10, 0)
-                                    ])))
-                          ]);
-                        }),
+                                      cSizedBox(35, 0),
+                                    ]),
+                                    Row(
+                                      children: [
+                                        cSizedBox(20, 5),
+                                        smallText(info, 10, Color(0xffa9aaaf)),
+                                        smallText(time, 10, Color(0xffa9aaaf)),
+                                        smallText(writer, 10, Color(0xffa9aaaf)),
+                                      ],
+                                    ),
+                                    cSizedBox(10, 0)
+                                  ])))
+                        ]);
+                      }),
                 )),
               ]);
             }),
@@ -910,67 +899,67 @@ class DeliveryShowState extends State<DeliveryShow> {
                 String writer = snapshot.data!['writer'];
                 return SingleChildScrollView(
                     child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      cSizedBox(35, 0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    cSizedBox(35, 0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        headerText("배달"),
+                        cSizedBox(0, 250),
+                      ],
+                    ),
+                    headerDivider(),
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                        child: Wrap(direction: Axis.vertical, spacing: 15, children: [
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            child: tagText(snapshot.data!['tagList'].join('')),
                           ),
-                          headerText("배달"),
-                          cSizedBox(0, 250),
-                        ],
-                      ),
-                      headerDivider(),
-                      Padding(
-                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                          child: Wrap(direction: Axis.vertical, spacing: 15, children: [
-                            Container(
-                              width: MediaQuery.of(context).size.width * 0.8,
-                              child: tagText(snapshot.data!['tagList'].join('')),
-                            ),
-                            Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
-                            smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
-                          ])),
-                      Divider(
-                        color: Color(0xffe9e9e9),
-                        thickness: 15,
-                      ),
-                      Padding(
-                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                          child: Wrap(
-                            direction: Axis.vertical,
-                            spacing: 15,
-                            children: [
-                              Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
-                                  child: Wrap(
-                                    direction: Axis.vertical,
-                                    spacing: 15,
-                                    children: [
-                                      cond2Wrap("모집기간", time),
-                                      cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
-                                      cond2Wrap("음식종류", snapshot.data!['food']),
-                                      cond2Wrap("배분위치", snapshot.data!['location']),
-                                    ],
-                                  ))
-                            ],
-                          )),
-                      Divider(
-                        color: Color(0xffe9e9e9),
-                        thickness: 15,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
-                        child: Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
-                      ),
+                          Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
+                          smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
+                        ])),
+                    Divider(
+                      color: Color(0xffe9e9e9),
+                      thickness: 15,
+                    ),
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                        child: Wrap(
+                          direction: Axis.vertical,
+                          spacing: 15,
+                          children: [
+                            Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                            Padding(
+                                padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
+                                child: Wrap(
+                                  direction: Axis.vertical,
+                                  spacing: 15,
+                                  children: [
+                                    cond2Wrap("모집기간", time),
+                                    cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
+                                    cond2Wrap("음식종류", snapshot.data!['food']),
+                                    cond2Wrap("배분위치", snapshot.data!['location']),
+                                  ],
+                                ))
+                          ],
+                        )),
+                    Divider(
+                      color: Color(0xffe9e9e9),
+                      thickness: 15,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
+                      child: Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
+                    ),
                   ],
                 ));
               } else {
@@ -1052,11 +1041,9 @@ class DeliveryShowState extends State<DeliveryShow> {
                               }
                             });
 
-
                             if (!_myApplication.contains(title)) {
                               print('참가 신청하지 않은 방입니다!!');
-                            }
-                            else {
+                            } else {
                               await FirebaseFirestore.instance.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
                                 'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
                               });
@@ -1083,41 +1070,43 @@ class DeliveryShowState extends State<DeliveryShow> {
                             int _currentMember = snapshot.data!['currentMember'];
                             int _limitedMember = snapshot.data!['limitedMember'];
                             String title = widget.id;
-                            String hostId = '';
+                            String? hostId;
                             List<String> _myApplication = [];
                             List<String> _joiningIn = [];
 
-                            await FirebaseFirestore.instance.collection('users').where('name', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
+                            await fs.collection('users').where('name', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
                               DocumentSnapshot tmp = snap.docs[0];
                               hostId = tmp['email'];
                             });
 
-                            await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).get().then((value) {
-                              for (String appliedRoom in value['myApplication']) {
-                                _myApplication.add(appliedRoom);
+                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                              for (DocumentSnapshot doc in snap.docs) {
+                                _myApplication.add(doc.id);
                               }
-                              for (String joinedRoom in value['joiningIn']) {
+                            });
+
+                            await fs.collection('users').doc(myInfo['email']).get().then((DocumentSnapshot snap) {
+                              for (String joinedRoom in snap['joiningIn']) {
                                 _joiningIn.add(joinedRoom);
                               }
-
                             });
 
                             if (_myApplication.contains(title) || _joiningIn.contains(title)) {
-                              print('이미 신청한 방입니다!!');
+                              print('이미 신청(가입)한 방입니다!!');
                             } else if (_currentMember >= _limitedMember) {
                               print('This room is full');
                             } else {
                               // 방장에게 날리는 메세지
-                              if (hostId.isNotEmpty) {
-                                await FirebaseFirestore.instance.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                              if (hostId!.isNotEmpty) {
+                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
                                   'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
                                 });
                               } else {
                                 print('hostId is null!!');
                               }
                               // 내 정보에 신청 정보를 기록
-                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
-                                'myApplication': FieldValue.arrayUnion([title])
+                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
+                                'where': "delivery_board",
                               });
                               print('참가 신청을 보냈습니다.');
                             }
@@ -1307,21 +1296,20 @@ class DeliveryModifyState extends State<DeliveryModify> {
                             Container(
                                 padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
                                 child: TextFormField(
-                                  controller: contentInput,
-                                  keyboardType: TextInputType.multiline,
-                                  maxLines: null,
-                                  style: TextStyle(fontSize: 14),
-                                  decoration: InputDecoration(
-                                    hintText: "내용을 입력하세요.",
-                                    border: InputBorder.none,
-                                  ),
-                                  validator: (text) {
-                                    if (text == null || text.isEmpty) {
-                                      return "내용은 필수 입력 사항입니다.";
-                                    }
-                                    return null;
-                                  })
-                            ),
+                                    controller: contentInput,
+                                    keyboardType: TextInputType.multiline,
+                                    maxLines: null,
+                                    style: TextStyle(fontSize: 14),
+                                    decoration: InputDecoration(
+                                      hintText: "내용을 입력하세요.",
+                                      border: InputBorder.none,
+                                    ),
+                                    validator: (text) {
+                                      if (text == null || text.isEmpty) {
+                                        return "내용은 필수 입력 사항입니다.";
+                                      }
+                                      return null;
+                                    })),
                             cSizedBox(350, 0)
                           ],
                         ));
@@ -1336,8 +1324,8 @@ class DeliveryModifyState extends State<DeliveryModify> {
       'title': titleInput.text,
       'contents': contentInput.text,
       //원래 이전 날짜 기억하려 d 사용했다가 현재 잠시 바꿈 (오늘, 내일 테스트용)
-      'time': isTomorrow(timeInput.text+":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00"
-      : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
+      'time':
+          isTomorrow(timeInput.text + ":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00" : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
       'limitedMember': int.parse(memberInput.text),
       'food': foodInput.text,
       'location': locationInput.text,
@@ -1346,7 +1334,7 @@ class DeliveryModifyState extends State<DeliveryModify> {
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({
       'where': 'delivery_board',
-      'title' : titleInput.text,
+      'title': titleInput.text,
       'isFineForMembers': [],
       'members': [],
     });
