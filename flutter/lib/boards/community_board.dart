@@ -560,52 +560,57 @@ class CommunityShowState extends State<CommunityShow> {
                       ),
                     ],
                   ),
+                  headerDivider(),
                 ]);
               } else {
+                DateTime dateTime = Timestamp.fromMillisecondsSinceEpoch(int.parse(commentsSnapshot.data!.docs[index].get('timestamp'))).toDate();
                 return Column(children: [
+                  Row(
+                    children: [
+                      Text(commentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
+                      cSizedBox(0, 35),
+                      Text(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))
+                    ],
+                  ),
                   Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                   Row(
                     children: [
-                      //댓글 내용, 좋아요
-                      Row(
-                        children: [
-                          Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
-                          cSizedBox(0, 35),
-                          IconButton(
-                            icon: Icon(Icons.favorite_border),
-                            onPressed: () async {
-                              await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({'like': FieldValue.increment(1)});
-                            },
-                          ),
-                          cSizedBox(0, 35),
-                          Text(commentsSnapshot.data!.docs[index].get('like').toString(), style: TextStyle(fontSize: 14)),
-                          cSizedBox(0, 35),
-                          PopupMenuButton<Choice>(
-                            itemBuilder: (BuildContext context) {
-                              return otherChoices.map((Choice choice) {
-                                return PopupMenuItem<Choice>(
-                                  value: choice,
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        choice.icon,
-                                      ),
-                                      Container(
-                                        width: 10.0,
-                                      ),
-                                      Text(
-                                        choice.title,
-                                      )
-                                    ],
+                      Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
+                      cSizedBox(0, 35),
+                      IconButton(
+                        icon: Icon(Icons.favorite_border),
+                        onPressed: () async {
+                          await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({'like': FieldValue.increment(1)});
+                        },
+                      ),
+                      cSizedBox(0, 35),
+                      Text(commentsSnapshot.data!.docs[index].get('like').toString(), style: TextStyle(fontSize: 14)),
+                      cSizedBox(0, 35),
+                      PopupMenuButton<Choice>(
+                        itemBuilder: (BuildContext context) {
+                          return otherChoices.map((Choice choice) {
+                            return PopupMenuItem<Choice>(
+                              value: choice,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    choice.icon,
                                   ),
-                                );
-                              }).toList();
-                            },
-                          ),
-                        ],
+                                  Container(
+                                    width: 10.0,
+                                  ),
+                                  Text(
+                                    choice.title,
+                                  )
+                                ],
+                              ),
+                            );
+                          }).toList();
+                        },
                       ),
                     ],
                   ),
+                  headerDivider(),
                 ]);
               }
             },
