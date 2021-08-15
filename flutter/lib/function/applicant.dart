@@ -91,7 +91,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                       final DocumentSnapshot doc = snapshot.data!.docs[index];
                       String where = doc['where'];
                       String id = doc.id;
-                      //if(doc['isFineForMembers'].length!=0){
+                      if(doc['isFineForMembers'].length!=0){
                         return Column(children: [
                           Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                           InkWell(
@@ -99,7 +99,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                               Navigator.push(context, MaterialPageRoute(builder: (context) => ShowApplicantList(doc.id)));
                             },
                             child: Card(
-                              margin : EdgeInsets.fromLTRB(30, 20, 30, 0),
+                              margin : EdgeInsets.fromLTRB(30, 10, 30, 10),
                               child: Padding(padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
                                 child: Row(children: [
                                   if(where == 'delivery_board') Image(image: AssetImage('assets/images/icon/iconmotorcycle.png'), height: 30, width: 30,),
@@ -110,7 +110,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                                     spacing: 8,
                                     children: [
                                       smallText(doc['title'], 15, Colors.black87),
-                                      smallText(doc['isFineForMembers'].join(''), 11, Color(0xffa9aaaf)),
+                                      if(doc['isFineForMembers'].length!=0) smallText('신청자 : ' + doc['isFineForMembers'].join(', '), 11, Color(0xffa9aaaf)),
                                       //smallText(doc['isFineForMembers'].length.toString(), 11, Color(0xffa9aaaf))
                                     ],
                                   )
@@ -119,10 +119,10 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                             )
                           )
                         ]);
-                      /*}
+                      }
                       else{
-                        return Container(child: Text('없음'),);
-                      }*/
+                        return SizedBox.shrink();
+                      }
                     },
                   )
                 )
@@ -165,9 +165,6 @@ class ShowApplicantListState extends State<ShowApplicantList> {
     fp.setInfo();
 
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.id),
-        ),
         body: StreamBuilder(
             stream: fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -178,37 +175,59 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                 fp.setInfo();
                 return Column(
                   children: [
-                    Text('board: ' + snapshot.data!['where'].toString()),
+                    cSizedBox(35, 0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        cSizedBox(0, 5),
+                        IconButton(
+                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+                          onPressed: () {Navigator.pop(context);},
+                        ),
+                        cSizedBox(0, 10),
+                        headerText(snapshot.data!.get('title')),
+                        headerText(") 신청자 목록"),
+                        cSizedBox(0, 180),
+                      ],
+                    ),
+                    headerDivider(),
+                    Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 20)),
                     Expanded(
-                        child: MediaQuery.removePadding(
-                          context: context,
-                          removeTop: true,
-                          child: ListView.separated(
-                              separatorBuilder: (context, index) => Divider(
-                                height: 10,
-                                thickness: 2,
-                                color: Colors.blue[100],
-                              ),
-                              shrinkWrap: true,
-                              itemCount: snapshot.data!.get('isFineForMembers').length,
-                              itemBuilder: (context, index) {
-                                final List<dynamic> isFineForMembers = snapshot.data!.get('isFineForMembers');
-                                final List<dynamic> members = snapshot.data!.get('members');
-                                return Column(children: [
-                                  Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
-                                  Row(
+                      child: MediaQuery.removePadding(
+                        context: context,
+                        removeTop: true,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: snapshot.data!.get('isFineForMembers').length,
+                          itemBuilder: (context, index) {
+                            final List<dynamic> isFineForMembers = snapshot.data!.get('isFineForMembers');
+                            final List<dynamic> members = snapshot.data!.get('members');
+                            return Column(children: [
+                              Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                              InkWell(
+                                onTap: () {
+                                  /*showDialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    elevation: 0,
+                                    backgroundColor: Colors.transparent,
+                                    //child: contentBox(context),
+                                  );*/
+                                  //Navigator.push(context, MaterialPageRoute(builder: (context) => )));
+                                },
+                                child: Card(
+                                  margin : EdgeInsets.fromLTRB(30, 10, 30, 10),
+                                  child: Row(
                                     children: [
-                                      Text(isFineForMembers[index]),
+                                      cSizedBox(0, 50),
+                                      smallText(isFineForMembers[index], 15, Colors.black87),
+                                      // 승인
                                       Container(
-                                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            primary: Colors.purple[300],
-                                          ),
-                                          child: Text(
-                                            "허락",
-                                            style: TextStyle(color: Colors.white),
-                                          ),
+                                        margin: EdgeInsets.fromLTRB(140, 10, 0, 10),
+                                        child: IconButton(
+                                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
                                           onPressed: () async {
                                             var myId = fp.getInfo()['email'];
                                             int currentMember = 0;
@@ -242,13 +261,13 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                               members.add(peerId);
                                               // 채팅 시작
                                               Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) => Chat(
-                                                    myId: myId,
-                                                    peerIds: members,
-                                                    groupChatId: title,
-                                                  )));
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) => Chat(
+                                                        myId: myId,
+                                                        peerIds: members,
+                                                        groupChatId: title,
+                                                      )));
                                               print(peerId + '를 ' + title + '에 추가합니다.');
                                             } else {
                                               print('인원이 다 찼습니다!');
@@ -256,16 +275,11 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                           },
                                         ),
                                       ),
+                                      // 거절
                                       Container(
-                                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            primary: Colors.indigo[300],
-                                          ),
-                                          child: Text(
-                                            "거절",
-                                            style: TextStyle(color: Colors.white),
-                                          ),
+                                        margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                                        child: IconButton(
+                                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
                                           onPressed: () async {
                                             var myId = fp.getInfo()['email'];
                                             String peerId = isFineForMembers[index].toString();
@@ -285,9 +299,11 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                       ),
                                     ],
                                   ),
-                                ]);
-                              }),
-                        )),
+                              ),
+                              ),
+                            ]);
+                          }),
+                    )),
                   ],
                 );
               }

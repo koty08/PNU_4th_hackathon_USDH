@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 import 'package:material_tag_editor/tag_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:usdh/Widget/widget.dart';
@@ -316,21 +318,21 @@ class DeliveryMap extends StatefulWidget {
 class DeliveryMapState extends State<DeliveryMap> {
   Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
   late FirebaseProvider fp;
-  final _formKey = GlobalKey<FormState>();
-  TextEditingController searchInput = TextEditingController();
-  String search = "";
-  bool status = false;
-  String limit = "";
+  Completer<GoogleMapController> _controller = Completer();
+
+  // 초기 위치 : 부산대학교 정문
+  CameraPosition _initialCameraPosition = CameraPosition(
+    target: LatLng(35.23159301295487, 129.08395882267462),
+    zoom: 16,
+  );
 
   @override
   void initState() {
-    search = "제목";
     super.initState();
   }
 
   @override
   void dispose() {
-    searchInput.dispose();
     super.dispose();
   }
 
@@ -386,98 +388,6 @@ class DeliveryMapState extends State<DeliveryMap> {
                               });
                             },
                           ),
-                          //검색 기능 팝업
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
-                            onPressed: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (BuildContext con) {
-                                    return StatefulBuilder(builder: (con, setS) {
-                                      return Form(
-                                          key: _formKey,
-                                          child: AlertDialog(
-                                            title: Row(
-                                              children: [
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "제목",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setS(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
-                                                ),
-                                                Text(
-                                                  "제목 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "태그",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setS(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
-                                                ),
-                                                Text(
-                                                  "태그 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            content: TextFormField(
-                                                controller: searchInput,
-                                                decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
-                                                validator: (text) {
-                                                  if (text == null || text.isEmpty) {
-                                                    return "검색어를 입력하지 않으셨습니다.";
-                                                  }
-                                                  return null;
-                                                }),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                  onPressed: () {
-                                                    if (_formKey.currentState!.validate()) {
-                                                      if (search == "제목") {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      } else {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      }
-                                                    }
-                                                  },
-                                                  child: Text("검색")),
-                                              TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(con);
-                                                    searchInput.clear();
-                                                  },
-                                                  child: Text("취소")),
-                                            ],
-                                          ));
-                                    });
-                                  });
-                            },
-                          ),
                           IconButton(
                             icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
                             onPressed: () {
@@ -492,6 +402,29 @@ class DeliveryMapState extends State<DeliveryMap> {
                 ),
                 headerDivider(),
                 // ------------------------------ 아래에 지도 추가 ------------------------------
+                Expanded(
+                  child: Stack(
+                    children: [
+                      GoogleMap(
+                        mapType: MapType.normal,
+                        initialCameraPosition: _initialCameraPosition,
+                        onMapCreated: (GoogleMapController controller) {
+                          _controller.complete(controller);
+                        },
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: true
+                      ),
+                      Positioned(
+                        top: 27,
+                        left: 26,
+                        child:IconButton(
+                          icon: Icon(Icons.my_location),//Image.asset('assets/images/icon/iconteam.png', width: 22, height: 22),
+                          onPressed: _goToCurrentLocation,
+                        ),
+                      ),
+                    ],
+                  )
+                ),
               ]);
             }),
       ),
@@ -506,6 +439,23 @@ class DeliveryMapState extends State<DeliveryMap> {
             Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryWrite()));
           }),
     );
+  }
+  // Floating 버튼 클릭 시 현재 위치 표시
+  void _goToCurrentLocation() async {
+    final locData = await Location().getLocation();
+    final lat = locData.latitude;
+    final lng = locData.longitude;
+
+    CameraPosition _currentLocation = CameraPosition(
+      target: LatLng(lat!, lng!),
+      zoom: 16,
+    );
+
+    final GoogleMapController controller = await _controller.future;
+    Location location = new Location();
+    location.onLocationChanged.listen((event) {
+      controller.animateCamera(CameraUpdate.newCameraPosition(_currentLocation));
+    });
   }
 }
 

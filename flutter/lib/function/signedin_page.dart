@@ -63,7 +63,7 @@ class SignedInPageState extends State<SignedInPage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               cSizedBox(0, 15),
-              imageAndText('assets/images/icon/icontaxi.png', "택시", ListBoard()),
+              imageAndText('assets/images/icon/icontaxi.png', "택시", DeliveryMap()),
               imageAndText('assets/images/icon/iconmotorcycle.png', "배달", DeliveryList()),
               imageAndText('assets/images/icon/iconshopping.png', "공구", ListBoard()),
               imageAndText('assets/images/icon/iconcommunity.png', "커뮤니티", CommunityList()),
