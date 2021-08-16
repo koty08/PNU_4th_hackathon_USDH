@@ -23,6 +23,30 @@ class Choice {
   final IconData icon;
 }
 
+String howLongAgo(String time) {
+  //String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
+  String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
+  if (time.substring(0, 4).compareTo(now.substring(0, 4)) == -1) {
+    int diff = int.parse(now.substring(0, 4)) - int.parse(time.substring(0, 4));
+    return diff.toString() + "년전";
+  } else if (time.substring(5, 7).compareTo(now.substring(5, 7)) == -1) {
+    int diff = int.parse(now.substring(5, 7)) - int.parse(time.substring(5, 7));
+    return diff.toString() + "달전";
+  } else if (time.substring(8, 10).compareTo(now.substring(8, 10)) == -1) {
+    int diff = int.parse(now.substring(8, 10)) - int.parse(time.substring(8, 10));
+    return diff.toString() + "일전";
+  } else if (time.substring(11, 13).compareTo(now.substring(11, 13)) == -1) {
+    int diff = int.parse(now.substring(11, 13)) - int.parse(time.substring(11, 13));
+    return diff.toString() + "시간전";
+  } else if (time.substring(14, 16).compareTo(now.substring(14, 16)) == -1) {
+    int diff = int.parse(now.substring(14, 16)) - int.parse(time.substring(14, 16));
+    return diff.toString() + "분전";
+  } else {
+    int diff = int.parse(now.substring(17, 19)) - int.parse(time.substring(17, 19));
+    return diff.toString() + "초전";
+  }
+}
+
 /* ---------------------- Write Board (Community) ---------------------- */
 
 class CommunityWrite extends StatefulWidget {
@@ -221,11 +245,9 @@ class CommunityWriteState extends State<CommunityWrite> {
 //     required this.onDeleted,
 //     required this.index,
 //   });
-
 //   final String label;
 //   final ValueChanged<int> onDeleted;
 //   final int index;
-
 //   @override
 //   Widget build(BuildContext context) {
 //     return Chip(
@@ -454,20 +476,24 @@ class CommunityShow extends StatefulWidget {
 
   @override
   CommunityShowState createState() {
-    pageState3 = CommunityShowState();
+    pageState3 = CommunityShowState(id: id);
     return pageState3;
   }
 }
 
 class CommunityShowState extends State<CommunityShow> {
+  final String id;
+
+  CommunityShowState({Key? key, required this.id});
+
   late FirebaseProvider fp;
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
   TextEditingController commentInput = TextEditingController();
+  TextEditingController recommentInput = TextEditingController();
 
   // 댓글 수정, 삭제 버튼 생성(버튼이름, 아이콘)
   List<Choice> myChoices = const <Choice>[
-    const Choice(title: '수정', icon: Icons.sports_kabaddi),
     const Choice(title: '삭제', icon: Icons.delete),
   ];
 
@@ -478,6 +504,7 @@ class CommunityShowState extends State<CommunityShow> {
 
   SharedPreferences? prefs;
   bool alreadyLiked = false;
+  bool isOnCcoment = false;
 
   @override
   void initState() {
@@ -493,7 +520,17 @@ class CommunityShowState extends State<CommunityShow> {
   @override
   void dispose() {
     commentInput.dispose();
+    recommentInput.dispose();
     super.dispose();
+  }
+
+  Future<Null> deleteComment(String commentId) async {
+    await fs.collection('community_board').doc(id).collection('comments').doc(commentId).delete();
+    print('댓글 삭제');
+  }
+
+  Future<Null> reportComment(String commentId) async {
+    print('댓글 신고');
   }
 
   @override
@@ -504,6 +541,14 @@ class CommunityShowState extends State<CommunityShow> {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
 
+    Future<String?> getPhotoUrl(dynamic nick) async {
+      String? photoUrl;
+      await fs.collection('users').where('nick', isEqualTo: nick).get().then((snapshot) {
+        photoUrl = snapshot.docs[0].get('photoUrl');
+      });
+      return photoUrl;
+    }
+
     Widget commentsSection(AsyncSnapshot<QuerySnapshot> commentsSnapshot, String myNick) {
       if (commentsSnapshot.data != null) {
         return Container(
@@ -512,47 +557,83 @@ class CommunityShowState extends State<CommunityShow> {
             shrinkWrap: true,
             itemCount: commentsSnapshot.data!.docs.length,
             itemBuilder: (context, index) {
+              void onItemMenuPress(Choice choice) {
+                if (choice.title == '삭제') {
+                  deleteComment(commentsSnapshot.data!.docs[index].id);
+                } else if (choice.title == '신고') {
+                  reportComment(commentsSnapshot.data!.docs[index].id);
+                } else if (choice.title == '뭔가') {
+                  print('댓글 뭔가');
+                }
+              }
+
+              bool likeValid = false;
+              bool commentValid = false;
               if (myNick == commentsSnapshot.data!.docs[index].get('commentFrom')) {
                 DateTime dateTime = Timestamp.fromMillisecondsSinceEpoch(int.parse(commentsSnapshot.data!.docs[index].get('timestamp'))).toDate();
                 return Column(children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(commentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
-                      cSizedBox(0, 35),
-                      Text(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))
-                    ],
-                  ),
-                  Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
-                  Row(
-                    children: [
-                      Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
-                      cSizedBox(0, 35),
-                      IconButton(
-                        icon: Icon(Icons.favorite_border),
-                        onPressed: () async {
-                          await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({'like': FieldValue.increment(1)});
-                        },
+                      FutureBuilder(
+                          future: getPhotoUrl(commentsSnapshot.data!.docs[index].get('commentFrom')),
+                          builder: (context, AsyncSnapshot snapshot) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(60),
+                              child: Image.network(
+                                snapshot.data.toString(),
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          }),
+                      Column(
+                        children: [
+                          Row(
+                            children: [
+                              Text(commentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
+                              cSizedBox(0, 35),
+                              Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
+                            ],
+                          ),
+                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                          Row(
+                            children: [
+                              Text(howLongAgo(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))),
+                              cSizedBox(0, 10),
+                              Text("좋아요 " + commentsSnapshot.data!.docs[index].get('like').toString() + "개", style: TextStyle(fontSize: 14)),
+                              cSizedBox(0, 10),
+                              IconButton(
+                                icon: Icon(Icons.chat),
+                                onPressed: () async {
+                                  await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).get().then((value) {
+                                    commentValid = !value['valid'];
+                                  });
+                                  await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({
+                                    'valid': commentValid,
+                                  });
+                                  print(commentValid);
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      cSizedBox(0, 35),
-                      Text(commentsSnapshot.data!.docs[index].get('like').toString(), style: TextStyle(fontSize: 14)),
-                      cSizedBox(0, 35),
+                      IconButton(
+                        onPressed: () async {
+                          await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({'like': FieldValue.increment(1), 'likeValid': !likeValid});
+                        },
+                        icon: likeValid ? Icon(Icons.favorite) : Icon(Icons.favorite_border),
+                      ),
                       PopupMenuButton<Choice>(
-                        itemBuilder: (BuildContext context) {
+                        onSelected: onItemMenuPress,
+                        itemBuilder: (context) {
                           return myChoices.map((Choice choice) {
                             return PopupMenuItem<Choice>(
                               value: choice,
                               child: Row(
-                                children: [
-                                  Icon(
-                                    choice.icon,
-                                  ),
-                                  Container(
-                                    width: 10.0,
-                                  ),
-                                  Text(
-                                    choice.title,
-                                  )
-                                ],
+                                children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
                               ),
                             );
                           }).toList();
@@ -560,49 +641,63 @@ class CommunityShowState extends State<CommunityShow> {
                       ),
                     ],
                   ),
+                  
                   headerDivider(),
                 ]);
               } else {
                 DateTime dateTime = Timestamp.fromMillisecondsSinceEpoch(int.parse(commentsSnapshot.data!.docs[index].get('timestamp'))).toDate();
                 return Column(children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(commentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
-                      cSizedBox(0, 35),
-                      Text(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))
-                    ],
-                  ),
-                  Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
-                  Row(
-                    children: [
-                      Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
-                      cSizedBox(0, 35),
+                      FutureBuilder(
+                          future: getPhotoUrl(commentsSnapshot.data!.docs[index].get('commentFrom')),
+                          builder: (context, AsyncSnapshot snapshot) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(60),
+                              child: Image.network(
+                                snapshot.data.toString(),
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          }),
+                      Column(
+                        children: [
+                          // 닉네임, 댓글 내용
+                          Row(
+                            children: [
+                              Text(commentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
+                              cSizedBox(0, 35),
+                              Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
+                            ],
+                          ),
+                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                          // 시간, 좋아요개수, 답글달기(추가해야함)
+                          Row(
+                            children: [
+                              Text(howLongAgo(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))),
+                              cSizedBox(0, 35),
+                              Text("좋아요 " + commentsSnapshot.data!.docs[index].get('like').toString() + "개", style: TextStyle(fontSize: 14)),
+                            ],
+                          ),
+                        ],
+                      ),
                       IconButton(
                         icon: Icon(Icons.favorite_border),
                         onPressed: () async {
                           await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({'like': FieldValue.increment(1)});
                         },
                       ),
-                      cSizedBox(0, 35),
-                      Text(commentsSnapshot.data!.docs[index].get('like').toString(), style: TextStyle(fontSize: 14)),
-                      cSizedBox(0, 35),
                       PopupMenuButton<Choice>(
-                        itemBuilder: (BuildContext context) {
+                        onSelected: onItemMenuPress,
+                        itemBuilder: (context) {
                           return otherChoices.map((Choice choice) {
                             return PopupMenuItem<Choice>(
                               value: choice,
                               child: Row(
-                                children: [
-                                  Icon(
-                                    choice.icon,
-                                  ),
-                                  Container(
-                                    width: 10.0,
-                                  ),
-                                  Text(
-                                    choice.title,
-                                  )
-                                ],
+                                children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
                               ),
                             );
                           }).toList();
@@ -691,23 +786,22 @@ class CommunityShowState extends State<CommunityShow> {
                         Row(
                           children: [
                             IconButton(
-                              icon: Icon(alreadyLiked ? Icons.favorite_border : Icons.favorite, color: Color(0xff548ee0)),
-                              onPressed: () async {
-                                var myInfo = fp.getInfo();
-                                if (!alreadyLiked) {
-                                  await FirebaseFirestore.instance.collection('community_board').doc(widget.id).update({'likes': FieldValue.increment(1)});
-                                  await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
-                                    'likedBoard': FieldValue.arrayUnion([widget.id])
-                                  });
-                                } else {
-                                  await FirebaseFirestore.instance.collection('community_board').doc(widget.id).update({'likes': FieldValue.increment(-1)});
-                                  await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
-                                    'likedBoard': FieldValue.arrayRemove([widget.id])
-                                  });
-                                }
-                                alreadyLiked = !alreadyLiked;
-                              }
-                            ),
+                                icon: Icon(alreadyLiked ? Icons.favorite_border : Icons.favorite, color: Color(0xff548ee0)),
+                                onPressed: () async {
+                                  var myInfo = fp.getInfo();
+                                  if (!alreadyLiked) {
+                                    await FirebaseFirestore.instance.collection('community_board').doc(widget.id).update({'likes': FieldValue.increment(1)});
+                                    await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
+                                      'likedBoard': FieldValue.arrayUnion([widget.id])
+                                    });
+                                  } else {
+                                    await FirebaseFirestore.instance.collection('community_board').doc(widget.id).update({'likes': FieldValue.increment(-1)});
+                                    await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
+                                      'likedBoard': FieldValue.arrayRemove([widget.id])
+                                    });
+                                  }
+                                  alreadyLiked = !alreadyLiked;
+                                }),
                             Text(boardSnapshot.data!['likes'].toString()),
                           ],
                         ),
@@ -792,7 +886,7 @@ class CommunityShowState extends State<CommunityShow> {
                       ),
                     ],
                   );
-                }else{
+                } else {
                   return cSizedBox(0, 10);
                 }
               } else {
@@ -809,7 +903,13 @@ class CommunityShowState extends State<CommunityShow> {
         .doc(widget.id)
         .collection('comments')
         .doc(DateTime.now().millisecondsSinceEpoch.toString())
-        .set({'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), 'commentFrom': myInfo['nick'], 'comment': commentInput.text, 'like': 0});
+        .set({
+          'comment': commentInput.text,
+          'commentCount': 0,
+          'commentFrom': myInfo['nick'],
+          'like': 0,
+          'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
+          'valid': false});
 
     commentInput.clear();
   }
