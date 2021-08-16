@@ -9,7 +9,6 @@ import 'package:usdh/function/coverletter.dart';
 import 'package:usdh/function/portfolio.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:usdh/function/board.dart';
 
 import 'applicant.dart';
 
@@ -195,13 +194,13 @@ class MyPageState extends State<MyPage> {
                           cSizedBox(2,0),
 
                           touchableText(() {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => Portfolio()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => Portfolio(fp.getInfo()['email'])));
                           }, "포트폴리오 변경"),
 
                           cSizedBox(2,0),
 
                           touchableText(() {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => Coverletter()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => Coverletter(fp.getInfo()['email'])));
                           }, "자기소개 변경"),
                         ],
                       ),

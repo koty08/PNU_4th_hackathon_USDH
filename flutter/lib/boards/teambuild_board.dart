@@ -11,10 +11,10 @@ import 'package:usdh/chat/home.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:validators/validators.dart';
 
-late SgroupWriteState pageState;
-late SgroupListState pageState1;
-late SgroupShowState pageState2;
-late SgroupModifyState pageState3;
+late TeambuildWriteState pageState;
+late TeambuildListState pageState1;
+late TeambuildShowState pageState2;
+late TeambuildModifyState pageState3;
 
 bool isAvailable(String time, int n1, int n2) {
   if (n1 >= n2) {
@@ -45,17 +45,17 @@ bool isTomorrow(String time) {
   }
 }
 
-/* ---------------------- Write Board (Sgroup) ---------------------- */
+/* ---------------------- Write Board (Teambuild) ---------------------- */
 
-class SgroupWrite extends StatefulWidget {
+class TeambuildWrite extends StatefulWidget {
   @override
-  SgroupWriteState createState() {
-    pageState = SgroupWriteState();
+  TeambuildWriteState createState() {
+    pageState = TeambuildWriteState();
     return pageState;
   }
 }
 
-class SgroupWriteState extends State<SgroupWrite> {
+class TeambuildWriteState extends State<TeambuildWrite> {
   late FirebaseProvider fp;
   TextEditingController titleInput = TextEditingController();
   TextEditingController contentInput = TextEditingController();
@@ -215,7 +215,7 @@ class SgroupWriteState extends State<SgroupWrite> {
                               ),
                               condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                               condWrap("학번", stuidInput, "요구학번을 입력하세요. (ex 18~21 or 상관없음)", "필수 입력 사항입니다."),
-                              condWrap("주제", subjectInput, "주제를 입력하세요.", "주제는 필수 입력 사항입니다."),
+                              condWrap("모집분야", subjectInput, "주제를 입력하세요.", "주제는 필수 입력 사항입니다."),
                             ],
                           )),
                     ],
@@ -288,7 +288,7 @@ class SgroupWriteState extends State<SgroupWrite> {
 
   void uploadOnFS() async {
     var myInfo = fp.getInfo();
-    await fs.collection('sgroup_board').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
+    await fs.collection('teambuild_board').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
       'title': titleInput.text,
       'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
       'writer': myInfo['nick'],
@@ -303,7 +303,7 @@ class SgroupWriteState extends State<SgroupWrite> {
       'views': 0,
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
-      'where': 'sgroup_board',
+      'where': 'teambuild_board',
       'title' : titleInput.text,
       'isFineForMembers': [],
       'members': [],
@@ -342,18 +342,18 @@ class _Chip extends StatelessWidget {
   }
 }
 
-/* ---------------------- Board List (Sgroup) ---------------------- */
+/* ---------------------- Board List (Teambuild) ---------------------- */
 
-class SgroupList extends StatefulWidget {
+class TeambuildList extends StatefulWidget {
   @override
-  SgroupListState createState() {
-    pageState1 = SgroupListState();
+  TeambuildListState createState() {
+    pageState1 = TeambuildListState();
     return pageState1;
   }
 }
 
-class SgroupListState extends State<SgroupList> {
-  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('sgroup_board').orderBy("write_time", descending: true).snapshots();
+class TeambuildListState extends State<TeambuildList> {
+  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy("write_time", descending: true).snapshots();
   late FirebaseProvider fp;
   final _formKey = GlobalKey<FormState>();
   TextEditingController searchInput = TextEditingController();
@@ -392,7 +392,7 @@ class SgroupListState extends State<SgroupList> {
         //당겨서 새로고침
         onRefresh: () async {
           setState(() {
-            colstream = FirebaseFirestore.instance.collection('sgroup_board').orderBy("write_time", descending: true).snapshots();
+            colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy("write_time", descending: true).snapshots();
           });
         },
         child: StreamBuilder<QuerySnapshot>(
@@ -414,7 +414,7 @@ class SgroupListState extends State<SgroupList> {
                           Navigator.pop(context);
                         },
                       ),
-                      headerText("소모임"),
+                      headerText("팀빌딩"),
                       cSizedBox(0, 50),
                       Wrap(
                         spacing: -5,
@@ -424,7 +424,7 @@ class SgroupListState extends State<SgroupList> {
                             icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
                             onPressed: () {
                               setState(() {
-                                colstream = FirebaseFirestore.instance.collection('sgroup_board').orderBy("write_time", descending: true).snapshots();
+                                colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy("write_time", descending: true).snapshots();
                               });
                             },
                           ),
@@ -494,13 +494,13 @@ class SgroupListState extends State<SgroupList> {
                                                     if (_formKey.currentState!.validate()) {
                                                       if (search == "제목") {
                                                         setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('sgroup_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                                                          colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
                                                         });
                                                         searchInput.clear();
                                                         Navigator.pop(con);
                                                       } else {
                                                         setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('sgroup_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
+                                                          colstream = FirebaseFirestore.instance.collection('teambuild_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
                                                         });
                                                         searchInput.clear();
                                                         Navigator.pop(con);
@@ -550,9 +550,9 @@ class SgroupListState extends State<SgroupList> {
                                 setState(() {
                                   status = val ?? false;
                                   if (status) {
-                                    colstream = FirebaseFirestore.instance.collection('sgroup_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).snapshots();
+                                    colstream = FirebaseFirestore.instance.collection('teambuild_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).snapshots();
                                   } else {
-                                    colstream = FirebaseFirestore.instance.collection('sgroup_board').orderBy("write_time", descending: true).snapshots();
+                                    colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy("write_time", descending: true).snapshots();
                                   }
                                 });
                               },
@@ -587,8 +587,8 @@ class SgroupListState extends State<SgroupList> {
                           Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                           InkWell(
                               onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => SgroupShow(doc.id)));
-                                FirebaseFirestore.instance.collection('sgroup_board').doc(doc.id).update({"views": doc["views"] + 1});
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => TeambuildShow(doc.id)));
+                                FirebaseFirestore.instance.collection('teambuild_board').doc(doc.id).update({"views": doc["views"] + 1});
                               },
                               child: Container(
                                   margin: EdgeInsets.fromLTRB(25, 17, 10, 0),
@@ -606,7 +606,7 @@ class SgroupListState extends State<SgroupList> {
                                                 return GestureDetector(
                                                     onTap: () {
                                                       setState(() {
-                                                        colstream = FirebaseFirestore.instance.collection('sgroup_board').where('tagList', arrayContains: tag).snapshots();
+                                                        colstream = FirebaseFirestore.instance.collection('teambuild_board').where('tagList', arrayContains: tag).snapshots();
                                                       });
                                                     },
                                                     child: smallText(tag, 12, Color(0xffa9aaaf)));
@@ -668,26 +668,26 @@ class SgroupListState extends State<SgroupList> {
             width: 28,
           ),
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => SgroupWrite()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => TeambuildWrite()));
           }),
     );
   }
 }
 
-/* ---------------------- Show Board (Sgroup) ---------------------- */
+/* ---------------------- Show Board (Teambuild) ---------------------- */
 
-class SgroupShow extends StatefulWidget {
-  SgroupShow(this.id);
+class TeambuildShow extends StatefulWidget {
+  TeambuildShow(this.id);
   final String id;
 
   @override
-  SgroupShowState createState() {
-    pageState2 = SgroupShowState();
+  TeambuildShowState createState() {
+    pageState2 = TeambuildShowState();
     return pageState2;
   }
 }
 
-class SgroupShowState extends State<SgroupShow> {
+class TeambuildShowState extends State<TeambuildShow> {
   late FirebaseProvider fp;
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
@@ -718,7 +718,7 @@ class SgroupShowState extends State<SgroupShow> {
 
     return Scaffold(
         body: StreamBuilder(
-            stream: fs.collection('sgroup_board').doc(widget.id).snapshots(),
+            stream: fs.collection('teambuild_board').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               fp.setInfo();
 
@@ -744,7 +744,7 @@ class SgroupShowState extends State<SgroupShow> {
                               Navigator.pop(context);
                             },
                           ),
-                          headerText("소모임"),
+                          headerText("팀빌딩"),
                           cSizedBox(0, 250),
                         ],
                       ),
@@ -779,7 +779,7 @@ class SgroupShowState extends State<SgroupShow> {
                                       cond2Wrap("모집기간", "~ " + time),
                                       cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
                                       cond2Wrap("학번", snapshot.data!['stuid']),
-                                      cond2Wrap("주제", snapshot.data!['subject']),
+                                      cond2Wrap("모집분야", snapshot.data!['subject']),
                                     ],
                                   ))
                             ],
@@ -834,10 +834,10 @@ class SgroupShowState extends State<SgroupShow> {
                                               });
                                             }
                                           },
-                                          child: Text("팀장 자기소개서 V"),
+                                          child: Text("팀장 포트폴리오 V"),
                                         ),
-                                        //자기소개서 onoff표시
-                                        (doc['coverletter'] == List.empty())?
+                                        //포트폴리오 onoff표시
+                                        (doc['portfolio'] == List.empty())?
                                           Visibility(
                                             visible: status,
                                             child: Column(
@@ -851,15 +851,15 @@ class SgroupShowState extends State<SgroupShow> {
                                             visible: status,
                                             child: Column(
                                               children: [
-                                                (doc['coverletter_tag'] != List.empty())?
-                                                  tagText(doc['coverletter_tag'].join('')):
+                                                (doc['portfolio_tag'] != List.empty())?
+                                                  tagText(doc['portfolio_tag'].join('')):
                                                   Text("태그없음"),
-                                                (doc['coverletter'] == List.empty())? Text("작성 X"):
+                                                (doc['portfolio'] == List.empty())? Text("작성 X"):
                                                 Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                                cond2Text(doc['coverletter'][0]),
-                                                (doc['coverletter'] == List.empty())? Text("작성 X"):
+                                                cond2Text(doc['portfolio'][0]),
+                                                (doc['portfolio'] == List.empty())? Text("작성 X"):
                                                 Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                                cond2Text(doc['coverletter'][1]),
+                                                cond2Text(doc['portfolio'][1]),
                                               ],
                                             )
                                           )
@@ -881,7 +881,7 @@ class SgroupShowState extends State<SgroupShow> {
               }
             }),
         bottomNavigationBar: StreamBuilder(
-            stream: fs.collection('sgroup_board').doc(widget.id).snapshots(),
+            stream: fs.collection('teambuild_board').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               if (snapshot.hasData && !snapshot.data!.exists) {
                 return CircularProgressIndicator();
@@ -901,7 +901,7 @@ class SgroupShowState extends State<SgroupShow> {
                           child: Align(alignment: Alignment.center, child: smallText("삭제", 14, Colors.white)),
                           onTap: () async {
                             Navigator.pop(context);
-                            await fs.collection('sgroup_board').doc(widget.id).delete();
+                            await fs.collection('teambuild_board').doc(widget.id).delete();
                             fp.updateIntInfo('postcount', -1);
                           },
                         ),
@@ -917,10 +917,10 @@ class SgroupShowState extends State<SgroupShow> {
                             child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
                             onTap: () async {
                               var tmp;
-                              await fs.collection('sgroup_board').doc(widget.id).get().then((snap) {
+                              await fs.collection('teambuild_board').doc(widget.id).get().then((snap) {
                                 tmp = snap.data() as Map<String, dynamic>;
                               });
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => SgroupModify(widget.id, tmp)));
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => TeambuildModify(widget.id, tmp)));
                               setState(() {});
                             },
                           ),
@@ -1029,7 +1029,7 @@ class SgroupShowState extends State<SgroupShow> {
                               }
                               // 내 정보에 신청 정보를 기록
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
-                                'where': "sgroup_board",
+                                'where': "teambuild_board",
                               });
                               print('참가 신청을 보냈습니다.');
                             }
@@ -1045,20 +1045,20 @@ class SgroupShowState extends State<SgroupShow> {
   }
 }
 
-/* ---------------------- Modify Board (Sgroup) ---------------------- */
+/* ---------------------- Modify Board (Teambuild) ---------------------- */
 
-class SgroupModify extends StatefulWidget {
-  SgroupModify(this.id, this.datas);
+class TeambuildModify extends StatefulWidget {
+  TeambuildModify(this.id, this.datas);
   final String id;
   final Map<String, dynamic> datas;
   @override
   State<StatefulWidget> createState() {
-    pageState3 = SgroupModifyState();
+    pageState3 = TeambuildModifyState();
     return pageState3;
   }
 }
 
-class SgroupModifyState extends State<SgroupModify> {
+class TeambuildModifyState extends State<TeambuildModify> {
   late FirebaseProvider fp;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
   late TextEditingController titleInput;
@@ -1118,7 +1118,7 @@ class SgroupModifyState extends State<SgroupModify> {
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
             child: StreamBuilder(
-                stream: fs.collection('sgroup_board').doc(widget.id).snapshots(),
+                stream: fs.collection('teambuild_board').doc(widget.id).snapshots(),
                 builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                   if (snapshot.hasData && !snapshot.data!.exists) return CircularProgressIndicator();
                   if (snapshot.hasData) {
@@ -1230,7 +1230,7 @@ class SgroupModifyState extends State<SgroupModify> {
                                             ),
                                             condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                                             condWrap("학번", stuidInput, "요구학번을 입력하세요. (ex 18~21 or 상관없음)", "필수 입력 사항입니다."),
-                                            condWrap("주제", subjectInput, "주제를 입력하세요.", "주제는 필수 입력 사항입니다."),
+                                            condWrap("모집분야", subjectInput, "주제를 입력하세요.", "주제는 필수 입력 사항입니다."),
                                           ],
                                         )),
                                   ],
@@ -1306,7 +1306,7 @@ class SgroupModifyState extends State<SgroupModify> {
 
   void updateOnFS() async {
     var myInfo = fp.getInfo();
-    await fs.collection('sgroup_board').doc(widget.id).update({
+    await fs.collection('teambuild_board').doc(widget.id).update({
       'title': titleInput.text,
       'contents': contentInput.text,
       'time': formatDate(selectedDate, [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
@@ -1318,7 +1318,7 @@ class SgroupModifyState extends State<SgroupModify> {
       'members': [],
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({
-      'where': 'sgroup_board',
+      'where': 'teambuild_board',
       'title': titleInput.text,
       'isFineForMembers': [],
       'members': [],

@@ -11,6 +11,8 @@ import 'package:usdh/login/firebase_provider.dart';
 late CoverletterState pageState;
 
 class Coverletter extends StatefulWidget {
+  Coverletter(this.email);
+  final String email;
   @override
   CoverletterState createState() {
     pageState = CoverletterState();
@@ -35,6 +37,22 @@ class CoverletterState extends State<Coverletter> {
       tagList.removeAt(index);
     });
   }
+  
+  @override
+  void initState() {
+    fs.collection('users').doc(widget.email).get().then((DocumentSnapshot snap) {
+      var tmp = snap.data() as Map<String, dynamic>;
+      setState(() {
+        tagList = tmp['coverletter_tag'];
+        if(tmp['coverletter'] != List.empty()){
+          introInput = TextEditingController(text: tmp['coverletter'][0]);
+          specInput = TextEditingController(text: tmp['coverletter'][1]);
+          inputcheck = false;
+        }
+      });
+    });
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -49,17 +67,6 @@ class CoverletterState extends State<Coverletter> {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
 
-    if(fp.getInfo()['coverletter'].length != 0){
-      introInput = TextEditingController(text: fp.getInfo()['coverletter'][0]);
-      specInput = TextEditingController(text: fp.getInfo()['coverletter'][1]);
-      inputcheck = false;
-    }
-
-    if(fp.getInfo()['coverletter_tag'].length != 0){
-      setState(() {
-        tagList = fp.getInfo()['coverletter_tag'];
-      });
-    }
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -176,7 +183,6 @@ class CoverletterState extends State<Coverletter> {
                     Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 50)),
                     inputNav2('assets/images/icon/icontag.png', "  태그"),
                     Container(
-                      //height: 140,
                       margin: EdgeInsets.fromLTRB(35, 10, 35, 30),
                       child: TagEditor(
                         key: key,

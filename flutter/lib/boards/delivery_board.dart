@@ -942,24 +942,33 @@ class DeliveryShowState extends State<DeliveryShow> {
                           },
                         ),
                       ),
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Color(0xff639ee1),
+                      (isAvailable(snapshot.data!['time'], snapshot.data!['currentMember'], snapshot.data!['limitedMember']))?
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(0xff639ee1),
+                          ),
+                          child: GestureDetector(
+                            child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
+                            onTap: () async {
+                              var tmp;
+                              await fs.collection('delivery_board').doc(widget.id).get().then((snap) {
+                                tmp = snap.data() as Map<String, dynamic>;
+                              });
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryModify(widget.id, tmp)));
+                              setState(() {});
+                            },
+                          ),
+                        ):
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(0xff639ee1),
+                          ),
+                          child:  Align(alignment: Alignment.center, child: smallText("수정 불가", 14, Colors.white)),
                         ),
-                        child: GestureDetector(
-                          child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
-                          onTap: () async {
-                            var tmp;
-                            await fs.collection('delivery_board').doc(widget.id).get().then((snap) {
-                              tmp = snap.data() as Map<String, dynamic>;
-                            });
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryModify(widget.id, tmp)));
-                            setState(() {});
-                          },
-                        ),
-                      ),
                     ],
                   );
                 } else {

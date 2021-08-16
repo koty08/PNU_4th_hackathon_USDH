@@ -11,6 +11,8 @@ import 'package:usdh/login/firebase_provider.dart';
 late PortfolioState pageState;
 
 class Portfolio extends StatefulWidget {
+  Portfolio(this.email);
+  final String email;
   @override
   PortfolioState createState() {
     pageState = PortfolioState();
@@ -37,6 +39,22 @@ class PortfolioState extends State<Portfolio> {
   }
 
   @override
+  void initState() {
+    fs.collection('users').doc(widget.email).get().then((DocumentSnapshot snap) {
+      var tmp = snap.data() as Map<String, dynamic>;
+      setState(() {
+        tagList = tmp['portfolio_tag'];
+        if(tmp['portfolio'] != List.empty()){
+          introInput = TextEditingController(text: tmp['portfolio'][0]);
+          specInput = TextEditingController(text: tmp['portfolio'][1]);
+          inputcheck = false;
+        }
+      });
+    });
+    super.initState();
+  }
+
+  @override
   void dispose() {
     introInput.dispose();
     specInput.dispose();
@@ -48,18 +66,6 @@ class PortfolioState extends State<Portfolio> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
-
-    if(fp.getInfo()['portfolio'].length != 0){
-      introInput = TextEditingController(text: fp.getInfo()['portfolio'][0]);
-      specInput = TextEditingController(text: fp.getInfo()['portfolio'][1]);
-      inputcheck = false;
-    }
-
-    if(fp.getInfo()['portfolio_tag'].length != 0){
-      setState(() {
-        tagList = fp.getInfo()['portfolio_tag'];
-      });
-    }
 
     return Scaffold(
       body: SingleChildScrollView(
