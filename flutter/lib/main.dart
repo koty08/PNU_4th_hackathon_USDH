@@ -25,6 +25,7 @@ class MyApp extends StatelessWidget {
         title: "1234",
         home: AuthPage(),
         theme: ThemeData(errorColor: Colors.indigo.shade200),
+        debugShowCheckedModeBanner: false,
         localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,        
           GlobalWidgetsLocalizations.delegate,  
