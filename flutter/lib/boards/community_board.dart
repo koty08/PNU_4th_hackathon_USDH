@@ -567,87 +567,100 @@ class CommunityShowState extends State<CommunityShow> {
                 }
               }
 
-              if (myNick == commentsSnapshot.data!.docs[index].get('commentFrom')) {
-                DateTime dateTime = Timestamp.fromMillisecondsSinceEpoch(int.parse(commentsSnapshot.data!.docs[index].get('timestamp'))).toDate();
-                return Column(children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      //프사
-                      FutureBuilder(
-                          future: getPhotoUrl(commentsSnapshot.data!.docs[index].get('commentFrom')),
-                          builder: (context, AsyncSnapshot snapshot) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(60),
-                              child: Image.network(
-                                snapshot.data.toString(),
-                                width: 40,
-                                height: 40,
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          }),
-                      //1층: 닉넴, 댓글내용, 2층: 글쓴시간, 좋아요개수, 대댓글버튼(수정필요)
-                      Column(
-                        children: [
-                          Row(
-                            children: [
-                              Text(commentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
-                              cSizedBox(0, 35),
-                              Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
-                            ],
-                          ),
-                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
-                          Row(
-                            children: [
-                              Text(howLongAgo(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))),
-                              cSizedBox(0, 10),
-                              Text("좋아요 " + commentsSnapshot.data!.docs[index].get('likeCount').toString() + "개", style: TextStyle(fontSize: 14)),
-                              cSizedBox(0, 10),
-                              IconButton(
-                                icon: Icon(Icons.chat),
-                                onPressed: () async {},
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      //좋아요
-                      StreamBuilder(
-                          stream: fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).snapshots(),
-                          builder: (context, AsyncSnapshot snapshot) {
-                            if (snapshot.hasData) {
-                              List<dynamic> whoLike = snapshot.data!['whoLike'];
-                              bool alreadyLiked = false;
-                              if (whoLike.contains(myNick)) {
-                                alreadyLiked = true;
-                              }
-                              return IconButton(
-                                  icon: Icon(alreadyLiked ? Icons.favorite : Icons.favorite_border, color: Color(0xff548ee0)),
-                                  onPressed: () async {
-                                    print(alreadyLiked);
-                                    List<dynamic> whoLike = [];
-                                    await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).get().then((value) {
-                                      for (var who in value['whoLike']) {
-                                        whoLike.add(who);
-                                      }
-                                    });
-                                    if (!whoLike.contains(myNick)) {
-                                      await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({
-                                        'likeCount': FieldValue.increment(1),
-                                        'whoLike': FieldValue.arrayUnion([myNick])
-                                      });
-                                    } else {
-                                      await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({
-                                        'likeCount': FieldValue.increment(-1),
-                                        'whoLike': FieldValue.arrayRemove([myNick])
-                                      });
+              DateTime dateTime = Timestamp.fromMillisecondsSinceEpoch(int.parse(commentsSnapshot.data!.docs[index].get('timestamp'))).toDate();
+              return Column(children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    //프사
+                    FutureBuilder(
+                        future: getPhotoUrl(commentsSnapshot.data!.docs[index].get('commentFrom')),
+                        builder: (context, AsyncSnapshot snapshot) {
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(60),
+                            child: Image.network(
+                              snapshot.data.toString(),
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                            ),
+                          );
+                        }),
+                    //1층: 닉넴, 댓글내용, 2층: 글쓴시간, 좋아요개수, 대댓글버튼(수정필요)
+                    Column(
+                      children: [
+                        Row(
+                          children: [
+                            Text(commentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
+                            cSizedBox(0, 35),
+                            Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
+                          ],
+                        ),
+                        Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                        Row(
+                          children: [
+                            Text(howLongAgo(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))),
+                            cSizedBox(0, 10),
+                            StreamBuilder(
+                                stream: fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).snapshots(),
+                                builder: (context, AsyncSnapshot snapshot) {
+                                  if (snapshot.hasData) {
+                                    int _likeCount = snapshot.data!['likeCount'];
+                                    if (_likeCount != 0) {
+                                      return Text("좋아요 " + snapshot.data!['likeCount'].toString() + "개", style: TextStyle(fontSize: 14));
+                                    }
+                                    return Text('');
+                                  } else {
+                                    return CircularProgressIndicator();
+                                  }
+                                }),
+                            cSizedBox(0, 10),
+                            IconButton(
+                              icon: Icon(Icons.chat),
+                              onPressed: () async {
+                                print('대댓글 추가...');
+                              },
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                    //좋아요
+                    StreamBuilder(
+                        stream: fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).snapshots(),
+                        builder: (context, AsyncSnapshot snapshot) {
+                          if (snapshot.hasData) {
+                            List<dynamic> whoLike = snapshot.data!['whoLike'];
+                            bool alreadyLiked = false;
+                            if (whoLike.contains(myNick)) {
+                              alreadyLiked = true;
+                            }
+                            return IconButton(
+                                icon: Icon(alreadyLiked ? Icons.favorite : Icons.favorite_border, color: Color(0xff548ee0)),
+                                onPressed: () async {
+                                  List<dynamic> whoLike = [];
+                                  await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).get().then((value) {
+                                    for (var who in value['whoLike']) {
+                                      whoLike.add(who);
                                     }
                                   });
-                            } else {
-                              return CircularProgressIndicator();
-                            }
-                          }),
+                                  if (!whoLike.contains(myNick)) {
+                                    await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({
+                                      'likeCount': FieldValue.increment(1),
+                                      'whoLike': FieldValue.arrayUnion([myNick])
+                                    });
+                                  } else {
+                                    await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({
+                                      'likeCount': FieldValue.increment(-1),
+                                      'whoLike': FieldValue.arrayRemove([myNick])
+                                    });
+                                  }
+                                });
+                          } else {
+                            return CircularProgressIndicator();
+                          }
+                        }),
+                    myNick == commentsSnapshot.data!.docs[index].get('commentFrom') ?
                       //삭제 팝업 버튼
                       PopupMenuButton<Choice>(
                         onSelected: onItemMenuPress,
@@ -661,94 +674,7 @@ class CommunityShowState extends State<CommunityShow> {
                             );
                           }).toList();
                         },
-                      ),
-                    ],
-                  ),
-                  headerDivider(),
-                ]);
-              } else {
-                DateTime dateTime = Timestamp.fromMillisecondsSinceEpoch(int.parse(commentsSnapshot.data!.docs[index].get('timestamp'))).toDate();
-                return Column(children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      //프사
-                      FutureBuilder(
-                          future: getPhotoUrl(commentsSnapshot.data!.docs[index].get('commentFrom')),
-                          builder: (context, AsyncSnapshot snapshot) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(60),
-                              child: Image.network(
-                                snapshot.data.toString(),
-                                width: 40,
-                                height: 40,
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          }),
-                      //1층: 닉넴, 댓글내용, 2층: 글쓴시간, 좋아요개수, 대댓글버튼(수정필요)
-                      Column(
-                        children: [
-                          Row(
-                            children: [
-                              Text(commentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
-                              cSizedBox(0, 35),
-                              Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
-                            ],
-                          ),
-                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
-                          Row(
-                            children: [
-                              Text(howLongAgo(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))),
-                              cSizedBox(0, 10),
-                              Text("좋아요 " + commentsSnapshot.data!.docs[index].get('likeCount').toString() + "개", style: TextStyle(fontSize: 14)),
-                              cSizedBox(0, 10),
-                              IconButton(
-                                icon: Icon(Icons.chat),
-                                onPressed: () async {},
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      //좋아요
-                      StreamBuilder(
-                          stream: fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).snapshots(),
-                          builder: (context, AsyncSnapshot snapshot) {
-                            if (snapshot.hasData) {
-                              List<dynamic> whoLike = snapshot.data!['whoLike'];
-                              bool alreadyLiked = false;
-                              if (whoLike.contains(myNick)) {
-                                alreadyLiked = true;
-                              }
-                              return IconButton(
-                                  icon: Icon(alreadyLiked ? Icons.favorite : Icons.favorite_border, color: Color(0xff548ee0)),
-                                  onPressed: () async {
-                                    print(alreadyLiked);
-                                    List<dynamic> whoLike = [];
-                                    await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).get().then((value) {
-                                      for (var who in value['whoLike']) {
-                                        whoLike.add(who);
-                                      }
-                                    });
-                                    if (!whoLike.contains(myNick)) {
-                                      await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({
-                                        'likeCount': FieldValue.increment(1),
-                                        'whoLike': FieldValue.arrayUnion([myNick])
-                                      });
-                                    } else {
-                                      await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({
-                                        'likeCount': FieldValue.increment(-1),
-                                        'whoLike': FieldValue.arrayRemove([myNick])
-                                      });
-                                    }
-                                  });
-                            } else {
-                              return CircularProgressIndicator();
-                            }
-                          }),
-                      //신고/(나중에추가될것) 팝업 버튼
-                      PopupMenuButton<Choice>(
+                      ) : PopupMenuButton<Choice>(
                         onSelected: onItemMenuPress,
                         itemBuilder: (context) {
                           return otherChoices.map((Choice choice) {
@@ -761,11 +687,12 @@ class CommunityShowState extends State<CommunityShow> {
                           }).toList();
                         },
                       ),
-                    ],
-                  ),
-                  headerDivider(),
-                ]);
-              }
+                  ],
+                ),
+                // middleDivider(),
+                // Text('test text container?'),
+                headerDivider(),
+              ]);
             },
           ),
         );
@@ -853,32 +780,41 @@ class CommunityShowState extends State<CommunityShow> {
                                 return Column(
                                   children: [
                                     IconButton(
-                                      icon: Icon(alreadyLiked ? Icons.favorite : Icons.favorite_border, color: Color(0xff548ee0)),
-                                      onPressed: () async {
-                                        print(alreadyLiked);
-                                        List<dynamic> whoLike = [];
-                                        await fs.collection('community_board').doc(widget.id).get().then((value) {
-                                          for (var who in value['whoLike']) {
-                                            whoLike.add(who);
+                                        icon: Icon(alreadyLiked ? Icons.favorite : Icons.favorite_border, color: Color(0xff548ee0)),
+                                        onPressed: () async {
+                                          List<dynamic> whoLike = [];
+                                          await fs.collection('community_board').doc(widget.id).get().then((value) {
+                                            for (var who in value['whoLike']) {
+                                              whoLike.add(who);
+                                            }
+                                          });
+                                          if (!whoLike.contains(myInfo['nick'])) {
+                                            await fs.collection('community_board').doc(widget.id).update({
+                                              'likeCount': FieldValue.increment(1),
+                                              'whoLike': FieldValue.arrayUnion([myInfo['nick']])
+                                            });
+                                          } else {
+                                            await fs.collection('community_board').doc(widget.id).update({
+                                              'likeCount': FieldValue.increment(-1),
+                                              'whoLike': FieldValue.arrayRemove([myInfo['nick']])
+                                            });
                                           }
-                                        });
-                                        if (!whoLike.contains(myInfo['nick'])) {
-                                          await fs.collection('community_board').doc(widget.id).update({
-                                            'likeCount': FieldValue.increment(1),
-                                            'whoLike': FieldValue.arrayUnion([myInfo['nick']])
-                                          });
+                                        }),
+                                    StreamBuilder(
+                                      stream: fs.collection('community_board').doc(widget.id).snapshots(),
+                                      builder: (context, AsyncSnapshot snapshot) {
+                                        if (snapshot.hasData) {
+                                          int _likeCount = snapshot.data!['likeCount'];
+                                          if (_likeCount != 0) {
+                                            return Text("좋아요 " + snapshot.data!['likeCount'].toString() + "개", style: TextStyle(fontSize: 14));
+                                          }
+                                          return Text('');
                                         } else {
-                                          await fs.collection('community_board').doc(widget.id).update({
-                                            'likeCount': FieldValue.increment(-1),
-                                            'whoLike': FieldValue.arrayRemove([myInfo['nick']])
-                                          });
+                                          return CircularProgressIndicator();
                                         }
-                                      }
-                                    ),
-                                    Text('좋아요 ' + snapshot.data!['likeCount'].toString() + '개', style: TextStyle(fontSize: 14))
+                                      }),
                                   ],
                                 );
-                                    
                               } else {
                                 return CircularProgressIndicator();
                               }
