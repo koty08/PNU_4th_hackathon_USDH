@@ -200,7 +200,7 @@ class CommunityWriteState extends State<CommunityWrite> {
 
     late Reference ref;
     for (int i = 0; i < pickedImgList!.length; i++) {
-      ref = storage.ref().child('board/${tmp['name'] + tmp['piccount'].toString()}');
+      ref = storage.ref().child('board/${tmp['nick'] + tmp['piccount'].toString()}');
       await ref.putFile(File(pickedImgList[i].path));
       fp.updateIntInfo('piccount', 1);
       String url = await ref.getDownloadURL();
@@ -224,7 +224,7 @@ class CommunityWriteState extends State<CommunityWrite> {
 
   void uploadOnFS() async {
     var myInfo = fp.getInfo();
-    await fs.collection('community_board').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
+    await fs.collection('community_board').doc(myInfo['nick'] + myInfo['postcount'].toString()).set({
       'commentCount': 0,
       'contents': contentInput.text,
       'likeCount': 0,
@@ -233,7 +233,7 @@ class CommunityWriteState extends State<CommunityWrite> {
       'views': 0,
       'whoLike': [],
       'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
-      'writer': myInfo['name'],
+      'writer': myInfo['nick'],
     });
     fp.updateIntInfo('postcount', 1);
   }
@@ -860,7 +860,7 @@ class CommunityShowState extends State<CommunityShow> {
                 return CircularProgressIndicator();
               } else if (snapshot.hasData) {
                 fp.setInfo();
-                if (fp.getInfo()['name'] == snapshot.data!['writer']) {
+                if (fp.getInfo()['nick'] == snapshot.data!['writer']) {
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -1094,7 +1094,7 @@ class CommunityModifyState extends State<CommunityModify> {
 
     late Reference ref;
     for (int i = 0; i < pickedImgList!.length; i++) {
-      ref = storage.ref().child('board/${tmp['name'] + tmp['piccount'].toString()}');
+      ref = storage.ref().child('board/${tmp['nick'] + tmp['piccount'].toString()}');
       await ref.putFile(File(pickedImgList[i].path));
       fp.updateIntInfo('piccount', 1);
       String url = await ref.getDownloadURL();

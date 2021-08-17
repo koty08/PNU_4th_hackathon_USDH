@@ -145,7 +145,7 @@ class WriteBoardState extends State<WriteBoard> {
 
     late Reference ref;
     for (int i = 0; i < pickedImgList!.length; i++) {
-      ref = storage.ref().child('board/${tmp['name'] + tmp['piccount'].toString()}');
+      ref = storage.ref().child('board/${tmp['nick'] + tmp['piccount'].toString()}');
       await ref.putFile(File(pickedImgList[i].path));
       fp.updateIntInfo('piccount', 1);
       String url = await ref.getDownloadURL();
@@ -159,16 +159,16 @@ class WriteBoardState extends State<WriteBoard> {
 
   void uploadOnFS(String txt1, String txt2) async {
     var tmp = fp.getInfo();
-    await fs.collection('posts').doc(tmp['name'] + tmp['postcount'].toString()).set({
+    await fs.collection('posts').doc(tmp['nick'] + tmp['postcount'].toString()).set({
       'title': txt1,
-      'writer': tmp['name'],
+      'writer': tmp['nick'],
       'contents': txt2,
       'pic': urlList,
       'currentMember': 1,
       'limitedMember': int.parse(limitedMember.text),
       'email': tmp['email'],
       'photoUrl': tmp['photoUrl'],
-      'postName': tmp['name'] + tmp['postcount'].toString(),
+      'postName': tmp['nick'] + tmp['postcount'].toString(),
       'views': 0,
     });
     fp.updateIntInfo('postcount', 1);
@@ -377,7 +377,7 @@ class ShowBoardState extends State<ShowBoard> {
                 return CircularProgressIndicator();
               } else if (snapshot.hasData) {
                 fp.setInfo();
-                if (fp.getInfo()['name'] == snapshot.data!['writer']) {
+                if (fp.getInfo()['nick'] == snapshot.data!['writer']) {
                   return Column(
                     children: [
                       Text(snapshot.data!['title']),

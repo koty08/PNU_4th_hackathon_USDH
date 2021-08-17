@@ -288,7 +288,7 @@ class TeambuildWriteState extends State<TeambuildWrite> {
 
   void uploadOnFS() async {
     var myInfo = fp.getInfo();
-    await fs.collection('teambuild_board').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
+    await fs.collection('teambuild_board').doc(myInfo['nick'] + myInfo['postcount'].toString()).set({
       'title': titleInput.text,
       'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
       'writer': myInfo['nick'],
@@ -302,7 +302,7 @@ class TeambuildWriteState extends State<TeambuildWrite> {
       'myintro' : myintroInput.text,
       'views': 0,
     });
-    await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['name'] + myInfo['postcount'].toString()).set({
+    await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['nick'] + myInfo['postcount'].toString()).set({
       'where': 'teambuild_board',
       'title' : titleInput.text,
       'isFineForMembers': [],
@@ -887,7 +887,7 @@ class TeambuildShowState extends State<TeambuildShow> {
                 return CircularProgressIndicator();
               } else if (snapshot.hasData) {
                 fp.setInfo();
-                if (fp.getInfo()['name'] == snapshot.data!['writer']) {
+                if (fp.getInfo()['nick'] == snapshot.data!['writer']) {
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -954,7 +954,7 @@ class TeambuildShowState extends State<TeambuildShow> {
                             String hostId = '';
                             List<String> _myApplication = [];
 
-                            await fs.collection('users').where('name', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
+                            await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
                               DocumentSnapshot tmp = snap.docs[0];
                               hostId = tmp['email'];
                             });
@@ -997,7 +997,7 @@ class TeambuildShowState extends State<TeambuildShow> {
                             List<String> _myApplication = [];
                             List<String> _joiningIn = [];
 
-                            await fs.collection('users').where('name', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
+                            await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
                               DocumentSnapshot tmp = snap.docs[0];
                               hostId = tmp['email'];
                             });
