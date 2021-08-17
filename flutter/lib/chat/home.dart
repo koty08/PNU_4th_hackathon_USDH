@@ -229,7 +229,7 @@ class HomeScreenState extends State<HomeScreen> {
                             return CircularProgressIndicator();
                           }
                           var myInfo = fp.getInfo();
-
+                          
                           QueryDocumentSnapshot lastMessageSnapshot = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1];
 
                           String lastTime;

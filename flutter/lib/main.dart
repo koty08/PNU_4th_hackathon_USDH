@@ -28,8 +28,8 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,        
-          GlobalWidgetsLocalizations.delegate,  
-        ],      
+          GlobalWidgetsLocalizations.delegate,
+        ],
         supportedLocales: [
           const Locale('ko', 'KR'),
         ],

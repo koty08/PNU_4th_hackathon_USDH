@@ -112,7 +112,7 @@ class SignedInPageState extends State<SignedInPage> {
                         DocumentSnapshot doc = snapshot.data!.docs[0];
                         return InkWell(
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(id: doc.id)));
                             FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views" : doc["views"] + 1});
                           },
                           child: Column(

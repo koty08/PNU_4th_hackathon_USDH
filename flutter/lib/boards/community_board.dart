@@ -576,15 +576,20 @@ class CommunityShowState extends State<CommunityShow> {
                     FutureBuilder(
                         future: getPhotoUrl(commentsSnapshot.data!.docs[index].get('commentFrom')),
                         builder: (context, AsyncSnapshot snapshot) {
-                          return ClipRRect(
-                            borderRadius: BorderRadius.circular(60),
-                            child: Image.network(
-                              snapshot.data.toString(),
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
-                            ),
-                          );
+                          if (snapshot.hasData) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(60),
+                              child: Image.network(
+                                snapshot.data.toString(),
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          }
+                          else {
+                            return CircularProgressIndicator();
+                          }
                         }),
                     //1층: 닉넴, 댓글내용, 2층: 글쓴시간, 좋아요개수, 대댓글버튼(수정필요)
                     Column(

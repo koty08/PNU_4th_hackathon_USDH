@@ -403,28 +403,26 @@ class DeliveryMapState extends State<DeliveryMap> {
                 headerDivider(),
                 // ------------------------------ 아래에 지도 추가 ------------------------------
                 Expanded(
-                  child: Stack(
-                    children: [
-                      GoogleMap(
+                    child: Stack(
+                  children: [
+                    GoogleMap(
                         mapType: MapType.normal,
                         initialCameraPosition: _initialCameraPosition,
                         onMapCreated: (GoogleMapController controller) {
                           _controller.complete(controller);
                         },
                         myLocationEnabled: true,
-                        myLocationButtonEnabled: true
+                        myLocationButtonEnabled: true),
+                    Positioned(
+                      top: 27,
+                      left: 26,
+                      child: IconButton(
+                        icon: Icon(Icons.my_location), //Image.asset('assets/images/icon/iconteam.png', width: 22, height: 22),
+                        onPressed: _goToCurrentLocation,
                       ),
-                      Positioned(
-                        top: 27,
-                        left: 26,
-                        child:IconButton(
-                          icon: Icon(Icons.my_location),//Image.asset('assets/images/icon/iconteam.png', width: 22, height: 22),
-                          onPressed: _goToCurrentLocation,
-                        ),
-                      ),
-                    ],
-                  )
-                ),
+                    ),
+                  ],
+                )),
               ]);
             }),
       ),
@@ -440,6 +438,7 @@ class DeliveryMapState extends State<DeliveryMap> {
           }),
     );
   }
+
   // Floating 버튼 클릭 시 현재 위치 표시
   void _goToCurrentLocation() async {
     final locData = await Location().getLocation();
@@ -710,7 +709,7 @@ class DeliveryListState extends State<DeliveryList> {
                           Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                           InkWell(
                               onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(doc.id)));
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(id: doc.id)));
                                 FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views": doc["views"] + 1});
                               },
                               child: Container(
@@ -798,17 +797,22 @@ class DeliveryListState extends State<DeliveryList> {
 /* ---------------------- Show Board (Delivery) ---------------------- */
 
 class DeliveryShow extends StatefulWidget {
-  DeliveryShow(this.id);
   final String id;
+
+  DeliveryShow({Key? key, required this.id}) : super(key: key);
 
   @override
   DeliveryShowState createState() {
-    pageState3 = DeliveryShowState();
+    pageState3 = DeliveryShowState(id: id);
     return pageState3;
   }
 }
 
 class DeliveryShowState extends State<DeliveryShow> {
+  final String id;
+
+  DeliveryShowState({Key? key, required this.id});
+
   late FirebaseProvider fp;
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
@@ -942,33 +946,33 @@ class DeliveryShowState extends State<DeliveryShow> {
                           },
                         ),
                       ),
-                      (isAvailable(snapshot.data!['time'], snapshot.data!['currentMember'], snapshot.data!['limitedMember']))?
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.5,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Color(0xff639ee1),
-                          ),
-                          child: GestureDetector(
-                            child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
-                            onTap: () async {
-                              var tmp;
-                              await fs.collection('delivery_board').doc(widget.id).get().then((snap) {
-                                tmp = snap.data() as Map<String, dynamic>;
-                              });
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryModify(widget.id, tmp)));
-                              setState(() {});
-                            },
-                          ),
-                        ):
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.5,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Color(0xff639ee1),
-                          ),
-                          child:  Align(alignment: Alignment.center, child: smallText("수정 불가", 14, Colors.white)),
-                        ),
+                      (isAvailable(snapshot.data!['time'], snapshot.data!['currentMember'], snapshot.data!['limitedMember']))
+                          ? Container(
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Color(0xff639ee1),
+                              ),
+                              child: GestureDetector(
+                                child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
+                                onTap: () async {
+                                  var tmp;
+                                  await fs.collection('delivery_board').doc(widget.id).get().then((snap) {
+                                    tmp = snap.data() as Map<String, dynamic>;
+                                  });
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryModify(widget.id, tmp)));
+                                  setState(() {});
+                                },
+                              ),
+                            )
+                          : Container(
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Color(0xff639ee1),
+                              ),
+                              child: Align(alignment: Alignment.center, child: smallText("수정 불가", 14, Colors.white)),
+                            ),
                     ],
                   );
                 } else {
