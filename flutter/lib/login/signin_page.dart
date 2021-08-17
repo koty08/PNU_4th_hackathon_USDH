@@ -65,7 +65,6 @@ class SignInPageState extends State<SignInPage> {
               // white container
               Container(
                 width: double.infinity,
-                height: 487,
                 margin: const EdgeInsets.only(top: 250),
                 decoration: BoxDecoration(
                   color: Colors.white,
