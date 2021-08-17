@@ -11,10 +11,10 @@ import 'package:usdh/chat/home.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:validators/validators.dart';
 
-late TeambuildWriteState pageState;
-late TeambuildListState pageState1;
-late TeambuildShowState pageState2;
-late TeambuildModifyState pageState3;
+late RoommateWriteState pageState;
+late RoommateListState pageState1;
+late RoommateShowState pageState2;
+late RoommateModifyState pageState3;
 
 bool isAvailable(String time, int n1, int n2) {
   if (n1 >= n2) {
@@ -45,24 +45,24 @@ bool isTomorrow(String time) {
   }
 }
 
-/* ---------------------- Write Board (Teambuild) ---------------------- */
+/* ---------------------- Write Board (Roommate) ---------------------- */
 
-class TeambuildWrite extends StatefulWidget {
+class RoommateWrite extends StatefulWidget {
   @override
-  TeambuildWriteState createState() {
-    pageState = TeambuildWriteState();
+  RoommateWriteState createState() {
+    pageState = RoommateWriteState();
     return pageState;
   }
 }
 
-class TeambuildWriteState extends State<TeambuildWrite> {
+class RoommateWriteState extends State<RoommateWrite> {
   late FirebaseProvider fp;
   TextEditingController titleInput = TextEditingController();
   TextEditingController contentInput = TextEditingController();
   TextEditingController timeInput = TextEditingController();
   TextEditingController memberInput = TextEditingController();
   TextEditingController stuidInput = TextEditingController();
-  TextEditingController subjectInput = TextEditingController();
+  TextEditingController locationInput = TextEditingController();
   TextEditingController tagInput = TextEditingController();
   TextEditingController myintroInput = TextEditingController();
   FirebaseStorage storage = FirebaseStorage.instance;
@@ -91,7 +91,7 @@ class TeambuildWriteState extends State<TeambuildWrite> {
     timeInput.dispose();
     memberInput.dispose();
     stuidInput.dispose();
-    subjectInput.dispose();
+    locationInput.dispose();
     tagInput.dispose();
     myintroInput.dispose();
     super.dispose();
@@ -215,7 +215,7 @@ class TeambuildWriteState extends State<TeambuildWrite> {
                               ),
                               condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                               condWrap("학번", stuidInput, "요구학번을 입력하세요. (ex 18~21 or 상관없음)", "필수 입력 사항입니다."),
-                              condWrap("모집분야", subjectInput, "모집분야를 입력하세요.", "모집분야는 필수 입력 사항입니다."),
+                              condWrap("장소", locationInput, "장소를 입력하세요.", "장소는 필수 입력 사항입니다."),
                             ],
                           )),
                     ],
@@ -288,7 +288,7 @@ class TeambuildWriteState extends State<TeambuildWrite> {
 
   void uploadOnFS() async {
     var myInfo = fp.getInfo();
-    await fs.collection('teambuild_board').doc(myInfo['nick'] + myInfo['postcount'].toString()).set({
+    await fs.collection('roommate_board').doc(myInfo['nick'] + myInfo['postcount'].toString()).set({
       'title': titleInput.text,
       'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
       'writer': myInfo['nick'],
@@ -297,13 +297,13 @@ class TeambuildWriteState extends State<TeambuildWrite> {
       'currentMember': 1,
       'limitedMember': int.parse(memberInput.text),
       'stuid': stuidInput.text,
-      'subject': subjectInput.text,
+      'location': locationInput.text,
       'tagList': tagList,
       'myintro' : myintroInput.text,
       'views': 0,
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['nick'] + myInfo['postcount'].toString()).set({
-      'where': 'teambuild_board',
+      'where': 'roommate_board',
       'title' : titleInput.text,
       'isFineForMembers': [],
       'members': [],
@@ -342,18 +342,18 @@ class _Chip extends StatelessWidget {
   }
 }
 
-/* ---------------------- Board List (Teambuild) ---------------------- */
+/* ---------------------- Board List (Roommate) ---------------------- */
 
-class TeambuildList extends StatefulWidget {
+class RoommateList extends StatefulWidget {
   @override
-  TeambuildListState createState() {
-    pageState1 = TeambuildListState();
+  RoommateListState createState() {
+    pageState1 = RoommateListState();
     return pageState1;
   }
 }
 
-class TeambuildListState extends State<TeambuildList> {
-  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy("write_time", descending: true).snapshots();
+class RoommateListState extends State<RoommateList> {
+  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('roommate_board').orderBy("write_time", descending: true).snapshots();
   late FirebaseProvider fp;
   final _formKey = GlobalKey<FormState>();
   TextEditingController searchInput = TextEditingController();
@@ -392,7 +392,7 @@ class TeambuildListState extends State<TeambuildList> {
         //당겨서 새로고침
         onRefresh: () async {
           setState(() {
-            colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy("write_time", descending: true).snapshots();
+            colstream = FirebaseFirestore.instance.collection('roommate_board').orderBy("write_time", descending: true).snapshots();
           });
         },
         child: StreamBuilder<QuerySnapshot>(
@@ -424,7 +424,7 @@ class TeambuildListState extends State<TeambuildList> {
                             icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
                             onPressed: () {
                               setState(() {
-                                colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy("write_time", descending: true).snapshots();
+                                colstream = FirebaseFirestore.instance.collection('roommate_board').orderBy("write_time", descending: true).snapshots();
                               });
                             },
                           ),
@@ -494,13 +494,13 @@ class TeambuildListState extends State<TeambuildList> {
                                                     if (_formKey.currentState!.validate()) {
                                                       if (search == "제목") {
                                                         setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                                                          colstream = FirebaseFirestore.instance.collection('roommate_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
                                                         });
                                                         searchInput.clear();
                                                         Navigator.pop(con);
                                                       } else {
                                                         setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('teambuild_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
+                                                          colstream = FirebaseFirestore.instance.collection('roommate_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
                                                         });
                                                         searchInput.clear();
                                                         Navigator.pop(con);
@@ -550,9 +550,9 @@ class TeambuildListState extends State<TeambuildList> {
                                 setState(() {
                                   status = val ?? false;
                                   if (status) {
-                                    colstream = FirebaseFirestore.instance.collection('teambuild_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).snapshots();
+                                    colstream = FirebaseFirestore.instance.collection('roommate_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).snapshots();
                                   } else {
-                                    colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy("write_time", descending: true).snapshots();
+                                    colstream = FirebaseFirestore.instance.collection('roommate_board').orderBy("write_time", descending: true).snapshots();
                                   }
                                 });
                               },
@@ -587,8 +587,8 @@ class TeambuildListState extends State<TeambuildList> {
                           Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                           InkWell(
                               onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => TeambuildShow(doc.id)));
-                                FirebaseFirestore.instance.collection('teambuild_board').doc(doc.id).update({"views": doc["views"] + 1});
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => RoommateShow(doc.id)));
+                                FirebaseFirestore.instance.collection('roommate_board').doc(doc.id).update({"views": doc["views"] + 1});
                               },
                               child: Container(
                                   margin: EdgeInsets.fromLTRB(25, 17, 10, 0),
@@ -606,7 +606,7 @@ class TeambuildListState extends State<TeambuildList> {
                                                 return GestureDetector(
                                                     onTap: () {
                                                       setState(() {
-                                                        colstream = FirebaseFirestore.instance.collection('teambuild_board').where('tagList', arrayContains: tag).snapshots();
+                                                        colstream = FirebaseFirestore.instance.collection('roommate_board').where('tagList', arrayContains: tag).snapshots();
                                                       });
                                                     },
                                                     child: smallText(tag, 12, Color(0xffa9aaaf)));
@@ -668,26 +668,26 @@ class TeambuildListState extends State<TeambuildList> {
             width: 28,
           ),
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => TeambuildWrite()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => RoommateWrite()));
           }),
     );
   }
 }
 
-/* ---------------------- Show Board (Teambuild) ---------------------- */
+/* ---------------------- Show Board (Roommate) ---------------------- */
 
-class TeambuildShow extends StatefulWidget {
-  TeambuildShow(this.id);
+class RoommateShow extends StatefulWidget {
+  RoommateShow(this.id);
   final String id;
 
   @override
-  TeambuildShowState createState() {
-    pageState2 = TeambuildShowState();
+  RoommateShowState createState() {
+    pageState2 = RoommateShowState();
     return pageState2;
   }
 }
 
-class TeambuildShowState extends State<TeambuildShow> {
+class RoommateShowState extends State<RoommateShow> {
   late FirebaseProvider fp;
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
@@ -718,7 +718,7 @@ class TeambuildShowState extends State<TeambuildShow> {
 
     return Scaffold(
         body: StreamBuilder(
-            stream: fs.collection('teambuild_board').doc(widget.id).snapshots(),
+            stream: fs.collection('roommate_board').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               fp.setInfo();
 
@@ -779,7 +779,7 @@ class TeambuildShowState extends State<TeambuildShow> {
                                       cond2Wrap("모집기간", "~ " + time),
                                       cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
                                       cond2Wrap("학번", snapshot.data!['stuid']),
-                                      cond2Wrap("모집분야", snapshot.data!['subject']),
+                                      cond2Wrap("모집분야", snapshot.data!['location']),
                                     ],
                                   ))
                             ],
@@ -881,7 +881,7 @@ class TeambuildShowState extends State<TeambuildShow> {
               }
             }),
         bottomNavigationBar: StreamBuilder(
-            stream: fs.collection('teambuild_board').doc(widget.id).snapshots(),
+            stream: fs.collection('roommate_board').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               if (snapshot.hasData && !snapshot.data!.exists) {
                 return CircularProgressIndicator();
@@ -901,7 +901,7 @@ class TeambuildShowState extends State<TeambuildShow> {
                           child: Align(alignment: Alignment.center, child: smallText("삭제", 14, Colors.white)),
                           onTap: () async {
                             Navigator.pop(context);
-                            await fs.collection('teambuild_board').doc(widget.id).delete();
+                            await fs.collection('roommate_board').doc(widget.id).delete();
                             fp.updateIntInfo('postcount', -1);
                           },
                         ),
@@ -917,10 +917,10 @@ class TeambuildShowState extends State<TeambuildShow> {
                             child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
                             onTap: () async {
                               var tmp;
-                              await fs.collection('teambuild_board').doc(widget.id).get().then((snap) {
+                              await fs.collection('roommate_board').doc(widget.id).get().then((snap) {
                                 tmp = snap.data() as Map<String, dynamic>;
                               });
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => TeambuildModify(widget.id, tmp)));
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => RoommateModify(widget.id, tmp)));
                               setState(() {});
                             },
                           ),
@@ -1029,7 +1029,7 @@ class TeambuildShowState extends State<TeambuildShow> {
                               }
                               // 내 정보에 신청 정보를 기록
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
-                                'where': "teambuild_board",
+                                'where': "roommate_board",
                               });
                               print('참가 신청을 보냈습니다.');
                             }
@@ -1045,20 +1045,20 @@ class TeambuildShowState extends State<TeambuildShow> {
   }
 }
 
-/* ---------------------- Modify Board (Teambuild) ---------------------- */
+/* ---------------------- Modify Board (Roommate) ---------------------- */
 
-class TeambuildModify extends StatefulWidget {
-  TeambuildModify(this.id, this.datas);
+class RoommateModify extends StatefulWidget {
+  RoommateModify(this.id, this.datas);
   final String id;
   final Map<String, dynamic> datas;
   @override
   State<StatefulWidget> createState() {
-    pageState3 = TeambuildModifyState();
+    pageState3 = RoommateModifyState();
     return pageState3;
   }
 }
 
-class TeambuildModifyState extends State<TeambuildModify> {
+class RoommateModifyState extends State<RoommateModify> {
   late FirebaseProvider fp;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
   late TextEditingController titleInput;
@@ -1066,7 +1066,7 @@ class TeambuildModifyState extends State<TeambuildModify> {
   late TextEditingController timeInput;
   late TextEditingController memberInput;
   late TextEditingController stuidInput;
-  late TextEditingController subjectInput;
+  late TextEditingController locationInput;
   late TextEditingController tagInput;
   late TextEditingController myintroInput;
   List<dynamic> tagList = [];
@@ -1091,7 +1091,7 @@ class TeambuildModifyState extends State<TeambuildModify> {
       contentInput = TextEditingController(text: widget.datas['contents']);
       memberInput = TextEditingController(text: widget.datas['limitedMember'].toString());
       stuidInput = TextEditingController(text: widget.datas['stuid']);
-      subjectInput = TextEditingController(text: widget.datas['subject']);
+      locationInput = TextEditingController(text: widget.datas['location']);
       tagInput = TextEditingController();
       myintroInput = TextEditingController(text: widget.datas['myintro']);
     });
@@ -1105,7 +1105,7 @@ class TeambuildModifyState extends State<TeambuildModify> {
     timeInput.dispose();
     memberInput.dispose();
     stuidInput.dispose();
-    subjectInput.dispose();
+    locationInput.dispose();
     tagInput.dispose();
     super.dispose();
   }
@@ -1118,7 +1118,7 @@ class TeambuildModifyState extends State<TeambuildModify> {
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
             child: StreamBuilder(
-                stream: fs.collection('teambuild_board').doc(widget.id).snapshots(),
+                stream: fs.collection('roommate_board').doc(widget.id).snapshots(),
                 builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                   if (snapshot.hasData && !snapshot.data!.exists) return CircularProgressIndicator();
                   if (snapshot.hasData) {
@@ -1230,7 +1230,7 @@ class TeambuildModifyState extends State<TeambuildModify> {
                                             ),
                                             condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                                             condWrap("학번", stuidInput, "요구학번을 입력하세요. (ex 18~21 or 상관없음)", "필수 입력 사항입니다."),
-                                            condWrap("모집분야", subjectInput, "모집분야를 입력하세요.", "모집분야는 필수 입력 사항입니다."),
+                                            condWrap("장소", locationInput, "장소를 입력하세요.", "장소는 필수 입력 사항입니다."),
                                           ],
                                         )),
                                   ],
@@ -1306,19 +1306,19 @@ class TeambuildModifyState extends State<TeambuildModify> {
 
   void updateOnFS() async {
     var myInfo = fp.getInfo();
-    await fs.collection('teambuild_board').doc(widget.id).update({
+    await fs.collection('roommate_board').doc(widget.id).update({
       'title': titleInput.text,
       'contents': contentInput.text,
       'time': formatDate(selectedDate, [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
       'limitedMember': int.parse(memberInput.text),
       'stuid': stuidInput.text,
-      'subject': subjectInput.text,
+      'location': locationInput.text,
       'tagList': tagList,
       'myintro': myintroInput.text,
       'members': [],
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({
-      'where': 'teambuild_board',
+      'where': 'roommate_board',
       'title': titleInput.text,
       'members': [],
     });

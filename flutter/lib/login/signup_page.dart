@@ -423,7 +423,7 @@ class SignUpPageState extends State<SignUpPage> {
         'postcount': 0,
         'piccount': 0,
         'photoUrl':
-            'https://firebasestorage.googleapis.com/v0/b/example-18d75.appspot.com/o/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202021-07-21%20113022.png?alt=media&token=b9b9dfb3-ac59-430c-b35b-04d9fad08ae6',
+            'https://firebasestorage.googleapis.com/v0/b/example-18d75.appspot.com/o/profile%2Ficonminiperson2.png?alt=media&token=9266979d-8092-44ec-af89-207e4cb37228',
         'joiningIn': null,
         'portfolio': List.empty(),
         'portfolio_tag': List.empty(),

@@ -1320,7 +1320,6 @@ class SgroupModifyState extends State<SgroupModify> {
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({
       'where': 'sgroup_board',
       'title': titleInput.text,
-      'isFineForMembers': [],
       'members': [],
     });
   }
