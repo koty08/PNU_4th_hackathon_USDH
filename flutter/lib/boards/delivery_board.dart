@@ -1294,7 +1294,6 @@ class DeliveryModifyState extends State<DeliveryModify> {
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({
       'where': 'delivery_board',
       'title': titleInput.text,
-      'isFineForMembers': [],
       'members': [],
     });
   }

@@ -44,7 +44,7 @@ class CoverletterState extends State<Coverletter> {
       var tmp = snap.data() as Map<String, dynamic>;
       setState(() {
         tagList = tmp['coverletter_tag'];
-        if(tmp['coverletter'] != List.empty()){
+        if(tmp['coverletter'].length != 0){
           introInput = TextEditingController(text: tmp['coverletter'][0]);
           specInput = TextEditingController(text: tmp['coverletter'][1]);
           inputcheck = false;

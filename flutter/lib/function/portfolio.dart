@@ -44,7 +44,7 @@ class PortfolioState extends State<Portfolio> {
       var tmp = snap.data() as Map<String, dynamic>;
       setState(() {
         tagList = tmp['portfolio_tag'];
-        if(tmp['portfolio'] != List.empty()){
+        if(tmp['portfolio'].length != 0){
           introInput = TextEditingController(text: tmp['portfolio'][0]);
           specInput = TextEditingController(text: tmp['portfolio'][1]);
           inputcheck = false;
