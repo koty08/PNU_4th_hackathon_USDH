@@ -77,7 +77,7 @@ class MyPageState extends State<MyPage> {
                         ),
                         cSizedBox(0, 10),
                         headerText("마이페이지"),
-                        cSizedBox(0, 220),
+                        cSizedBox(0, 200),
                       ],
                     ),
                     headerDivider(),
