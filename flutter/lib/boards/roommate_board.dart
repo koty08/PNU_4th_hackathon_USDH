@@ -414,7 +414,7 @@ class RoommateListState extends State<RoommateList> {
                           Navigator.pop(context);
                         },
                       ),
-                      headerText("팀빌딩"),
+                      headerText("룸메이트"),
                       cSizedBox(0, 50),
                       Wrap(
                         spacing: -5,
@@ -744,7 +744,7 @@ class RoommateShowState extends State<RoommateShow> {
                               Navigator.pop(context);
                             },
                           ),
-                          headerText("팀빌딩"),
+                          headerText("룸메이트"),
                           cSizedBox(0, 250),
                         ],
                       ),

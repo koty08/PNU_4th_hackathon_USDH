@@ -35,6 +35,10 @@ class FirebaseProvider with ChangeNotifier {
   }
 
   void setInfo() async {
+    if(getUser() == null){
+      info = {};
+      return;
+    }
     await fs
         .collection('users')
         .doc(getUser()?.email)
