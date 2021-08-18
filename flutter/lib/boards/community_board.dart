@@ -24,7 +24,6 @@ class Choice {
 }
 
 String howLongAgo(String time) {
-  //String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
   String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
   if (time.substring(0, 4).compareTo(now.substring(0, 4)) == -1) {
     int diff = int.parse(now.substring(0, 4)) - int.parse(time.substring(0, 4));

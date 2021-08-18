@@ -489,7 +489,7 @@ class DeliveryListState extends State<DeliveryList> {
     super.dispose();
   }
 
-  bool is_today(String time) {
+  bool isToday(String time) {
     String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]);
     if (time.split(" ")[0] == now) {
       return true;

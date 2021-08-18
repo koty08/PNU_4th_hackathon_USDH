@@ -166,6 +166,7 @@ class HomeScreenState extends State<HomeScreen> {
 
     if (document != null) {
       List<dynamic> peerIds = document['chatMembers'];
+      String where = document.get('where');
 
       Stream<DocumentSnapshot> streamMessageWith = FirebaseFirestore.instance.collection('users').doc(peerIds[0]).collection('messageWith').doc(document.id).snapshots();
       Stream<QuerySnapshot> streamMessages = FirebaseFirestore.instance.collection('users').doc(peerIds[0]).collection('messageWith').doc(document.id).collection('messages').snapshots();
@@ -301,6 +302,7 @@ class HomeScreenState extends State<HomeScreen> {
                   myId: myId,
                   peerIds: peerIds,
                   groupChatId: document.id,
+                  where: where,
                 ),
               ),
             );
@@ -329,46 +331,3 @@ class Choice {
   final IconData icon;
 }
 
-// class ChattingRoomInfo {
-//   final String? myId;
-//   final List<dynamic>? peerIds;
-//   final DocumentSnapshot? doc;
-
-//   ChattingRoomInfo({this.myId, this.peerIds, this.doc});
-
-//   Stream<List<String>> get lastInfo async* {
-//     List<String?> lastInfo;
-
-//     String? lastTime;
-//     String? lastContent;
-//     String? unSeenCount;
-
-//     String? lastTimeSeen;
-    
-
-//     await FirebaseFirestore.instance.collection('users').doc(peerIds?[0]).collection('messageWith').doc(doc?.id).collection('messages').get().then((snapshot) {
-//       var temp = snapshot.docs[snapshot.docs.length - 1].get('timestamp').toString();
-//       Timestamp timestamp = Timestamp.fromMillisecondsSinceEpoch(int.parse(temp));
-//       DateTime dateTime = timestamp.toDate();
-//       String formatedTime = formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
-//       if (isTomorrow(formatedTime)) {
-//         lastTime = formatedTime.substring(11, 16);
-//       } else {
-//         lastTime = formatedTime.substring(0, 4) + '.' + formatedTime.substring(5, 7) + '.' + formatedTime.substring(8, 10);
-//       }
-
-//       lastContent = snapshot.docs[snapshot.docs.length - 1].get('content').toString();
-//     });
-
-//     await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(doc?.id).get().then((snapshot) {
-//       lastTimeSeen = snapshot['lastTimeSeen'];
-//     });
-
-//     await FirebaseFirestore.instance.collection('users').doc(peerIds?[0]).collection('messageWith').doc(doc?.id).collection('messages').where('timestamp', isGreaterThan: lastTimeSeen).get().then((snapshot) {
-//       unSeenCount = snapshot.docs.length.toS;
-//     });
-
-//     lastInfo = [lastTime, lastContent, unSeenCount]
-    
-//   }
-// }

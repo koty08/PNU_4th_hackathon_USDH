@@ -4,21 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:date_format/date_format.dart';
 import 'package:usdh/chat/const.dart';
 import 'package:usdh/chat/widget/loading.dart';
 import 'package:usdh/chat/widget/full_photo.dart';
+
+FirebaseFirestore fs = FirebaseFirestore.instance;
 
 class Chat extends StatefulWidget {
   final String myId;
   final List<dynamic> peerIds; // chat에 참가한 유저의 email들
   final String groupChatId;
+  final String where;
 
-  Chat({Key? key, required this.myId, required this.peerIds, required this.groupChatId}) : super(key: key);
+  Chat({Key? key, required this.myId, required this.peerIds, required this.groupChatId, required this.where}) : super(key: key);
 
   @override
-  State createState() => ChatState(myId: myId, peerIds: peerIds, groupChatId: groupChatId);
+  State createState() => ChatState(myId: myId, peerIds: peerIds, groupChatId: groupChatId, where: where);
 }
 
 // 채팅방 내부
@@ -26,8 +29,9 @@ class ChatState extends State<Chat> {
   final String myId;
   final List<dynamic> peerIds; // chat에 참가한 유저의 email들
   final String groupChatId;
+  final String where;
 
-  ChatState({Key? key, required this.myId, required this.peerIds, required this.groupChatId});
+  ChatState({Key? key, required this.myId, required this.peerIds, required this.groupChatId, required this.where});
 
   // 설정, 퇴장 버튼 생성(버튼이름, 아이콘)
   List<Choice> choices = const <Choice>[
@@ -47,10 +51,12 @@ class ChatState extends State<Chat> {
 
   // 채팅방 나가기
   Future<Null> exitChat() async {
+    Navigator.of(context).pop();
+
+    //본인
     await FirebaseFirestore.instance.collection('users').doc(myId).update({
       'joiningIn': FieldValue.arrayRemove([groupChatId])
     });
-    // 본인
     await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').get().then((value) {
       if (value.docs.isNotEmpty) {
         for (DocumentSnapshot ds in value.docs) {
@@ -59,23 +65,26 @@ class ChatState extends State<Chat> {
       }
     });
     await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).delete();
-    // 다른 멤버
-    for (var peerId in peerIds) {
+    //다른 멤버
+    for (String peerId in peerIds) {
       await FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).update({
         'chatMembers': FieldValue.arrayRemove([myId])
       });
     }
-    // post의 currentMember - 1
-    int currentMember = 0;
-    await FirebaseFirestore.instance.collection('delivery_board').doc(groupChatId).get().then((value) {
-      currentMember = value['currentMember'];
-    });
-    await FirebaseFirestore.instance.collection('delivery_board').doc(groupChatId).update({
-      'currentMember': currentMember - 1,
-      'members': FieldValue.arrayRemove([myId]),
-    });
+    // post의 currentMember - 1, 방장의 applicants의 members에서 삭제
+    await FirebaseFirestore.instance.collection(where).doc(groupChatId).update({'currentMember': FieldValue.increment(-1)});
 
-    Navigator.of(context).pop();
+    String writer = '';
+    String writerId = '';
+    await fs.collection(where).doc(groupChatId).get().then((value) {
+      writer = value.get('writer');
+    });
+    await fs.collection('users').where('nick', isEqualTo: writer).get().then((snap) {
+      writerId = snap.docs[0].get('email');
+    });
+    await fs.collection('users').doc(writerId).collection('applicants').doc(groupChatId).update({
+      'members': FieldValue.arrayRemove([myId])
+    });
   }
 
   // 참가한 유저들의 프로필 사진 정보를 얻어옴
@@ -127,11 +136,11 @@ class ChatState extends State<Chat> {
         ],
       ),
       body: ChatScreen(
-        myId: myId,
-        peerIds: peerIds, // 채팅방 멤버들의 emails
-        peerAvatars: getPeerAvatar(), // 채팅방 멤버들의 photoUrls
-        groupChatId: groupChatId,
-      ),
+          myId: myId,
+          peerIds: peerIds, // 채팅방 멤버들의 emails
+          peerAvatars: getPeerAvatar(), // 채팅방 멤버들의 photoUrls
+          groupChatId: groupChatId,
+          where: where),
     );
   }
 }
@@ -141,20 +150,22 @@ class ChatScreen extends StatefulWidget {
   final List<dynamic> peerIds;
   final Future<List<String>> peerAvatars;
   final String groupChatId;
+  final String where;
 
-  ChatScreen({Key? key, required this.myId, required this.peerIds, required this.peerAvatars, required this.groupChatId}) : super(key: key);
+  ChatScreen({Key? key, required this.myId, required this.peerIds, required this.peerAvatars, required this.groupChatId, required this.where}) : super(key: key);
 
   @override
-  State createState() => ChatScreenState(myId: myId, peerIds: peerIds, peerAvatars: peerAvatars, groupChatId: groupChatId);
+  State createState() => ChatScreenState(myId: myId, peerIds: peerIds, peerAvatars: peerAvatars, groupChatId: groupChatId, where: where);
 }
 
 class ChatScreenState extends State<ChatScreen> {
-  ChatScreenState({Key? key, required this.myId, required this.peerIds, required this.peerAvatars, required this.groupChatId});
-
   final String myId;
   final List<dynamic> peerIds;
   final Future<List<String>> peerAvatars;
   final String groupChatId;
+  final String where;
+
+  ChatScreenState({Key? key, required this.myId, required this.peerIds, required this.peerAvatars, required this.groupChatId, required this.where});
 
   List<QueryDocumentSnapshot> listMessage = new List.from([]);
   int _limit = 20;
@@ -210,10 +221,7 @@ class ChatScreenState extends State<ChatScreen> {
     }
 
     // 2. 내 messageWith에 추가
-    await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).set({
-      'chatMembers': peerIds,
-      'lastTimeSeen': DateTime.now().millisecondsSinceEpoch.toString(),
-    });
+    await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).set({'chatMembers': peerIds, 'lastTimeSeen': DateTime.now().millisecondsSinceEpoch.toString(), 'where': where});
 
     // 내 정보를 상대방 messageWith에 저장
     // 1. local에 내 정보 저장
@@ -233,10 +241,7 @@ class ChatScreenState extends State<ChatScreen> {
         }
       }
       _peerIds.add(myId);
-      await FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).set({
-        'chatMembers': _peerIds,
-        'lastTimeSeen': DateTime.now().millisecondsSinceEpoch.toString(),
-      });
+      await FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).set({'chatMembers': _peerIds, 'lastTimeSeen': DateTime.now().millisecondsSinceEpoch.toString(), 'where': where});
     }
 
     setState(() {});
@@ -256,14 +261,6 @@ class ChatScreenState extends State<ChatScreen> {
         uploadFile();
       }
     }
-  }
-
-  void getSticker() {
-    // Hide keyboard when sticker appear
-    focusNode.unfocus();
-    setState(() {
-      isShowSticker = !isShowSticker;
-    });
   }
 
   Future uploadFile() async {
@@ -286,7 +283,7 @@ class ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // 메세지 보내기
+  //메세지 보내기
   void onSendMessage(String content, int type) {
     // type: 0 = text, 1 = image, 2 = sticker
     if (content.trim() != '') {
@@ -321,28 +318,50 @@ class ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // 채팅방 내부 메세지 블럭 생성
+  //오전? 오후?
+  String whatTime(DateTime dateTime) {
+    String nowTime = '';
+    String formatted = formatDate(dateTime, [HH, ':', nn]);
+
+    if (int.parse(formatted.substring(0, 2)) >= 13) {
+      nowTime = '오후 ' + (int.parse(formatted.substring(0, 2)) - 12).toString() + ':' + int.parse(formatted.substring(3, 5)).toString();
+    } else {
+      nowTime = '오전 ' + int.parse(formatted.substring(0, 2)).toString() + ':' + formatted.substring(3, 5);
+    }
+
+    return nowTime;
+  }
+
+  Future<String> getAvatar(String peerId) async {
+    String peerAvatar = '';
+    await fs.collection('users').doc(peerId).get().then((value) {
+      peerAvatar = value.get('photoUrl');
+    });
+    return peerAvatar;
+  }
+
+  //채팅방 내부 메세지 블럭 생성
   Widget buildItem(int index, DocumentSnapshot? document) {
     if (document != null) {
       if (document.get('idFrom') == myId) {
         // 내가 보낸 메세지는 오른쪽에 ( 텍스트, 사진 순서)
-        return Row(
+        return Container(
+            child: Column(
           children: <Widget>[
-            document.get('type') == 0
-                // 내가 보낸 메세지 텍스트 - type == 0
-                ? Container(
-                    child: Text(
-                      document.get('content'),
-                      style: TextStyle(color: primaryColor),
-                    ),
-                    padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
-                    width: 200.0,
-                    decoration: BoxDecoration(color: greyColor2, borderRadius: BorderRadius.circular(8.0)),
-                    margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
-                  )
-                : document.get('type') == 1
-                    // 내가 보낸 사진 - type == 1
+            Row(
+              children: [
+                document.get('type') == 0
                     ? Container(
+                        child: Text(
+                          document.get('content'),
+                          style: TextStyle(color: primaryColor),
+                        ),
+                        padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+                        width: 200.0,
+                        decoration: BoxDecoration(color: greyColor2, borderRadius: BorderRadius.circular(8.0)),
+                        margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
+                      )
+                    : Container(
                         child: OutlinedButton(
                           child: Material(
                             child: Image.network(
@@ -400,20 +419,23 @@ class ChatScreenState extends State<ChatScreen> {
                           style: ButtonStyle(padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.all(0))),
                         ),
                         margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
-                      )
-                    // 내가 보낸 이모티콘 - type == 2
-                    : Container(
-                        child: Image.asset(
-                          'images/${document.get('content')}.gif',
-                          width: 100.0,
-                          height: 100.0,
-                          fit: BoxFit.cover,
-                        ),
-                        margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
                       ),
+              ],
+              mainAxisAlignment: MainAxisAlignment.end,
+            ),
+            // 메세지 보낸 시간 표시
+            isLastMessageRight(index)
+                ? Container(
+                    child: Text(
+                      whatTime(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
+                      style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
+                    ),
+                    margin: EdgeInsets.only(right: 10.0, top: 5.0, bottom: 5.0),
+                  )
+                : Container()
           ],
-          mainAxisAlignment: MainAxisAlignment.end,
-        );
+          crossAxisAlignment: CrossAxisAlignment.end,
+        ));
       } else {
         // 상대방 메세지는 왼쪽에 ( 사진, 텍스트 순서)
         return Container(
@@ -421,35 +443,43 @@ class ChatScreenState extends State<ChatScreen> {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  isLastMessageLeft(index)
-                      ? Material(
-                          child: Image.network(
-                            '',
-                            loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  color: primaryColor,
-                                  value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
+                  isFirstMessageLeft(index)
+                      ? FutureBuilder(
+                          future: getAvatar(document.get('idFrom')),
+                          builder: (context, AsyncSnapshot snapshot) {
+                            if (snapshot.hasData) {
+                              return Material(
+                                child: Image.network(
+                                  snapshot.data,
+                                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        color: primaryColor,
+                                        value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, object, stackTrace) {
+                                    return Icon(
+                                      Icons.account_circle,
+                                      size: 35,
+                                      color: greyColor,
+                                    );
+                                  },
+                                  width: 35,
+                                  height: 35,
+                                  fit: BoxFit.cover,
                                 ),
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(18.0),
+                                ),
+                                clipBehavior: Clip.hardEdge,
                               );
-                            },
-                            errorBuilder: (context, object, stackTrace) {
-                              return Icon(
-                                Icons.account_circle,
-                                size: 35,
-                                color: greyColor,
-                              );
-                            },
-                            width: 35,
-                            height: 35,
-                            fit: BoxFit.cover,
-                          ),
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(18.0),
-                          ),
-                          clipBehavior: Clip.hardEdge,
-                        )
+                            } else {
+                              return CircularProgressIndicator();
+                            }
+                          })
                       : Container(width: 35.0),
                   document.get('type') == 0
                       ? Container(
@@ -462,66 +492,56 @@ class ChatScreenState extends State<ChatScreen> {
                           decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
                           margin: EdgeInsets.only(left: 10.0),
                         )
-                      : document.get('type') == 1
-                          ? Container(
-                              child: TextButton(
-                                child: Material(
-                                  child: Image.network(
-                                    document.get('content'),
-                                    loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Container(
-                                        decoration: BoxDecoration(
-                                          color: greyColor2,
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(8.0),
-                                          ),
-                                        ),
-                                        width: 200.0,
-                                        height: 200.0,
-                                        child: Center(
-                                          child: CircularProgressIndicator(
-                                            color: primaryColor,
-                                            value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    errorBuilder: (context, object, stackTrace) => Material(
-                                      child: Image.asset(
-                                        'images/img_not_available.jpeg',
-                                        width: 200.0,
-                                        height: 200.0,
-                                        fit: BoxFit.cover,
-                                      ),
+                      : Container(
+                          child: TextButton(
+                            child: Material(
+                              child: Image.network(
+                                document.get('content'),
+                                loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: greyColor2,
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(8.0),
                                       ),
-                                      clipBehavior: Clip.hardEdge,
                                     ),
+                                    width: 200.0,
+                                    height: 200.0,
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        color: primaryColor,
+                                        value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (context, object, stackTrace) => Material(
+                                  child: Image.asset(
+                                    'images/img_not_available.jpeg',
                                     width: 200.0,
                                     height: 200.0,
                                     fit: BoxFit.cover,
                                   ),
-                                  borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8.0),
+                                  ),
                                   clipBehavior: Clip.hardEdge,
                                 ),
-                                onPressed: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => FullPhoto(url: document.get('content'))));
-                                },
-                                style: ButtonStyle(padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.all(0))),
-                              ),
-                              margin: EdgeInsets.only(left: 10.0),
-                            )
-                          : Container(
-                              child: Image.asset(
-                                'images/${document.get('content')}.gif',
-                                width: 100.0,
-                                height: 100.0,
+                                width: 200.0,
+                                height: 200.0,
                                 fit: BoxFit.cover,
                               ),
-                              margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
+                              borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                              clipBehavior: Clip.hardEdge,
                             ),
+                            onPressed: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => FullPhoto(url: document.get('content'))));
+                            },
+                            style: ButtonStyle(padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.all(0))),
+                          ),
+                          margin: EdgeInsets.only(left: 10.0),
+                        ),
                 ],
               ),
 
@@ -529,7 +549,7 @@ class ChatScreenState extends State<ChatScreen> {
               isLastMessageLeft(index)
                   ? Container(
                       child: Text(
-                        DateFormat('dd MMM kk:mm').format(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
+                        whatTime(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
                         style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
                       ),
                       margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
@@ -546,8 +566,16 @@ class ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // 내가 메시지 보낸 시간
+  bool isFirstMessageLeft(int index) {
+    if ((index < listMessage.length - 1 && listMessage[index + 1].get('idFrom') == myId) || index == listMessage.length - 1) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   bool isLastMessageLeft(int index) {
+    //바로 전이 나면 상대방 입장에서 제일 위에 있는 채팅이지(last message인 이유는 streamBuilder가 메세지를 최신 순으로 가져오기 때문)
     if ((index > 0 && listMessage[index - 1].get('idFrom') == myId) || index == 0) {
       return true;
     } else {
@@ -555,8 +583,8 @@ class ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // 상대가 메시지 보낸 시간
   bool isLastMessageRight(int index) {
+    //바로 전이 나면 본인 입장에서 제일 위에 있는 채팅이지
     if ((index > 0 && listMessage[index - 1].get('idFrom') != myId) || index == 0) {
       return true;
     } else {
@@ -564,16 +592,10 @@ class ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // 뒤로 가기 누르면 chattingWith를 다시 null 상태로
+  //뒤로 가기 누르면 chattingWith를 다시 null 상태로
   Future<bool> onBackPress() {
-    if (isShowSticker) {
-      setState(() {
-        isShowSticker = false;
-      });
-    } else {
-      FirebaseFirestore.instance.collection('users').doc(myId).update({'chattingWith': null});
-      Navigator.pop(context);
-    }
+    fs.collection('users').doc(myId).update({'chattingWith': null});
+    Navigator.pop(context);
 
     return Future.value(false);
   }
@@ -588,9 +610,6 @@ class ChatScreenState extends State<ChatScreen> {
               // List of messages
               buildListMessage(),
 
-              // Sticker(이모티콘 창 누르면 타자기는 내려가게)
-              isShowSticker ? buildSticker() : Container(),
-
               // Input content
               buildInput(),
             ],
@@ -604,7 +623,6 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // 다시 켜면 끄기 전 상태 유지
   Widget buildListMessage() {
     return Flexible(
       child: peerIds.isNotEmpty
@@ -642,7 +660,6 @@ class ChatScreenState extends State<ChatScreen> {
     return Container(
       child: Row(
         children: <Widget>[
-          // 이미지 전송 버튼
           Material(
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 1.0),
@@ -654,19 +671,6 @@ class ChatScreenState extends State<ChatScreen> {
             ),
             color: Colors.white,
           ),
-          Material(
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 1.0),
-              child: IconButton(
-                icon: Icon(Icons.face),
-                onPressed: getSticker,
-                color: primaryColor,
-              ),
-            ),
-            color: Colors.white,
-          ),
-
-          // 메세지 텍스트 입력 칸
           Flexible(
             child: Container(
               child: TextField(
@@ -683,8 +687,6 @@ class ChatScreenState extends State<ChatScreen> {
               ),
             ),
           ),
-
-          // 메세지 전송 버튼
           Material(
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 8.0),
@@ -701,118 +703,6 @@ class ChatScreenState extends State<ChatScreen> {
       width: double.infinity,
       height: 50.0,
       decoration: BoxDecoration(border: Border(top: BorderSide(color: greyColor2, width: 0.5)), color: Colors.white),
-    );
-  }
-
-  // 이모티콘 구현
-  Widget buildSticker() {
-    return Expanded(
-      child: Container(
-        child: Column(
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                TextButton(
-                  onPressed: () => onSendMessage('mimi1', 2),
-                  child: Image.asset(
-                    'images/mimi1.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi2', 2),
-                  child: Image.asset(
-                    'images/mimi2.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi3', 2),
-                  child: Image.asset(
-                    'images/mimi3.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              ],
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            ),
-            Row(
-              children: <Widget>[
-                TextButton(
-                  onPressed: () => onSendMessage('mimi4', 2),
-                  child: Image.asset(
-                    'images/mimi4.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi5', 2),
-                  child: Image.asset(
-                    'images/mimi5.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi6', 2),
-                  child: Image.asset(
-                    'images/mimi6.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              ],
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            ),
-            Row(
-              children: <Widget>[
-                TextButton(
-                  onPressed: () => onSendMessage('mimi7', 2),
-                  child: Image.asset(
-                    'images/mimi7.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi8', 2),
-                  child: Image.asset(
-                    'images/mimi8.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi9', 2),
-                  child: Image.asset(
-                    'images/mimi9.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              ],
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            )
-          ],
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        ),
-        decoration: BoxDecoration(border: Border(top: BorderSide(color: greyColor2, width: 0.5)), color: Colors.white),
-        padding: EdgeInsets.all(5.0),
-        height: 180.0,
-      ),
     );
   }
 

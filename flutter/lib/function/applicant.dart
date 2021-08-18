@@ -1,16 +1,11 @@
-import 'dart:io';
-import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_switch/flutter_switch.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/boards/delivery_board.dart';
 import 'package:usdh/boards/sgroup_board.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'package:usdh/chat/chatting.dart';
-import 'package:usdh/chat/home.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -90,7 +85,6 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                               itemBuilder: (context, index) {
                                 final DocumentSnapshot doc = snapshot.data!.docs[index];
                                 String where = doc['where'];
-                                String id = doc.id;
                                 if (doc['isFineForMembers'].length != 0) {
                                   return Column(children: [
                                     Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
@@ -289,6 +283,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                                             myId: myInfo['email'],
                                                             peerIds: peerIds,
                                                             groupChatId: title,
+                                                            where: board
                                                           )));
 
                                               print(peerNick + '(' + peerId + ')를 ' + title + '에 추가합니다.');
