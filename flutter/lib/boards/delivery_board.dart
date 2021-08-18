@@ -941,8 +941,35 @@ class DeliveryShowState extends State<DeliveryShow> {
                           child: Align(alignment: Alignment.center, child: smallText("삭제", 14, Colors.white)),
                           onTap: () async {
                             Navigator.pop(context);
+                            List<String> isFineForMemberNicks = [];
+                            List<String> isFineForMemberIds = [];
+                            await fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(snapshot.data!.id).get().then((DocumentSnapshot snap) {
+                              if (snap.get('isFineForMembers').length != 0) {
+                                for (String iFFMember in snap.get('isFineForMembers')) {
+                                  isFineForMemberNicks.add(iFFMember);
+                                }
+                              } else {
+                                print(snapshot.data!['title'] + '에는 참가자가 없었습니다.');
+                              }
+                            });
+                            
+                            //isFineForMembers(신청자목록)에 있는 신청자들의 참가 신청 목록에서 where을 deleted로 바꿈
+                            if (isFineForMemberNicks.length != 0) {
+                              for (String iFFmember in isFineForMemberNicks) {
+                                await fs.collection('users').where('nick', isEqualTo: iFFmember).get().then((QuerySnapshot snap) {
+                                  isFineForMemberIds.add(snap.docs[0].get('email'));
+                                });
+                              }
+                            }
+                            if (isFineForMemberIds.length != 0) {
+                              for (String iFFMember in isFineForMemberIds) {
+                                await fs.collection('users').doc(iFFMember).collection('myApplication').doc(snapshot.data!.id).update({'where': 'deleted'});
+                              }
+                            }
+
                             await fs.collection('delivery_board').doc(widget.id).delete();
                             fp.updateIntInfo('postcount', -1);
+                            await fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(snapshot.data!.id).delete();
                           },
                         ),
                       ),

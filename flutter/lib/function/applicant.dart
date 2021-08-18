@@ -344,7 +344,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
             }));
   }
 
-  // 메세지 보내기
+  //방 초기화 메세지
   void onSendMessage(String content, String myId, List<dynamic> peerIds, String groupChatId) {
     DocumentReference myDocumentReference = FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString());
 
@@ -465,6 +465,12 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                                           width: 30,
                                         ),
                                       if (where == 'sgroup_board')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconplay.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
+                                      if (where == 'deleted')
                                         Image(
                                           image: AssetImage('assets/images/icon/iconplay.png'),
                                           height: 30,
