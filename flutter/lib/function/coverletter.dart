@@ -73,24 +73,7 @@ class CoverletterState extends State<Coverletter> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            cSizedBox(35, 0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                cSizedBox(0, 5),
-                IconButton(
-                  icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                cSizedBox(0, 10),
-                headerText("내 자기소개서"),
-                cSizedBox(0, 200),
-                ],
-            ),
-            headerDivider(),
+            topbar2(context, "내 자기소개서"),
             Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 40)),
             Form(
               key: _formKey,

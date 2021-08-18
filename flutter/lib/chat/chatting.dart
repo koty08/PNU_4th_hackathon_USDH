@@ -586,6 +586,9 @@ class ChatScreenState extends State<ChatScreen> {
   bool isLastMessageRight(int index) {
     //바로 전이 나면 본인 입장에서 제일 위에 있는 채팅이지
     if ((index > 0 && listMessage[index - 1].get('idFrom') != myId) || index == 0) {
+      if (index > 0) {
+        print(listMessage[index - 1].get('idFrom') + ', ' + index.toString());
+      }
       return true;
     } else {
       return false;

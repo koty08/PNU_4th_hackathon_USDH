@@ -842,7 +842,7 @@ class TeambuildShowState extends State<TeambuildShow> {
                                             visible: status,
                                             child: Column(
                                               children: [
-                                                Text("자기소개서를 작성하지 않으셨습니다."),
+                                                Text("포트폴리오를 작성하지 않으셨습니다."),
                                               ],
                                             )
                                           ):
