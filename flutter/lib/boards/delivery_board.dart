@@ -998,9 +998,13 @@ class DeliveryShowState extends State<DeliveryShow> {
                               DocumentSnapshot tmp = snap.docs[0];
                               hostId = tmp['email'];
                             });
-                            await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).get().then((value) {
-                              for (String myApplication in value['myApplication']) {
-                                _myApplication.add(myApplication);
+                            await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                              if (snap.docs.length != 0) {
+                                for (DocumentSnapshot doc in snap.docs) {
+                                  _myApplication.add(doc.id);
+                                }
+                              } else {
+                                print('참가 신청 내역이 비어있습니다.');
                               }
                             });
 
@@ -1010,9 +1014,7 @@ class DeliveryShowState extends State<DeliveryShow> {
                               await FirebaseFirestore.instance.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
                                 'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
                               });
-                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).update({
-                                'myApplication': FieldValue.arrayRemove([title])
-                              });
+                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
 
                               print('참가 신청을 취소했습니다.');
                             }
@@ -1043,8 +1045,12 @@ class DeliveryShowState extends State<DeliveryShow> {
                             });
 
                             await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
-                              for (DocumentSnapshot doc in snap.docs) {
-                                _myApplication.add(doc.id);
+                              if (snap.docs.length != 0) {
+                                for (DocumentSnapshot doc in snap.docs) {
+                                  _myApplication.add(doc.id);
+                                }
+                              } else {
+                                print('myApplication 콜렉션이 비어있읍니다.');
                               }
                             });
 
