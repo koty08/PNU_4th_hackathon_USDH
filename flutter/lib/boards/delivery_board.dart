@@ -103,44 +103,26 @@ class DeliveryWriteState extends State<DeliveryWrite> {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
 
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: SingleChildScrollView(
-            child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              cSizedBox(35, 0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  headerText("글 작성"),
-                  cSizedBox(0, 160),
-                  IconButton(
-                      icon: Icon(
-                        Icons.check,
-                        color: Color(0xff639ee1),
-                      ),
-                      onPressed: () {
-                        FocusScope.of(context).requestFocus(new FocusNode());
-                        if (_formKey.currentState!.validate()) {
-                          uploadOnFS();
-                          Navigator.pop(context);
-                        }
-                      }),
-                ],
-              ),
-              headerDivider(),
+      resizeToAvoidBottomInset: false,
+      body: SingleChildScrollView(
+        child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            topbar3(context, "글 작성", () {
+              FocusScope.of(context).requestFocus(new FocusNode());
+              if (_formKey.currentState!.validate()) {
+                uploadOnFS();
+                Navigator.pop(context);
+              }
+            }),
               Padding(
-                  padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                  padding: EdgeInsets.fromLTRB(width*0.1, height*0.03, width*0.1, 20),
                   child: Wrap(
                     direction: Axis.vertical,
                     spacing: 15,
@@ -1198,34 +1180,13 @@ class DeliveryModifyState extends State<DeliveryModify> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            cSizedBox(35, 0),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                headerText("글 수정"),
-                                cSizedBox(0, 160),
-                                IconButton(
-                                    icon: Icon(
-                                      Icons.check,
-                                      color: Color(0xff639ee1),
-                                    ),
-                                    onPressed: () {
-                                      FocusScope.of(context).requestFocus(new FocusNode());
-                                      if (_formKey.currentState!.validate()) {
-                                        updateOnFS();
-                                        Navigator.pop(context);
-                                      }
-                                    }),
-                              ],
-                            ),
-                            headerDivider(),
+                            topbar3(context, "글 수정", () {
+                              FocusScope.of(context).requestFocus(new FocusNode());
+                              if (_formKey.currentState!.validate()) {
+                                updateOnFS();
+                                Navigator.pop(context);
+                              }
+                            }),
                             Padding(
                                 padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                                 child: Wrap(

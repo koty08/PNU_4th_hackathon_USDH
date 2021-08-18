@@ -63,24 +63,7 @@ class MyPageState extends State<MyPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    cSizedBox(35, 0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        cSizedBox(0, 5),
-                        IconButton(
-                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                        cSizedBox(0, 10),
-                        headerText("마이페이지"),
-                        cSizedBox(0, 220),
-                      ],
-                    ),
-                    headerDivider(),
+                    topbar2(context, "마이페이지"),
                     Row(
                       children: [
                         Padding(padding: EdgeInsets.fromLTRB(30, 100, 0, 10)),

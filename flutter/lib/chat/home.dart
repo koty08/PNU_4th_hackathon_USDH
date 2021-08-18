@@ -88,18 +88,7 @@ class HomeScreenState extends State<HomeScreen> {
           builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasData) {
               return Column(children: [
-                cSizedBox(35, 0),
-                Row(mainAxisAlignment: MainAxisAlignment.spaceAround, crossAxisAlignment: CrossAxisAlignment.center, children: [
-                  IconButton(
-                    icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  headerText("채팅"),
-                  cSizedBox(0, 50),
-                ]),
-                headerDivider(),
+                topbar2(context, "채팅"),
                 Expanded(
                     child: MediaQuery.removePadding(
                         context: context,

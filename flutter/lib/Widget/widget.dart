@@ -8,6 +8,70 @@ Widget cSizedBox(double h, double w) {
   );
 }
 
+/* ---------------------- topbar(n) ---------------------- */
+/* n = widget 개수 */
+
+Widget topbar2 (BuildContext context, String text) {
+  final width = MediaQuery.of(context).size.width;
+  final height = MediaQuery.of(context).size.height;
+  return Column(
+    children: [
+      cSizedBox(35, 0),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(
+            padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
+            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          cSizedBox(0, width*0.08),
+          Container(width: MediaQuery.of(context).size.width * 0.6,
+            child: headerText(text),),
+        ],
+      ),
+      headerDivider(),
+    ],
+  );
+}
+
+Widget topbar3 (BuildContext context, String text, Function()? function) {
+  final width = MediaQuery.of(context).size.width;
+  final height = MediaQuery.of(context).size.height;
+  return Column(
+    children: [
+      cSizedBox(35, 0),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(
+            padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
+            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          cSizedBox(0, width*0.07),
+          headerText(text),
+          cSizedBox(0, width*0.5),
+          IconButton(
+            icon: Icon(
+              Icons.check,
+              color: Color(0xff639ee1),
+            ),
+            onPressed: function
+          ),
+        ],
+      ),
+      headerDivider(),
+    ],
+  );
+}
+
 /* ---------------------- inputNav ---------------------- */
 
 Widget inputNav2(String data, String text) {
@@ -59,7 +123,7 @@ Widget middleDivider() {
 
 Widget headerText(String text) {
   return Text(
-      text,
+      text, overflow: TextOverflow.ellipsis,
       style: TextStyle(fontFamily: "SCDream", color: Color(0xff548ee0), fontWeight: FontWeight.w500, fontSize: 18)
   );
 }
@@ -73,8 +137,8 @@ Widget tagText(String text) {
 
 Widget smallText(String text, double size, Color color) {
   return Text(
-    text,
-    style: TextStyle(fontFamily: "SCDream", color: color, fontWeight: FontWeight.w500, fontSize: size)
+    text, overflow: TextOverflow.ellipsis,
+      style: TextStyle(fontFamily: "SCDream", color: color, fontWeight: FontWeight.w500, fontSize: size)
   );
 }
 
