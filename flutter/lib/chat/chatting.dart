@@ -314,22 +314,8 @@ class ChatScreenState extends State<ChatScreen> {
 
       listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
-      Fluttertoast.showToast(msg: 'Nothing to send', backgroundColor: Colors.black, textColor: Colors.red);
+      Fluttertoast.showToast(msg: '메세지를 입력하세요.', backgroundColor: Colors.black, textColor: Colors.red);
     }
-  }
-
-  //오전? 오후?
-  String whatTime(DateTime dateTime) {
-    String nowTime = '';
-    String formatted = formatDate(dateTime, [HH, ':', nn]);
-
-    if (int.parse(formatted.substring(0, 2)) >= 13) {
-      nowTime = '오후 ' + (int.parse(formatted.substring(0, 2)) - 12).toString() + ':' + int.parse(formatted.substring(3, 5)).toString();
-    } else {
-      nowTime = '오전 ' + int.parse(formatted.substring(0, 2)).toString() + ':' + formatted.substring(3, 5);
-    }
-
-    return nowTime;
   }
 
   Future<String> getAvatar(String peerId) async {
@@ -338,6 +324,96 @@ class ChatScreenState extends State<ChatScreen> {
       peerAvatar = value.get('photoUrl');
     });
     return peerAvatar;
+  }
+
+  //오전? 오후?
+  String whatTime(DateTime dateTime) {
+    String nowTime = '';
+    String formatted = formatDate(dateTime, [HH, ':', nn]);
+
+    if (int.parse(formatted.substring(0, 2)) >= 13) {
+      nowTime = '오후 ' + (int.parse(formatted.substring(0, 2)) - 12).toString() + ':' + formatted.substring(3, 5);
+    } else {
+      nowTime = '오전 ' + int.parse(formatted.substring(0, 2)).toString() + ':' + formatted.substring(3, 5);
+    }
+
+    return nowTime;
+  }
+
+  //년,월,일
+  Text whatDay(DateTime dateTime) {
+    String formatted = formatDate(dateTime, [yyyy, '-', mm, '-', dd]);
+    String currentDay = '-------------------------' 
+      + formatted.substring(0, 4) + '년 ' 
+      + int.parse(formatted.substring(5, 7)).toString() + '월 ' 
+      + int.parse(formatted.substring(8, 10)).toString() + '일' 
+      + '-------------------------';
+    return Text(currentDay);
+  }
+
+  //시간(분 단위) 변화?
+  bool isDiffTimeWithPrevious(int index) {
+    if (index < listMessage.length - 1) {
+      String preMessage = formatDate(DateTime.fromMillisecondsSinceEpoch(int.parse(listMessage[index + 1].get('timestamp'))), [HH, ':', nn]);
+      String curMessage = formatDate(DateTime.fromMillisecondsSinceEpoch(int.parse(listMessage[index].get('timestamp'))), [HH, ':', nn]);
+
+      if (int.parse(preMessage.substring(0, 2)) != int.parse(curMessage.substring(0, 2)) || int.parse(preMessage.substring(3, 5)) != int.parse(curMessage.substring(3, 5))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool isDiffTimeWithFormer(int index) {
+    if (index > 0) {
+      String preMsgTime = formatDate(DateTime.fromMillisecondsSinceEpoch(int.parse(listMessage[index - 1].get('timestamp'))), [HH, ':', nn]);
+      String curMsgTime = formatDate(DateTime.fromMillisecondsSinceEpoch(int.parse(listMessage[index].get('timestamp'))), [HH, ':', nn]);
+
+      if (int.parse(preMsgTime.substring(0, 2)) != int.parse(curMsgTime.substring(0, 2)) || int.parse(preMsgTime.substring(3, 5)) != int.parse(curMsgTime.substring(3, 5))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  //시간(하루) 변화?
+  bool isDiffDay(int index) {
+    if (index < listMessage.length - 1) {
+      String curMsgDay = formatDate(DateTime.fromMillisecondsSinceEpoch(int.parse(listMessage[index].get('timestamp'))), [yyyy, '-', mm, '-', dd]);
+      String preMsgDay = formatDate(DateTime.fromMillisecondsSinceEpoch(int.parse(listMessage[index + 1].get('timestamp'))), [yyyy, '-', mm, '-', dd]);
+
+      if (preMsgDay != curMsgDay) {
+        print(index);
+        return true;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool isFirstMessageLeft(int index) {
+    if ((index < listMessage.length - 1 && (listMessage[index + 1].get('idFrom') == myId) || isDiffTimeWithPrevious(index)) || index == listMessage.length - 1) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool isLastMessageLeft(int index) {
+    if ((index > 0 && (listMessage[index - 1].get('idFrom') == myId) || isDiffTimeWithFormer(index)) || index == 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool isLastMessageRight(int index) {
+    if ((index > 0 && (listMessage[index - 1].get('idFrom') != myId) || isDiffTimeWithFormer(index)) || index == 0) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   //채팅방 내부 메세지 블럭 생성
@@ -566,35 +642,6 @@ class ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  bool isFirstMessageLeft(int index) {
-    if ((index < listMessage.length - 1 && listMessage[index + 1].get('idFrom') == myId) || index == listMessage.length - 1) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  bool isLastMessageLeft(int index) {
-    //바로 전이 나면 상대방 입장에서 제일 위에 있는 채팅이지(last message인 이유는 streamBuilder가 메세지를 최신 순으로 가져오기 때문)
-    if ((index > 0 && listMessage[index - 1].get('idFrom') == myId) || index == 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  bool isLastMessageRight(int index) {
-    //바로 전이 나면 본인 입장에서 제일 위에 있는 채팅이지
-    if ((index > 0 && listMessage[index - 1].get('idFrom') != myId) || index == 0) {
-      if (index > 0) {
-        print(listMessage[index - 1].get('idFrom') + ', ' + index.toString());
-      }
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   //뒤로 가기 누르면 chattingWith를 다시 null 상태로
   Future<bool> onBackPress() {
     fs.collection('users').doc(myId).update({'chattingWith': null});
@@ -633,10 +680,15 @@ class ChatScreenState extends State<ChatScreen> {
               stream: FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').orderBy('timestamp', descending: true).limit(_limit).snapshots(),
               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasData) {
-                  listMessage.addAll(snapshot.data!.docs); // 모든 메세지 get
+                  listMessage = [];
+                  listMessage.addAll(snapshot.data!.docs);
                   return ListView.builder(
                     padding: EdgeInsets.all(10.0),
-                    itemBuilder: (context, index) => buildItem(index, snapshot.data?.docs[index]),
+                    itemBuilder: (context, index) {
+                      return Column(
+                        children: [isDiffDay(index) ? whatDay(DateTime.fromMillisecondsSinceEpoch(int.parse(snapshot.data?.docs[index].get('timestamp')))) : Text(''), buildItem(index, snapshot.data?.docs[index])],
+                      );
+                    },
                     itemCount: snapshot.data?.docs.length,
                     reverse: true,
                     controller: listScrollController,
