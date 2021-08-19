@@ -171,7 +171,7 @@ class HomeScreenState extends State<HomeScreen> {
                     builder: (BuildContext context, AsyncSnapshot snapshot) {
                       if (snapshot.hasData) {
                         return Container(
-                          child: CircleAvatar(radius: 20, backgroundImage: NetworkImage(snapshot.data.toString())),
+                          child: CircleAvatar(radius: 25, backgroundImage: NetworkImage(snapshot.data.toString())),
                           alignment: Alignment.centerLeft,
                           margin: EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 5.0),
                         );
@@ -297,7 +297,7 @@ class HomeScreenState extends State<HomeScreen> {
             );
           },
           style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all<Color>(greyColor2),
+            backgroundColor: MaterialStateProperty.all(Color(0xffffffff)),
             shape: MaterialStateProperty.all<OutlinedBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10)),
