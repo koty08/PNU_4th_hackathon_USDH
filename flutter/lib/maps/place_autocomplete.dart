@@ -46,35 +46,6 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
           infoWindow: InfoWindow(title: 'My position', snippet: 'Where am I?'),
         ));
   }
-
-  void _moveCamera() async {
-    if (_markers.length > 0) {
-      setState(() {
-        _markers.clear();
-      });
-    }
-
-    GoogleMapController controller = await _controller.future;
-    controller.animateCamera(
-      CameraUpdate.newLatLng(
-        LatLng(placeDetail.lat, placeDetail.lng),
-      ),
-    );
-
-    setState(() {
-      _markers.add(
-        Marker(
-            markerId: MarkerId(placeDetail.placeId),
-            position: LatLng(placeDetail.lat, placeDetail.lng),
-            infoWindow: InfoWindow(
-              title: placeDetail.name,
-              snippet: placeDetail.formattedAddress,
-            )
-        ),
-      );
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,47 +57,47 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
         child: SingleChildScrollView(
           child: Column(
             children: <Widget> [
-              SizedBox(
-                height: 45.0,
-                child: Image.asset('assets/images/powered_by_google.png'),
-              ),
-              TypeAheadField(
-                debounceDuration: Duration(milliseconds: 500),
-                textFieldConfiguration: TextFieldConfiguration(
-                  controller: _searchController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Search places...'
+              SizedBox(height: 5.0),
+              Container(
+                width: double.infinity,
+                height: 60,
+                child: TypeAheadField(
+                  debounceDuration: Duration(milliseconds: 500),
+                  textFieldConfiguration: TextFieldConfiguration(
+                    controller: _searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Search places...'
+                    ),
                   ),
+
+                  suggestionsCallback: (pattern) async {
+                    if (sessionToken == null) {
+                      sessionToken = uuid.v4();
+                    }
+
+                    googleMapServices = GoogleMapServices(sessionToken:
+                    sessionToken);
+
+                    return await googleMapServices.getSuggestions(pattern);
+                  },
+                  itemBuilder: (context, suggestion) {
+                    return ListTile(
+                        title: Text(suggestion.description),
+                        subtitle: Text('${suggestion.placeId}')
+                    );
+                  },
+                  onSuggestionSelected: (suggestion) async {
+                    placeDetail = await googleMapServices.getPlaceDetail(
+                      suggestion.placeId,
+                      sessionToken,
+                    );
+                    sessionToken = null;
+                  },
                 ),
-
-                suggestionsCallback: (pattern) async {
-                  if (sessionToken == null) {
-                    sessionToken = uuid.v4();
-                  }
-
-                  googleMapServices = GoogleMapServices(sessionToken:
-                  sessionToken);
-
-                  return await googleMapServices.getSuggestions(pattern);
-                },
-                itemBuilder: (context, suggestion) {
-                  return ListTile(
-                      title: Text(suggestion.description),
-                      subtitle: Text('${suggestion.placeId}')
-                  );
-                },
-                onSuggestionSelected: (suggestion) async {
-                  placeDetail = await googleMapServices.getPlaceDetail(
-                    suggestion.placeId,
-                    sessionToken,
-                  );
-                  sessionToken = null;
-                  _moveCamera();
-                },
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 10),
               Container(
                   width: double.infinity,
                   height: 350,
@@ -142,6 +113,24 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                     markers: _markers,
                   )
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(onPressed: () {}, child: Text("블루베리 안경")),
+                  SizedBox(width: 10),
+                  ElevatedButton(onPressed: () {}, child: Text("부산은행")),
+                  SizedBox(width: 10),
+                  ElevatedButton(onPressed: () {}, child: Text("부산대역 3출")),
+                ],
+              ),
+              SizedBox(height: 10),
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.white,
+                    onPrimary: Colors.blue,
+                  ),
+                  onPressed: () {},
+                  child: Text('여기로 결정!'))
             ],
           ),
         ),
