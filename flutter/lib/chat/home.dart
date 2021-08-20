@@ -75,9 +75,7 @@ class HomeScreenState extends State<HomeScreen> {
     Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').limit(_limit).snapshots();
 
     return Scaffold(
-      // 채팅 기록 불러오기
       body: RefreshIndicator(
-        //당겨서 새로고침
         onRefresh: () async {
           setState(() {
             colstream = FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').limit(_limit).snapshots();
@@ -112,18 +110,13 @@ class HomeScreenState extends State<HomeScreen> {
           },
         ),
       ),
-
-      // Loading
-      /*Positioned(
-            child: isLoading ? const Loading() : Container(),
-          )*/
     );
   }
 
   Future<String> getPeerNicks(List<dynamic> peerIds) async {
     List<dynamic> temp = [];
     for (var peerId in peerIds) {
-      await FirebaseFirestore.instance.collection('users').doc(peerId).get().then((value) {
+      await fs.collection('users').doc(peerId).get().then((value) {
         String nick = value['nick'] + '(' + value['num'].toString() + ')';
         temp.add(nick);
       });
@@ -141,7 +134,7 @@ class HomeScreenState extends State<HomeScreen> {
   Future<String> getPeerAvatar(List<dynamic> peerIds) async {
     final List<String> peerAvatars = [];
     for (var peerId in peerIds) {
-      await FirebaseFirestore.instance.collection('users').doc(peerId).get().then((value) {
+      await fs.collection('users').doc(peerId).get().then((value) {
         peerAvatars.add(value['photoUrl']);
       });
     }
@@ -165,13 +158,12 @@ class HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               Row(children: <Widget>[
-                // 프로필 사진
                 FutureBuilder(
                     future: getPeerAvatar(peerIds),
                     builder: (BuildContext context, AsyncSnapshot snapshot) {
                       if (snapshot.hasData) {
                         return Container(
-                          child: CircleAvatar(radius: 20, backgroundImage: NetworkImage(snapshot.data.toString())),
+                          child: CircleAvatar(radius: 25, backgroundImage: NetworkImage(snapshot.data.toString())),
                           alignment: Alignment.centerLeft,
                           margin: EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 5.0),
                         );
@@ -179,7 +171,6 @@ class HomeScreenState extends State<HomeScreen> {
                         return CircularProgressIndicator();
                       }
                     }),
-                // 닉네임
                 Flexible(
                   child: Container(
                     margin: EdgeInsets.only(left: 20.0),
@@ -208,7 +199,6 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
               ]),
 
-              // 막 메세지, 막 메세지 시간, 안 본 메세지
               StreamBuilder<DocumentSnapshot>(
                   stream: streamMessageWith,
                   builder: (context, AsyncSnapshot<DocumentSnapshot> docSnapshotMW) {
@@ -219,7 +209,7 @@ class HomeScreenState extends State<HomeScreen> {
                             return CircularProgressIndicator();
                           }
                           var myInfo = fp.getInfo();
-                          
+
                           QueryDocumentSnapshot lastMessageSnapshot = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1];
 
                           String lastTime;
@@ -237,7 +227,6 @@ class HomeScreenState extends State<HomeScreen> {
                           } else {
                             lastTime = formatedTime.substring(0, 4) + '.' + formatedTime.substring(5, 7) + '.' + formatedTime.substring(8, 10);
                           }
-
                           Iterable<QueryDocumentSnapshot<Object?>> messages = colSnapshotM.data!.docs.where((element) {
                             if (int.parse(element.get('timestamp')) > int.parse(lastTimeSeen) && element.get('idFrom') != myInfo['email']) {
                               return true;
@@ -297,7 +286,7 @@ class HomeScreenState extends State<HomeScreen> {
             );
           },
           style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all<Color>(greyColor2),
+            backgroundColor: MaterialStateProperty.all(Color(0xffffffff)),
             shape: MaterialStateProperty.all<OutlinedBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -319,4 +308,3 @@ class Choice {
   final String title;
   final IconData icon;
 }
-

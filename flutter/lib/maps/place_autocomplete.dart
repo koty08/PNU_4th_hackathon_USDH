@@ -46,6 +46,35 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
           infoWindow: InfoWindow(title: 'My position', snippet: 'Where am I?'),
         ));
   }
+
+  void _moveCamera() async {
+    if (_markers.length > 0) {
+      setState(() {
+        _markers.clear();
+      });
+    }
+
+    GoogleMapController controller = await _controller.future;
+    controller.animateCamera(
+      CameraUpdate.newLatLng(
+        LatLng(placeDetail.lat, placeDetail.lng),
+      ),
+    );
+
+    setState(() {
+      _markers.add(
+        Marker(
+            markerId: MarkerId(placeDetail.placeId),
+            position: LatLng(placeDetail.lat, placeDetail.lng),
+            infoWindow: InfoWindow(
+              title: placeDetail.name,
+              snippet: placeDetail.formattedAddress,
+            )
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,6 +123,7 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                     sessionToken,
                   );
                   sessionToken = null;
+                  _moveCamera();
                 },
               ),
               SizedBox(height: 20),

@@ -104,7 +104,7 @@ class ChatState extends State<Chat> {
       appBar: AppBar(
         title: Text(
           '채팅',
-          style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+          style: TextStyle(fontFamily: "SCDream", color: Color(0xff548ee0), fontWeight: FontWeight.w500, fontSize: 18),
         ),
         centerTitle: true,
         // 채팅방 내의 퇴장, 설정 버튼
@@ -119,7 +119,7 @@ class ChatState extends State<Chat> {
                       children: <Widget>[
                         Icon(
                           choice.icon,
-                          color: primaryColor,
+                          color: Color(0xff000000),
                         ),
                         Container(
                           width: 10.0,
@@ -134,6 +134,7 @@ class ChatState extends State<Chat> {
             },
           ),
         ],
+        backgroundColor: Color(0xffffffff),
       ),
       body: ChatScreen(
           myId: myId,
@@ -383,7 +384,6 @@ class ChatScreenState extends State<ChatScreen> {
       String preMsgDay = formatDate(DateTime.fromMillisecondsSinceEpoch(int.parse(listMessage[index + 1].get('timestamp'))), [yyyy, '-', mm, '-', dd]);
 
       if (preMsgDay != curMsgDay) {
-        print(index);
         return true;
       } else {
         return false;
@@ -434,7 +434,7 @@ class ChatScreenState extends State<ChatScreen> {
                         ),
                         padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
                         width: 200.0,
-                        decoration: BoxDecoration(color: greyColor2, borderRadius: BorderRadius.circular(8.0)),
+                        decoration: BoxDecoration(color: Color(0xffc7c7c7), borderRadius: BorderRadius.circular(8.0)),
                         margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
                       )
                     : Container(
@@ -446,7 +446,7 @@ class ChatScreenState extends State<ChatScreen> {
                                 if (loadingProgress == null) return child;
                                 return Container(
                                   decoration: BoxDecoration(
-                                    color: greyColor2,
+                                    color: Color(0xffc7c7c7),
                                     borderRadius: BorderRadius.all(
                                       Radius.circular(8.0),
                                     ),
@@ -565,7 +565,7 @@ class ChatScreenState extends State<ChatScreen> {
                           ),
                           padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
                           width: 200.0,
-                          decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
+                          decoration: BoxDecoration(color: Color(0xff4E94EC), borderRadius: BorderRadius.circular(8.0)),
                           margin: EdgeInsets.only(left: 10.0),
                         )
                       : Container(
@@ -577,7 +577,7 @@ class ChatScreenState extends State<ChatScreen> {
                                   if (loadingProgress == null) return child;
                                   return Container(
                                     decoration: BoxDecoration(
-                                      color: greyColor2,
+                                      color: Color(0xff4E94EC),
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(8.0),
                                       ),
@@ -721,7 +721,7 @@ class ChatScreenState extends State<ChatScreen> {
               child: IconButton(
                 icon: Icon(Icons.image),
                 onPressed: getImage,
-                color: primaryColor,
+                color: Color(0xff4E94EC),
               ),
             ),
             color: Colors.white,
@@ -748,7 +748,7 @@ class ChatScreenState extends State<ChatScreen> {
               child: IconButton(
                 icon: Icon(Icons.send),
                 onPressed: () => onSendMessage(textEditingController.text, 0),
-                color: primaryColor,
+                color: Color(0xff4E94EC),
               ),
             ),
             color: Colors.white,

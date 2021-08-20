@@ -966,7 +966,6 @@ class RoommateShowState extends State<RoommateShow> {
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // 참가 신청 취소
                       Container(
                         width: MediaQuery.of(context).size.width * 0.5,
                         height: 50,
@@ -985,9 +984,13 @@ class RoommateShowState extends State<RoommateShow> {
                               DocumentSnapshot tmp = snap.docs[0];
                               hostId = tmp['email'];
                             });
-                            await fs.collection('users').doc(myInfo['email']).get().then((value) {
-                              for (String myApplication in value['myApplication']) {
-                                _myApplication.add(myApplication);
+                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                              if (snap.docs.length != 0) {
+                                for (DocumentSnapshot doc in snap.docs) {
+                                  _myApplication.add(doc.id);
+                                }
+                              } else {
+                                print('참가 신청 내역이 비어있습니다.');
                               }
                             });
 
@@ -997,16 +1000,13 @@ class RoommateShowState extends State<RoommateShow> {
                               await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
                                 'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
                               });
-                              await fs.collection('users').doc(myInfo['email']).update({
-                                'myApplication': FieldValue.arrayRemove([title])
-                              });
+                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
 
                               print('참가 신청을 취소했습니다.');
                             }
                           },
                         ),
                       ),
-                      // 참가 신청
                       Container(
                         width: MediaQuery.of(context).size.width * 0.5,
                         height: 50,
@@ -1020,21 +1020,22 @@ class RoommateShowState extends State<RoommateShow> {
                             int _currentMember = snapshot.data!['currentMember'];
                             int _limitedMember = snapshot.data!['limitedMember'];
                             String title = widget.id;
-                            String? hostId;
+                            String hostId = await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
+                              DocumentSnapshot tmp = snap.docs[0];
+                              return tmp['email'];
+                            });
                             List<String> _myApplication = [];
                             List<String> _joiningIn = [];
 
-                            await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
-                              DocumentSnapshot tmp = snap.docs[0];
-                              hostId = tmp['email'];
-                            });
-
                             await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
-                              for (DocumentSnapshot doc in snap.docs) {
-                                _myApplication.add(doc.id);
+                              if (snap.docs.length != 0) {
+                                for (DocumentSnapshot doc in snap.docs) {
+                                  _myApplication.add(doc.id);
+                                }
+                              } else {
+                                print('myApplication 콜렉션이 비어있읍니다.');
                               }
                             });
-
                             await fs.collection('users').doc(myInfo['email']).get().then((DocumentSnapshot snap) {
                               for (String joinedRoom in snap['joiningIn']) {
                                 _joiningIn.add(joinedRoom);
@@ -1047,13 +1048,9 @@ class RoommateShowState extends State<RoommateShow> {
                               print('This room is full');
                             } else {
                               // 방장에게 날리는 메세지
-                              if (hostId!.isNotEmpty) {
-                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                  'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
-                                });
-                              } else {
-                                print('hostId is null!!');
-                              }
+                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
+                              });
                               // 내 정보에 신청 정보를 기록
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
                                 'where': "roommate_board",

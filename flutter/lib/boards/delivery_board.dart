@@ -107,22 +107,22 @@ class DeliveryWriteState extends State<DeliveryWrite> {
     final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: SingleChildScrollView(
-        child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            topbar3(context, "글 작성", () {
-              FocusScope.of(context).requestFocus(new FocusNode());
-              if (_formKey.currentState!.validate()) {
-                uploadOnFS();
-                Navigator.pop(context);
-              }
-            }),
+        resizeToAvoidBottomInset: false,
+        body: SingleChildScrollView(
+            child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              topbar3(context, "글 작성", () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+                if (_formKey.currentState!.validate()) {
+                  uploadOnFS();
+                  Navigator.pop(context);
+                }
+              }),
               Padding(
-                  padding: EdgeInsets.fromLTRB(width*0.1, height*0.03, width*0.1, 20),
+                  padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.03, width * 0.1, 20),
                   child: Wrap(
                     direction: Axis.vertical,
                     spacing: 15,
@@ -934,7 +934,7 @@ class DeliveryShowState extends State<DeliveryShow> {
                                 print(snapshot.data!['title'] + '에는 참가자가 없었습니다.');
                               }
                             });
-                            
+
                             //isFineForMembers(신청자목록)에 있는 신청자들의 참가 신청 목록에서 where을 deleted로 바꿈
                             if (isFineForMemberNicks.length != 0) {
                               for (String iFFmember in isFineForMemberNicks) {
@@ -988,7 +988,6 @@ class DeliveryShowState extends State<DeliveryShow> {
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // 참가 신청 취소
                       Container(
                         width: MediaQuery.of(context).size.width * 0.5,
                         height: 50,
@@ -1003,11 +1002,11 @@ class DeliveryShowState extends State<DeliveryShow> {
                             String hostId = '';
                             List<String> _myApplication = [];
 
-                            await FirebaseFirestore.instance.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
+                            await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
                               DocumentSnapshot tmp = snap.docs[0];
                               hostId = tmp['email'];
                             });
-                            await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
                               if (snap.docs.length != 0) {
                                 for (DocumentSnapshot doc in snap.docs) {
                                   _myApplication.add(doc.id);
@@ -1020,17 +1019,16 @@ class DeliveryShowState extends State<DeliveryShow> {
                             if (!_myApplication.contains(title)) {
                               print('참가 신청하지 않은 방입니다!!');
                             } else {
-                              await FirebaseFirestore.instance.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
                                 'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
                               });
-                              await FirebaseFirestore.instance.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
+                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
 
                               print('참가 신청을 취소했습니다.');
                             }
                           },
                         ),
                       ),
-                      // 참가 신청
                       Container(
                         width: MediaQuery.of(context).size.width * 0.5,
                         height: 50,
@@ -1044,14 +1042,12 @@ class DeliveryShowState extends State<DeliveryShow> {
                             int _currentMember = snapshot.data!['currentMember'];
                             int _limitedMember = snapshot.data!['limitedMember'];
                             String title = widget.id;
-                            String? hostId;
+                            String hostId = await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
+                              DocumentSnapshot tmp = snap.docs[0];
+                              return tmp['email'];
+                            });
                             List<String> _myApplication = [];
                             List<String> _joiningIn = [];
-
-                            await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
-                              DocumentSnapshot tmp = snap.docs[0];
-                              hostId = tmp['email'];
-                            });
 
                             await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
                               if (snap.docs.length != 0) {
@@ -1062,7 +1058,6 @@ class DeliveryShowState extends State<DeliveryShow> {
                                 print('myApplication 콜렉션이 비어있읍니다.');
                               }
                             });
-
                             await fs.collection('users').doc(myInfo['email']).get().then((DocumentSnapshot snap) {
                               for (String joinedRoom in snap['joiningIn']) {
                                 _joiningIn.add(joinedRoom);
@@ -1075,13 +1070,9 @@ class DeliveryShowState extends State<DeliveryShow> {
                               print('This room is full');
                             } else {
                               // 방장에게 날리는 메세지
-                              if (hostId!.isNotEmpty) {
-                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                  'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
-                                });
-                              } else {
-                                print('hostId is null!!');
-                              }
+                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
+                              });
                               // 내 정보에 신청 정보를 기록
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
                                 'where': "delivery_board",
