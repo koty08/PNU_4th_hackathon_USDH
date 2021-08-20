@@ -286,7 +286,7 @@ class HomeScreenState extends State<HomeScreen> {
             );
           },
           style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(Color(0xffffffff)),
+            backgroundColor: MaterialStateProperty.all(Color(0xfffafafa)),
             shape: MaterialStateProperty.all<OutlinedBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10)),

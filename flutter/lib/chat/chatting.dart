@@ -102,13 +102,34 @@ class ChatState extends State<Chat> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          '채팅',
-          style: TextStyle(fontFamily: "SCDream", color: Color(0xff548ee0), fontWeight: FontWeight.w500, fontSize: 18),
+
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            IconButton(
+              icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            Padding(padding: EdgeInsets.fromLTRB(10, 0, 0, 0)),
+            Text(
+              '채팅',
+              style: TextStyle(fontFamily: "SCDream", color: Color(0xff548ee0), fontWeight: FontWeight.w500, fontSize: 18),),
+          ],
         ),
-        centerTitle: true,
+        titleSpacing: 0.0,
+        automaticallyImplyLeading: false,
+
+
+
+
+
         // 채팅방 내의 퇴장, 설정 버튼
         actions: <Widget>[
+
+
           PopupMenuButton<Choice>(
             onSelected: onItemMenuPress,
             itemBuilder: (BuildContext context) {
@@ -128,6 +149,8 @@ class ChatState extends State<Chat> {
                           choice.title,
                           style: TextStyle(color: primaryColor),
                         ),
+
+
                       ],
                     ));
               }).toList();
