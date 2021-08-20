@@ -80,17 +80,39 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                                             child: Padding(
                                                 padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
                                                 child: Row(children: [
-                                                  if (where == 'delivery_board') Image(image: AssetImage('assets/images/icon/iconmotorcycle.png'), height: 30, width: 30,),
-                                                  if (where == 'sgroup_board') Image(image: AssetImage('assets/images/icon/iconplay.png'), height: 30, width: 30,),
-                                                  if (where == 'teambuild_board') Image(image: AssetImage('assets/images/icon/iconteam.png'), height: 30, width: 30,),
-                                                  if (where == 'roommate_board') Image(image: AssetImage('assets/images/icon/iconroom.png'), height: 30, width: 30,),
+                                                  if (where == 'delivery_board')
+                                                    Image(
+                                                      image: AssetImage('assets/images/icon/iconmotorcycle.png'),
+                                                      height: 30,
+                                                      width: 30,
+                                                    ),
+                                                  if (where == 'sgroup_board')
+                                                    Image(
+                                                      image: AssetImage('assets/images/icon/iconplay.png'),
+                                                      height: 30,
+                                                      width: 30,
+                                                    ),
+                                                  if (where == 'teambuild_board')
+                                                    Image(
+                                                      image: AssetImage('assets/images/icon/iconteam.png'),
+                                                      height: 30,
+                                                      width: 30,
+                                                    ),
+                                                  if (where == 'roommate_board')
+                                                    Image(
+                                                      image: AssetImage('assets/images/icon/iconroom.png'),
+                                                      height: 30,
+                                                      width: 30,
+                                                    ),
                                                   cSizedBox(0, 20),
                                                   Wrap(
                                                     direction: Axis.vertical,
                                                     spacing: 8,
                                                     children: [
-                                                      Container(width: MediaQuery.of(context).size.width * 0.6,
-                                                        child: smallText(doc['title'], 15, Colors.black87),),
+                                                      Container(
+                                                        width: MediaQuery.of(context).size.width * 0.6,
+                                                        child: smallText(doc['title'], 15, Colors.black87),
+                                                      ),
                                                       if (doc['isFineForMembers'].length != 0) smallText('신청자 : ' + doc['isFineForMembers'].join(', '), 11, Color(0xffa9aaaf)),
                                                       //smallText(doc['isFineForMembers'].length.toString(), 11, Color(0xffa9aaaf))
                                                     ],
@@ -150,12 +172,12 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                     topbar2(context, snapshot.data!.get('title')),
                     Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 20)),
                     Expanded(
-                      child: MediaQuery.removePadding(
-                        context: context,
-                        removeTop: true,
-                        child: ListView.builder(
+                        child: MediaQuery.removePadding(
+                      context: context,
+                      removeTop: true,
+                      child: ListView.builder(
                           shrinkWrap: true,
-                          itemCount: snapshot.data!.get('isFineForMembers').length,// + snapshot.data!.get('rejectedMembers').length,
+                          itemCount: snapshot.data!.get('isFineForMembers').length, // + snapshot.data!.get('rejectedMembers').length,
                           itemBuilder: (context, index) {
                             final List<dynamic> isFineForMembers = snapshot.data!.get('isFineForMembers');
                             final List<dynamic> members = snapshot.data!.get('members');
@@ -176,127 +198,127 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     cSizedBox(0, width * 0.1),
-                                    Wrap(
-                                      spacing: - width * 0.02,
-                                      crossAxisAlignment: WrapCrossAlignment.center,
-                                      children: [
-                                        (where == "teambuild_board" || where == "sgroup_board")?
-                                        Container(width: width * 0.35,
-                                          child: smallText(isFineForMembers[index], 15, Colors.black87),):
-                                        Container(width: width * 0.45,
-                                          child: smallText(isFineForMembers[index], 15, Colors.black87),),
-                                        // 팀빌딩, 소모임 -> 프로필 보기
-                                        if(where == "teambuild_board") showProfile(isFineForMembers[index], "portfolio", "portfolio_tag"),
-                                        if(where == "sgroup_board") showProfile(isFineForMembers[index], "coverletter", "coverletter_tag"),
+                                    Wrap(spacing: -width * 0.02, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                                      (where == "teambuild_board" || where == "sgroup_board")
+                                          ? Container(
+                                              width: width * 0.35,
+                                              child: smallText(isFineForMembers[index], 15, Colors.black87),
+                                            )
+                                          : Container(
+                                              width: width * 0.45,
+                                              child: smallText(isFineForMembers[index], 15, Colors.black87),
+                                            ),
+                                      // 팀빌딩, 소모임 -> 프로필 보기
+                                      if (where == "teambuild_board") showProfile(isFineForMembers[index], "portfolio", "portfolio_tag"),
+                                      if (where == "sgroup_board") showProfile(isFineForMembers[index], "coverletter", "coverletter_tag"),
 
-                                        // 승인
-                                        Container(
-                                          margin: EdgeInsets.fromLTRB(0, height*0.015, 0, height*0.015),
-                                          child: IconButton(
-                                            icon: Image.asset('assets/images/icon/iconcheck.png', width: 18, height: 18),
-                                            onPressed: () async {
-                                              var myInfo = fp.getInfo();
-                                              int currentMember = 0;
-                                              int limitedMember = 0;
-                                              String peerNick = '';
-                                              String peerId = '';
-                                              String title = widget.id;
-                                              String board = snapshot.data!.get('where');
+                                      // 승인
+                                      Container(
+                                        margin: EdgeInsets.fromLTRB(0, height * 0.015, 0, height * 0.015),
+                                        child: IconButton(
+                                          icon: Image.asset('assets/images/icon/iconcheck.png', width: 18, height: 18),
+                                          onPressed: () async {
+                                            var myInfo = fp.getInfo();
+                                            int currentMember = 0;
+                                            int limitedMember = 0;
+                                            String peerNick = '';
+                                            String peerId = '';
+                                            String title = widget.id;
+                                            String board = snapshot.data!.get('where');
 
-                                              await fs.collection(board).doc(title).get().then((value) {
-                                                currentMember = value['currentMember'];
-                                                limitedMember = value['limitedMember'];
+                                            await fs.collection(board).doc(title).get().then((value) {
+                                              currentMember = value['currentMember'];
+                                              limitedMember = value['limitedMember'];
+                                            });
+                                            await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).get().then((value) {
+                                              peerNick = value['isFineForMembers'][index];
+                                            });
+                                            await fs.collection('users').where('nick', isEqualTo: peerNick).get().then((value) {
+                                              DocumentSnapshot snapshot = value.docs[0];
+                                              peerId = snapshot.get('email');
+                                            });
+
+                                            // 제한 인원을 넘지 않았으면 추가
+                                            if (currentMember < limitedMember) {
+                                              // board의 정보 수정(현재 멤버 수)
+                                              await fs.collection(board).doc(title).update({
+                                                'currentMember': currentMember + 1,
                                               });
-                                              await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).get().then((value) {
-                                                peerNick = value['isFineForMembers'][index];
-                                              });
-                                              await fs.collection('users').where('nick', isEqualTo: peerNick).get().then((value) {
-                                                DocumentSnapshot snapshot = value.docs[0];
-                                                peerId = snapshot.get('email');
-                                              });
-
-                                              // 제한 인원을 넘지 않았으면 추가
-                                              if (currentMember < limitedMember) {
-                                                // board의 정보 수정(현재 멤버 수)
-                                                await fs.collection(board).doc(title).update({
-                                                  'currentMember': currentMember + 1,
-                                                });
-                                                // 내 정보 수정(대기에서 제거, 멤버에 추가)
-                                                await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).update({
-                                                  'isFineForMembers': FieldValue.arrayRemove([peerNick]),
-                                                  'members': FieldValue.arrayUnion([peerNick])
-                                                });
-                                                // peer의 정보 수정(참가 신청 제거, 참가한 방 추가)
-                                                await fs.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
-                                                await fs.collection('users').doc(peerId).update({
-                                                  'joiningIn': FieldValue.arrayUnion([title])
-                                                });
-
-                                                currentMember += 1;
-                                                members.add(peerNick);
-
-                                                String content = myInfo['nick'] + '님의 채팅방입니다.';
-                                                List<dynamic> peerIds = [];
-                                                for (String member in members) {
-                                                  await fs.collection('users').where('nick', isEqualTo: member).get().then((value) {
-                                                    DocumentSnapshot snapshot = value.docs[0];
-                                                    peerIds.add(snapshot.get('email'));
-                                                  });
-                                                }
-
-                                                onSendMessage(content, myInfo['email'], peerIds, title);
-                                                // 채팅 시작
-                                                Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                        builder: (context) => Chat(
-                                                          myId: myInfo['email'],
-                                                          peerIds: peerIds,
-                                                          groupChatId: title,
-                                                          where: where,
-                                                        )));
-
-                                                print(peerNick + '(' + peerId + ')를 ' + title + '에 추가합니다.');
-                                              } else {
-                                                print('인원이 다 찼습니다!');
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        // 거절
-                                        Container(
-                                          margin: EdgeInsets.fromLTRB(0, height*0.015, 0, height*0.015),
-                                          child: IconButton(
-                                            icon: Image.asset('assets/images/icon/iconx.png', width: 18, height: 18),
-                                            onPressed: () async {
-                                              var myId = fp.getInfo()['email'];
-                                              String peerNick = '';
-                                              String peerId = '';
-                                              String title = widget.id;
-
-                                              await fs.collection('users').doc(myId).collection('applicants').doc(title).get().then((value) {
-                                                peerNick = value['isFineForMembers'][index];
-                                              });
-                                              await fs.collection('users').where('nick', isEqualTo: peerNick).get().then((value) {
-                                                DocumentSnapshot snapshot = value.docs[0];
-                                                peerId = snapshot.get('email');
-                                              });
-
-                                              //내 정보 수정(대기자 제거, 거절한 사람 추가)
-                                              await FirebaseFirestore.instance.collection('users').doc(myId).collection('applicants').doc(title).update({
+                                              // 내 정보 수정(대기에서 제거, 멤버에 추가)
+                                              await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).update({
                                                 'isFineForMembers': FieldValue.arrayRemove([peerNick]),
-                                                'rejectedMembers': FieldValue.arrayUnion([peerNick]),
+                                                'members': FieldValue.arrayUnion([peerNick])
                                               });
-                                              //신청자 정보 수정(거절된 게시물 추가, 신청 목록 제거)
-                                              await FirebaseFirestore.instance.collection('users').doc(peerId).update({
-                                                'rejected': FieldValue.arrayUnion([title]),
+                                              // peer의 정보 수정(참가 신청 제거, 참가한 방 추가)
+                                              await fs.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
+                                              await fs.collection('users').doc(peerId).update({
+                                                'joiningIn': FieldValue.arrayUnion([title])
                                               });
-                                              await FirebaseFirestore.instance.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
-                                            },
-                                          ),
+
+                                              currentMember += 1;
+                                              members.add(peerNick);
+
+                                              String content = myInfo['nick'] + '님의 채팅방입니다.';
+                                              List<dynamic> peerIds = [];
+                                              for (String member in members) {
+                                                await fs.collection('users').where('nick', isEqualTo: member).get().then((value) {
+                                                  DocumentSnapshot snapshot = value.docs[0];
+                                                  peerIds.add(snapshot.get('email'));
+                                                });
+                                              }
+
+                                              onSendMessage(content, myInfo['email'], peerIds, title);
+                                              // 채팅 시작
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) => Chat(
+                                                            myId: myInfo['email'],
+                                                            peerIds: peerIds,
+                                                            groupChatId: title,
+                                                            where: where,
+                                                          )));
+
+                                              print(peerNick + '(' + peerId + ')를 ' + title + '에 추가합니다.');
+                                            } else {
+                                              print('인원이 다 찼습니다!');
+                                            }
+                                          },
                                         ),
-                                      ]
-                                    ),
+                                      ),
+                                      // 거절
+                                      Container(
+                                        margin: EdgeInsets.fromLTRB(0, height * 0.015, 0, height * 0.015),
+                                        child: IconButton(
+                                          icon: Image.asset('assets/images/icon/iconx.png', width: 18, height: 18),
+                                          onPressed: () async {
+                                            var myId = fp.getInfo()['email'];
+                                            String peerNick = '';
+                                            String peerId = '';
+                                            String title = widget.id;
+
+                                            await fs.collection('users').doc(myId).collection('applicants').doc(title).get().then((value) {
+                                              peerNick = value['isFineForMembers'][index];
+                                            });
+                                            await fs.collection('users').where('nick', isEqualTo: peerNick).get().then((value) {
+                                              DocumentSnapshot snapshot = value.docs[0];
+                                              peerId = snapshot.get('email');
+                                            });
+
+                                            //내 정보 수정(대기자 제거, 거절한 사람 추가)
+                                            await fs.collection('users').doc(myId).collection('applicants').doc(title).update({
+                                              'isFineForMembers': FieldValue.arrayRemove([peerNick]),
+                                              'rejectedMembers': FieldValue.arrayUnion([peerNick]),
+                                            });
+                                            //신청자 정보 수정(거절된 게시물 추가, 신청 목록 제거)
+                                            await fs.collection('users').doc(peerId).update({
+                                              'rejected': FieldValue.arrayUnion([title]),
+                                            });
+                                            await fs.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
+                                          },
+                                        ),
+                                      ),
+                                    ]),
                                   ],
                                 ),
                               ),
@@ -338,61 +360,62 @@ class ShowApplicantListState extends State<ShowApplicantList> {
 
   // 프로필(포폴, 자소서) 띄움 // 디자인 수정중
   Widget showProfile(String applicant, String info, String tag) {
-    return IconButton(icon: Image.asset('assets/images/icon/profile.png', width: 18, height: 18),
-      onPressed: () {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-              content: FutureBuilder<QuerySnapshot>(
-                future: fs.collection('users').where('nick', isEqualTo: applicant).get(),
-                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap){
-                  if(snap.hasData){
-                    DocumentSnapshot doc = snap.data!.docs[0];
-                    return Column(children: [
-                      Row(children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(60),
-                          child: Image.network(
-                            doc['photoUrl'],
-                            width: 60, height: 60,
-                          ),
-                        ),
-                        cSizedBox(10, 20),
-                        cond2Text(doc['nick'] + "(" + doc['num'].toString() + ")"),
-                      ],),
-                      Column(children: [
-                        (doc[tag] != List.empty())?
-                        tagText(doc[tag].join('')):
-                        Text("태그없음"),
-                        (doc[info] == List.empty())? Text("작성 X"):
-                        Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                        cond2Text(doc[info][0]),
-                        (doc[info] == List.empty())? Text("작성 X"):
-                        Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                        cond2Text(doc[info][1]),
-                      ],)
-                    ],);
-                  } else{
-                    return CircularProgressIndicator();
-                  }
-                }
-              ),
-              actions: <Widget>[
-                new TextButton(
-                  child: Text("확인"),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            );
-          }
-        );
-      }
-    );
+    return IconButton(
+        icon: Image.asset('assets/images/icon/profile.png', width: 18, height: 18),
+        onPressed: () {
+          showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+                  content: FutureBuilder<QuerySnapshot>(
+                      future: fs.collection('users').where('nick', isEqualTo: applicant).get(),
+                      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
+                        if (snap.hasData) {
+                          DocumentSnapshot doc = snap.data!.docs[0];
+                          return Column(
+                            children: [
+                              Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(60),
+                                    child: Image.network(
+                                      doc['photoUrl'],
+                                      width: 60,
+                                      height: 60,
+                                    ),
+                                  ),
+                                  cSizedBox(10, 20),
+                                  cond2Text(doc['nick'] + "(" + doc['num'].toString() + ")"),
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  (doc[tag] != List.empty()) ? tagText(doc[tag].join('')) : Text("태그없음"),
+                                  (doc[info] == List.empty()) ? Text("작성 X") : Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
+                                  cond2Text(doc[info][0]),
+                                  (doc[info] == List.empty()) ? Text("작성 X") : Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
+                                  cond2Text(doc[info][1]),
+                                ],
+                              )
+                            ],
+                          );
+                        } else {
+                          return CircularProgressIndicator();
+                        }
+                      }),
+                  actions: <Widget>[
+                    new TextButton(
+                      child: Text("확인"),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                );
+              });
+        });
   }
 }
 
@@ -466,29 +489,47 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                                 child: Padding(
                                     padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
                                     child: Row(children: [
-                                      if (where == 'deleted') Image(image: AssetImage('assets/images/icon/iconx.png'),height: 30,width: 30,),
-                                      if (where == 'delivery_board') Image(image: AssetImage('assets/images/icon/iconmotorcycle.png'), height: 30, width: 30,),
-                                      if (where == 'sgroup_board') Image(image: AssetImage('assets/images/icon/iconplay.png'), height: 30, width: 30,),
-
+                                      if (where == 'deleted')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconx.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
+                                      if (where == 'delivery_board')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconmotorcycle.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
+                                      if (where == 'sgroup_board')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconplay.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
                                       cSizedBox(0, 20),
                                       FutureBuilder(
-                                        future: getApplicantInfo(where, doc.id),
-                                        builder: (BuildContext context, AsyncSnapshot snapshot) {
-                                          if (snapshot.hasData) {
-                                            return Wrap(
-                                              direction: Axis.vertical,
-                                              spacing: 8,
-                                              children: [
-                                                Container(width: MediaQuery.of(context).size.width * 0.6,
-                                                  child: smallText(snapshot.data[0], 15, Colors.black87),),
-                                                smallText(snapshot.data[1] + snapshot.data[2] + snapshot.data[3], 10, Color(0xffa9aaaf)),
-                                              ],
-                                            );
-                                          } else {
-                                            return Container(width: MediaQuery.of(context).size.width * 0.6,
-                                              child: smallText("삭제된 글입니다.", 15, Colors.grey),);
-                                          }
-                                        }),
+                                          future: getApplicantInfo(where, doc.id),
+                                          builder: (BuildContext context, AsyncSnapshot snapshot) {
+                                            if (snapshot.hasData) {
+                                              return Wrap(
+                                                direction: Axis.vertical,
+                                                spacing: 8,
+                                                children: [
+                                                  Container(
+                                                    width: MediaQuery.of(context).size.width * 0.6,
+                                                    child: smallText(snapshot.data[0], 15, Colors.black87),
+                                                  ),
+                                                  smallText(snapshot.data[1] + snapshot.data[2] + snapshot.data[3], 10, Color(0xffa9aaaf)),
+                                                ],
+                                              );
+                                            } else {
+                                              return Container(
+                                                width: MediaQuery.of(context).size.width * 0.6,
+                                                child: smallText("삭제된 글입니다.", 15, Colors.grey),
+                                              );
+                                            }
+                                          }),
                                     ]))))
                       ]);
                     }),
@@ -517,5 +558,4 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
     });
     await fs.collection(where).doc(doc.id).update({"views": views + 1});
   }
-
 }

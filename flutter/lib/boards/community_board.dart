@@ -508,12 +508,6 @@ class CommunityShowState extends State<CommunityShow> {
   @override
   void initState() {
     super.initState();
-    readLocal();
-  }
-
-  readLocal() async {
-    prefs = await SharedPreferences.getInstance();
-    alreadyLiked = prefs?.getBool('alreadyLiked') ?? false;
   }
 
   @override
@@ -585,8 +579,7 @@ class CommunityShowState extends State<CommunityShow> {
                                 fit: BoxFit.cover,
                               ),
                             );
-                          }
-                          else {
+                          } else {
                             return CircularProgressIndicator();
                           }
                         }),
@@ -664,33 +657,35 @@ class CommunityShowState extends State<CommunityShow> {
                             return CircularProgressIndicator();
                           }
                         }),
-                    myNick == commentsSnapshot.data!.docs[index].get('commentFrom') ?
-                      //삭제 팝업 버튼
-                      PopupMenuButton<Choice>(
-                        onSelected: onItemMenuPress,
-                        itemBuilder: (context) {
-                          return myChoices.map((Choice choice) {
-                            return PopupMenuItem<Choice>(
-                              value: choice,
-                              child: Row(
-                                children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
-                              ),
-                            );
-                          }).toList();
-                        },
-                      ) : PopupMenuButton<Choice>(
-                        onSelected: onItemMenuPress,
-                        itemBuilder: (context) {
-                          return otherChoices.map((Choice choice) {
-                            return PopupMenuItem<Choice>(
-                              value: choice,
-                              child: Row(
-                                children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
-                              ),
-                            );
-                          }).toList();
-                        },
-                      ),
+                    myNick == commentsSnapshot.data!.docs[index].get('commentFrom')
+                        ?
+                        //삭제 팝업 버튼
+                        PopupMenuButton<Choice>(
+                            onSelected: onItemMenuPress,
+                            itemBuilder: (context) {
+                              return myChoices.map((Choice choice) {
+                                return PopupMenuItem<Choice>(
+                                  value: choice,
+                                  child: Row(
+                                    children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
+                                  ),
+                                );
+                              }).toList();
+                            },
+                          )
+                        : PopupMenuButton<Choice>(
+                            onSelected: onItemMenuPress,
+                            itemBuilder: (context) {
+                              return otherChoices.map((Choice choice) {
+                                return PopupMenuItem<Choice>(
+                                  value: choice,
+                                  child: Row(
+                                    children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
+                                  ),
+                                );
+                              }).toList();
+                            },
+                          ),
                   ],
                 ),
                 // middleDivider(),
@@ -805,18 +800,18 @@ class CommunityShowState extends State<CommunityShow> {
                                           }
                                         }),
                                     StreamBuilder(
-                                      stream: fs.collection('community_board').doc(widget.id).snapshots(),
-                                      builder: (context, AsyncSnapshot snapshot) {
-                                        if (snapshot.hasData) {
-                                          int _likeCount = snapshot.data!['likeCount'];
-                                          if (_likeCount != 0) {
-                                            return Text("좋아요 " + snapshot.data!['likeCount'].toString() + "개", style: TextStyle(fontSize: 14));
+                                        stream: fs.collection('community_board').doc(widget.id).snapshots(),
+                                        builder: (context, AsyncSnapshot snapshot) {
+                                          if (snapshot.hasData) {
+                                            int _likeCount = snapshot.data!['likeCount'];
+                                            if (_likeCount != 0) {
+                                              return Text("좋아요 " + snapshot.data!['likeCount'].toString() + "개", style: TextStyle(fontSize: 14));
+                                            }
+                                            return Text('');
+                                          } else {
+                                            return CircularProgressIndicator();
                                           }
-                                          return Text('');
-                                        } else {
-                                          return CircularProgressIndicator();
-                                        }
-                                      }),
+                                        }),
                                   ],
                                 );
                               } else {
