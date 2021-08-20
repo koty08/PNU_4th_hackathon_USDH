@@ -820,7 +820,6 @@ class SgroupShowState extends State<SgroupShow> {
                                             cond2Text(doc['nick'] + "(" + doc['num'].toString() + ")"),
                                           ],
                                         ),
-                                        Text(snapshot.data!['myintro']),
                                         TextButton(
                                           onPressed: () {
                                             if(status == false){
@@ -837,7 +836,7 @@ class SgroupShowState extends State<SgroupShow> {
                                           child: Text("팀장 자기소개서 V"),
                                         ),
                                         //자기소개서 onoff표시
-                                        (doc['coverletter'] == List.empty())?
+                                        (doc['coverletter'].length == 0)?
                                           Visibility(
                                             visible: status,
                                             child: Column(
@@ -851,13 +850,13 @@ class SgroupShowState extends State<SgroupShow> {
                                             visible: status,
                                             child: Column(
                                               children: [
-                                                (doc['coverletter_tag'] != List.empty())?
-                                                  tagText(doc['coverletter_tag'].join('')):
-                                                  Text("태그없음"),
-                                                (doc['coverletter'] == List.empty())? Text("작성 X"):
+                                                (doc['coverletter_tag'].length == 0)?
+                                                  Text("태그없음"):
+                                                  tagText(doc['coverletter_tag'].join('')),
+                                                (doc['coverletter'].length == 0)? Text("작성 X"):
                                                 Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
                                                 cond2Text(doc['coverletter'][0]),
-                                                (doc['coverletter'] == List.empty())? Text("작성 X"):
+                                                (doc['coverletter'].length == 0)? Text("작성 X"):
                                                 Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
                                                 cond2Text(doc['coverletter'][1]),
                                               ],

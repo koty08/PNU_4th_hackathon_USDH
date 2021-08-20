@@ -820,7 +820,6 @@ class TeambuildShowState extends State<TeambuildShow> {
                                             cond2Text(doc['nick'] + "(" + doc['num'].toString() + ")"),
                                           ],
                                         ),
-                                        Text(snapshot.data!['myintro']),
                                         TextButton(
                                           onPressed: () {
                                             if(status == false){
@@ -837,7 +836,7 @@ class TeambuildShowState extends State<TeambuildShow> {
                                           child: Text("팀장 포트폴리오 V"),
                                         ),
                                         //포트폴리오 onoff표시
-                                        (doc['portfolio'] == List.empty())?
+                                        (doc['portfolio'].length == 0)?
                                           Visibility(
                                             visible: status,
                                             child: Column(
@@ -851,13 +850,13 @@ class TeambuildShowState extends State<TeambuildShow> {
                                             visible: status,
                                             child: Column(
                                               children: [
-                                                (doc['portfolio_tag'] != List.empty())?
-                                                  tagText(doc['portfolio_tag'].join('')):
-                                                  Text("태그없음"),
-                                                (doc['portfolio'] == List.empty())? Text("작성 X"):
+                                                (doc['portfolio_tag'].length == 0)?
+                                                  Text("태그없음"):
+                                                  tagText(doc['portfolio_tag'].join('')),
+                                                (doc['portfolio'].length == 0)? Text("작성 X"):
                                                 Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
                                                 cond2Text(doc['portfolio'][0]),
-                                                (doc['portfolio'] == List.empty())? Text("작성 X"):
+                                                (doc['portfolio'].length == 0)? Text("작성 X"):
                                                 Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
                                                 cond2Text(doc['portfolio'][1]),
                                               ],

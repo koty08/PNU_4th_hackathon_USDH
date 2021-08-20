@@ -34,14 +34,12 @@ class MyPageState extends State<MyPage> {
   final _formKey = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
 
-  TextEditingController myIntroInput = TextEditingController();
   TextEditingController nickInput = TextEditingController();
   TextEditingController emailInput = TextEditingController();
   TextEditingController pwdInput = TextEditingController();
 
   @override
   void dispose() {
-    myIntroInput.dispose();
     nickInput.dispose();
     emailInput.dispose();
     pwdInput.dispose();
