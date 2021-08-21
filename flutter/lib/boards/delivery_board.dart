@@ -1047,7 +1047,6 @@ class DeliveryShowState extends State<DeliveryShow> {
                               return tmp['email'];
                             });
                             List<String> _myApplication = [];
-                            List<String> _joiningIn = [];
 
                             await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
                               if (snap.docs.length != 0) {
@@ -1058,13 +1057,8 @@ class DeliveryShowState extends State<DeliveryShow> {
                                 print('myApplication 콜렉션이 비어있읍니다.');
                               }
                             });
-                            await fs.collection('users').doc(myInfo['email']).get().then((DocumentSnapshot snap) {
-                              for (String joinedRoom in snap['joiningIn']) {
-                                _joiningIn.add(joinedRoom);
-                              }
-                            });
 
-                            if (_myApplication.contains(title) || _joiningIn.contains(title)) {
+                            if (_myApplication.contains(title)) {
                               print('이미 신청(가입)한 방입니다!!');
                             } else if (_currentMember >= _limitedMember) {
                               print('This room is full');

@@ -657,10 +657,9 @@ class CommunityShowState extends State<CommunityShow> {
                             return CircularProgressIndicator();
                           }
                         }),
+                    //댓글 팝업 버튼
                     myNick == commentsSnapshot.data!.docs[index].get('commentFrom')
-                        ?
-                        //삭제 팝업 버튼
-                        PopupMenuButton<Choice>(
+                        ? PopupMenuButton<Choice>(
                             onSelected: onItemMenuPress,
                             itemBuilder: (context) {
                               return myChoices.map((Choice choice) {
@@ -688,8 +687,24 @@ class CommunityShowState extends State<CommunityShow> {
                           ),
                   ],
                 ),
-                // middleDivider(),
-                // Text('test text container?'),
+                //대댓글
+                StreamBuilder(
+                    stream: fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).collection('comments').snapshots(),
+                    builder: (context, AsyncSnapshot<QuerySnapshot> ccommentsSnapshot) {
+                      if (ccommentsSnapshot.hasData) {
+                        return Column(
+                          children: [
+                            Container(
+                              child: Row(
+                                children: [],
+                              ),
+                            )
+                          ],
+                        );
+                      } else {
+                        return CircularProgressIndicator();
+                      }
+                    }),
                 headerDivider(),
               ]);
             },
