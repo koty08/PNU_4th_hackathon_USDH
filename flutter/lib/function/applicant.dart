@@ -375,9 +375,6 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                 });
                                 // peer의 정보 수정(참가 신청 제거, 참가한 방 추가)
                                 await fs.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
-                                await fs.collection('users').doc(peerId).update({
-                                  'joiningIn': FieldValue.arrayUnion([title])
-                                });
 
                                 currentMember += 1;
                                 members.add(peerNick);
@@ -424,10 +421,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                 'isFineForMembers': FieldValue.arrayRemove([peerNick]),
                                 'rejectedMembers': FieldValue.arrayUnion([peerNick]),
                               });
-                              //신청자 정보 수정(거절된 게시물 추가, 신청 목록 제거)
-                              await fs.collection('users').doc(peerId).update({
-                                'rejected': FieldValue.arrayUnion([title]),
-                              });
+                              //신청자 정보 수정(신청 목록 제거)
                               await fs.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
 
                               Navigator.pop(context);
