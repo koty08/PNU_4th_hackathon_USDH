@@ -200,7 +200,7 @@ class MyPageState extends State<MyPage> {
                           Container(padding: EdgeInsets.fromLTRB(0, 10, 0, 20), child: infoText("신청 내역")),
                           touchableText(() {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => ApplicantListBoard(myId: fp.getInfo()['email'])));
-                          },"신청자 목록"),
+                          },"내가 쓴 글"),
                           cSizedBox(2,0),
                           touchableText(() {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => MyApplicationListBoard(myId: fp.getInfo()['email'])));

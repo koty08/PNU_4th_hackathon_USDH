@@ -58,7 +58,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                     return CircularProgressIndicator();
                   } else if (snapshot.hasData) {
                     return Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                      topbar2(context, "신청자 목록"),
+                      topbar2(context, "내가 쓴 글"),
                       Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 10)),
                       Text('아이콘을 누르면 게시물로 이동합니다.', style: TextStyle(fontFamily: "SCDream", color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13.5)),
                       Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 10)),
@@ -524,6 +524,9 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
     colstream = fs.collection('users').doc(myId).collection('myApplication').snapshots();
     return Scaffold(
         body: RefreshIndicator(
@@ -565,28 +568,13 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                               if (where == 'sgroup_board') navigate2Board(where, SgroupShow(doc.id), doc);
                             },
                             child: Card(
-                                margin: EdgeInsets.fromLTRB(30, 20, 30, 0),
+                                margin: EdgeInsets.fromLTRB(width*0.07, 20, width*0.07, 0),
                                 child: Padding(
-                                    padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+                                    padding: EdgeInsets.fromLTRB(width*0.05, 15, width*0.05, 15),
                                     child: Row(children: [
-                                      if (where == 'deleted')
-                                        Image(
-                                          image: AssetImage('assets/images/icon/iconx.png'),
-                                          height: 30,
-                                          width: 30,
-                                        ),
-                                      if (where == 'delivery_board')
-                                        Image(
-                                          image: AssetImage('assets/images/icon/iconmotorcycle.png'),
-                                          height: 30,
-                                          width: 30,
-                                        ),
-                                      if (where == 'sgroup_board')
-                                        Image(
-                                          image: AssetImage('assets/images/icon/iconplay.png'),
-                                          height: 30,
-                                          width: 30,
-                                        ),
+                                      if (where == 'deleted') Image(image: AssetImage('assets/images/icon/iconx.png'), height: 30, width: 30,),
+                                      if (where == 'delivery_board') Image(image: AssetImage('assets/images/icon/iconmotorcycle.png'), height: 30, width: 30,),
+                                      if (where == 'sgroup_board') Image(image: AssetImage('assets/images/icon/iconplay.png'), height: 30, width: 30,),
                                       cSizedBox(0, 20),
                                       FutureBuilder(
                                           future: getApplicantInfo(where, doc.id),
