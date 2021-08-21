@@ -106,6 +106,7 @@ class ChatState extends State<Chat> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
+            Padding(padding: EdgeInsets.fromLTRB(10, 0, 0, 0)),
             IconButton(
               icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
               onPressed: () {
@@ -125,6 +126,7 @@ class ChatState extends State<Chat> {
         // 채팅방 내의 퇴장, 설정 버튼
         actions: <Widget>[
           PopupMenuButton<Choice>(
+            icon: Image.asset('assets/images/icon/iconthreedot.png', width: 20, height: 20),
             onSelected: onItemMenuPress,
             itemBuilder: (BuildContext context) {
               return choices.map((Choice choice) {
@@ -148,6 +150,7 @@ class ChatState extends State<Chat> {
               }).toList();
             },
           ),
+          Padding(padding: EdgeInsets.fromLTRB(10, 0, 0, 0)),
         ],
         backgroundColor: Color(0xffffffff),
       ),
