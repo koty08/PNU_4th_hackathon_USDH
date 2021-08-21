@@ -837,32 +837,32 @@ class RoommateShowState extends State<RoommateShow> {
                                           child: Text("팀장 포트폴리오 V"),
                                         ),
                                         //포트폴리오 onoff표시
-                                        (doc['portfolio'] == List.empty())?
-                                          Visibility(
-                                            visible: status,
-                                            child: Column(
-                                              children: [
-                                                Text("자기소개서를 작성하지 않으셨습니다."),
-                                              ],
-                                            )
-                                          ):
+                                        // (doc['portfolio'] == List.empty())?
+                                        //   Visibility(
+                                        //     visible: status,
+                                        //     child: Column(
+                                        //       children: [
+                                        //         Text("자기소개서를 작성하지 않으셨습니다."),
+                                        //       ],
+                                        //     )
+                                        //   ):
 
-                                          Visibility(
-                                            visible: status,
-                                            child: Column(
-                                              children: [
-                                                (doc['portfolio_tag'] != List.empty())?
-                                                  tagText(doc['portfolio_tag'].join('')):
-                                                  Text("태그없음"),
-                                                (doc['portfolio'] == List.empty())? Text("작성 X"):
-                                                Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                                cond2Text(doc['portfolio'][0]),
-                                                (doc['portfolio'] == List.empty())? Text("작성 X"):
-                                                Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                                cond2Text(doc['portfolio'][1]),
-                                              ],
-                                            )
-                                          )
+                                        //   Visibility(
+                                        //     visible: status,
+                                        //     child: Column(
+                                        //       children: [
+                                        //         (doc['portfolio_tag'] != List.empty())?
+                                        //           tagText(doc['portfolio_tag'].join('')):
+                                        //           Text("태그없음"),
+                                        //         (doc['portfolio'] == List.empty())? Text("작성 X"):
+                                        //         Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
+                                        //         cond2Text(doc['portfolio'][0]),
+                                        //         (doc['portfolio'] == List.empty())? Text("작성 X"):
+                                        //         Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
+                                        //         cond2Text(doc['portfolio'][1]),
+                                        //       ],
+                                        //     )
+                                        //   )
                                       ],
                                     );
                                   }

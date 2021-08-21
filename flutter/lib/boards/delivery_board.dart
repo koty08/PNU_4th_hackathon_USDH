@@ -1017,14 +1017,17 @@ class DeliveryShowState extends State<DeliveryShow> {
                             });
 
                             if (!_myApplication.contains(title)) {
-                              print('참가 신청하지 않은 방입니다!!');
+                              // print('참가 신청하지 않은 방입니다!!');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              showMessage("참가 신청하지 않은 방입니다.");
                             } else {
                               await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
                                 'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
                               });
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
-
-                              print('참가 신청을 취소했습니다.');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              // print('참가 신청을 취소했습니다.');
+                              showMessage("참가 신청을 취소했습니다.");
                             }
                           },
                         ),
@@ -1047,7 +1050,6 @@ class DeliveryShowState extends State<DeliveryShow> {
                               return tmp['email'];
                             });
                             List<String> _myApplication = [];
-                            List<String> _joiningIn = [];
 
                             await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
                               if (snap.docs.length != 0) {
@@ -1058,14 +1060,11 @@ class DeliveryShowState extends State<DeliveryShow> {
                                 print('myApplication 콜렉션이 비어있읍니다.');
                               }
                             });
-                            await fs.collection('users').doc(myInfo['email']).get().then((DocumentSnapshot snap) {
-                              for (String joinedRoom in snap['joiningIn']) {
-                                _joiningIn.add(joinedRoom);
-                              }
-                            });
-
-                            if (_myApplication.contains(title) || _joiningIn.contains(title)) {
-                              print('이미 신청(가입)한 방입니다!!');
+                            
+                            if (_myApplication.contains(title)) {
+                              // print('이미 신청(가입)한 방입니다!!');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              showMessage("이미 신청한 방입니다.");
                             } else if (_currentMember >= _limitedMember) {
                               print('This room is full');
                             } else {
@@ -1077,7 +1076,9 @@ class DeliveryShowState extends State<DeliveryShow> {
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
                                 'where': "delivery_board",
                               });
-                              print('참가 신청을 보냈습니다.');
+                              // print('참가 신청을 보냈습니다.');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              showMessage("참가 신청을 보냈습니다.");
                             }
                           },
                         ),
@@ -1088,6 +1089,20 @@ class DeliveryShowState extends State<DeliveryShow> {
               } else
                 return CircularProgressIndicator();
             }));
+  }
+
+  showMessage(String msg){
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Colors.blue[200],
+      duration: Duration(seconds: 10),
+      content: Text(msg),
+      action: SnackBarAction(
+        label: "확인",
+        textColor: Colors.black,
+        onPressed: () {},
+      ),
+    ));
   }
 }
 

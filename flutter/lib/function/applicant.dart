@@ -375,9 +375,9 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                 });
                                 // peer의 정보 수정(참가 신청 제거, 참가한 방 추가)
                                 await fs.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
-                                await fs.collection('users').doc(peerId).update({
-                                  'joiningIn': FieldValue.arrayUnion([title])
-                                });
+                                // await fs.collection('users').doc(peerId).update({
+                                //   'joiningIn': FieldValue.arrayUnion([title])
+                                // });
 
                                 currentMember += 1;
                                 members.add(peerNick);
