@@ -994,14 +994,16 @@ class SgroupShowState extends State<SgroupShow> {
                             });
 
                             if (!_myApplication.contains(title)) {
-                              print('참가 신청하지 않은 방입니다!!');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              showMessage("참가 신청하지 않은 방입니다.");
                             } else {
                               await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
                                 'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
                               });
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
 
-                              print('참가 신청을 취소했습니다.');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              showMessage("참가 신청을 취소했습니다.");
                             }
                           },
                         ),
@@ -1036,7 +1038,8 @@ class SgroupShowState extends State<SgroupShow> {
                             });
 
                             if (_myApplication.contains(title)) {
-                              print('이미 신청(가입)한 방입니다!!');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              showMessage("이미 신청한 방입니다.");
                             } else if (_currentMember >= _limitedMember) {
                               print('This room is full');
                             } else {
@@ -1048,7 +1051,8 @@ class SgroupShowState extends State<SgroupShow> {
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
                                 'where': "sgroup_board",
                               });
-                              print('참가 신청을 보냈습니다.');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              showMessage("참가 신청을 보냈습니다.");
                             }
                           },
                         ),
@@ -1059,6 +1063,19 @@ class SgroupShowState extends State<SgroupShow> {
               } else
                 return CircularProgressIndicator();
             }));
+  }
+  showMessage(String msg){
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Colors.blue[200],
+      duration: Duration(seconds: 10),
+      content: Text(msg),
+      action: SnackBarAction(
+        label: "확인",
+        textColor: Colors.black,
+        onPressed: () {},
+      ),
+    ));
   }
 }
 
