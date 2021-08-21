@@ -489,7 +489,7 @@ class CommunityShowState extends State<CommunityShow> {
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
   TextEditingController commentInput = TextEditingController();
-  TextEditingController recommentInput = TextEditingController();
+  TextEditingController ccommentInput = TextEditingController();
 
   // 댓글 수정, 삭제 버튼 생성(버튼이름, 아이콘)
   List<Choice> myChoices = const <Choice>[
@@ -513,7 +513,7 @@ class CommunityShowState extends State<CommunityShow> {
   @override
   void dispose() {
     commentInput.dispose();
-    recommentInput.dispose();
+    ccommentInput.dispose();
     super.dispose();
   }
 
@@ -561,6 +561,7 @@ class CommunityShowState extends State<CommunityShow> {
               }
 
               DateTime dateTime = Timestamp.fromMillisecondsSinceEpoch(int.parse(commentsSnapshot.data!.docs[index].get('timestamp'))).toDate();
+              bool doCcomment = false;
               return Column(children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -616,6 +617,7 @@ class CommunityShowState extends State<CommunityShow> {
                               icon: Icon(Icons.chat),
                               onPressed: () async {
                                 print('대댓글 추가...');
+                                doCcomment = true;
                               },
                             )
                           ],
@@ -687,20 +689,202 @@ class CommunityShowState extends State<CommunityShow> {
                           ),
                   ],
                 ),
+                doCcomment
+                    ? Row(
+                        children: [
+                          TextField(
+                            controller: ccommentInput,
+                          ),
+                          IconButton(
+                              icon: Icon(Icons.send),
+                              onPressed: () async {
+                                FocusScope.of(context).requestFocus(new FocusNode());
+                                if (commentInput.text.isNotEmpty) {
+                                  ccommentUploadOnFS(commentsSnapshot.data!.docs[index].id);
+                                }
+                              }),
+                        ],
+                      )
+                    : Container(),
+
                 //대댓글
                 StreamBuilder(
                     stream: fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).collection('comments').snapshots(),
                     builder: (context, AsyncSnapshot<QuerySnapshot> ccommentsSnapshot) {
                       if (ccommentsSnapshot.hasData) {
-                        return Column(
-                          children: [
-                            Container(
-                              child: Row(
-                                children: [],
-                              ),
-                            )
-                          ],
-                        );
+                        return Container(
+                            child: ListView.builder(
+                                primary: false,
+                                shrinkWrap: true,
+                                itemCount: ccommentsSnapshot.data!.docs.length,
+                                itemBuilder: (context, index) {
+                                  void onItemMenuPress(Choice choice) {
+                                    if (choice.title == '삭제') {
+                                      deleteComment(ccommentsSnapshot.data!.docs[index].id);
+                                    } else if (choice.title == '신고') {
+                                      reportComment(ccommentsSnapshot.data!.docs[index].id);
+                                    } else if (choice.title == '뭔가') {
+                                      print('댓글 뭔가');
+                                    }
+                                  }
+
+                                  DateTime dateTime = Timestamp.fromMillisecondsSinceEpoch(int.parse(ccommentsSnapshot.data!.docs[index].get('timestamp'))).toDate();
+                                  return Column(children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Container(
+                                          padding: EdgeInsets.only(left: 10),
+                                          child: Icon(Icons.arrow_forward_rounded),
+                                        ),
+                                        //프사
+                                        FutureBuilder(
+                                            future: getPhotoUrl(ccommentsSnapshot.data!.docs[index].get('commentFrom')),
+                                            builder: (context, AsyncSnapshot snapshot) {
+                                              if (snapshot.hasData) {
+                                                return ClipRRect(
+                                                  borderRadius: BorderRadius.circular(60),
+                                                  child: Image.network(
+                                                    snapshot.data.toString(),
+                                                    width: 40,
+                                                    height: 40,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                );
+                                              } else {
+                                                return CircularProgressIndicator();
+                                              }
+                                            }),
+                                        //1층: 닉넴, 댓글내용, 2층: 글쓴시간, 좋아요개수
+                                        Column(
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text(ccommentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
+                                                cSizedBox(0, 35),
+                                                Text(ccommentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
+                                              ],
+                                            ),
+                                            Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
+                                            Row(
+                                              children: [
+                                                Text(howLongAgo(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))),
+                                                cSizedBox(0, 10),
+                                                StreamBuilder(
+                                                    stream: fs
+                                                        .collection('community_board')
+                                                        .doc(widget.id)
+                                                        .collection('comments')
+                                                        .doc(commentsSnapshot.data!.docs[index].id)
+                                                        .collection('comments')
+                                                        .doc(ccommentsSnapshot.data!.docs[index].id)
+                                                        .snapshots(),
+                                                    builder: (context, AsyncSnapshot snapshot) {
+                                                      if (snapshot.hasData) {
+                                                        int _likeCount = snapshot.data!['likeCount'];
+                                                        if (_likeCount != 0) {
+                                                          return Text("좋아요 " + snapshot.data!['likeCount'].toString() + "개", style: TextStyle(fontSize: 14));
+                                                        }
+                                                        return Text('');
+                                                      } else {
+                                                        return CircularProgressIndicator();
+                                                      }
+                                                    }),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        //좋아요
+                                        StreamBuilder<DocumentSnapshot>(
+                                            stream: fs
+                                                .collection('community_board')
+                                                .doc(widget.id)
+                                                .collection('comments')
+                                                .doc(commentsSnapshot.data!.docs[index].id)
+                                                .collection('comments')
+                                                .doc(ccommentsSnapshot.data!.docs[index].id)
+                                                .snapshots(),
+                                            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                                              print('#########');
+                                              print(snapshot.toString());
+                                              print(snapshot.data.toString());
+                                              if (snapshot.hasData && snapshot.data.toString() == 'null') {
+                                                List<dynamic> whoLike = snapshot.data!['whoLike'];
+                                                bool alreadyLiked = false;
+                                                if (whoLike.contains(myNick)) {
+                                                  alreadyLiked = true;
+                                                }
+                                                return IconButton(
+                                                    icon: Icon(alreadyLiked ? Icons.favorite : Icons.favorite_border, color: Color(0xff548ee0)),
+                                                    onPressed: () async {
+                                                      List<dynamic> whoLike = [];
+                                                      await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).get().then((value) {
+                                                        for (var who in value['whoLike']) {
+                                                          whoLike.add(who);
+                                                        }
+                                                      });
+                                                      if (!whoLike.contains(myNick)) {
+                                                        await fs
+                                                            .collection('community_board')
+                                                            .doc(widget.id)
+                                                            .collection('comments')
+                                                            .doc(commentsSnapshot.data!.docs[index].id)
+                                                            .collection('comments')
+                                                            .doc(ccommentsSnapshot.data!.docs[index].id)
+                                                            .update({
+                                                          'likeCount': FieldValue.increment(1),
+                                                          'whoLike': FieldValue.arrayUnion([myNick])
+                                                        });
+                                                      } else {
+                                                        await fs
+                                                            .collection('community_board')
+                                                            .doc(widget.id)
+                                                            .collection('comments')
+                                                            .doc(commentsSnapshot.data!.docs[index].id)
+                                                            .collection('comments')
+                                                            .doc(ccommentsSnapshot.data!.docs[index].id)
+                                                            .update({
+                                                          'likeCount': FieldValue.increment(-1),
+                                                          'whoLike': FieldValue.arrayRemove([myNick])
+                                                        });
+                                                      }
+                                                    });
+                                              } else {
+                                                return CircularProgressIndicator();
+                                              }
+                                            }),
+                                        //댓글 팝업 버튼
+                                        myNick == commentsSnapshot.data!.docs[index].get('commentFrom')
+                                            ? PopupMenuButton<Choice>(
+                                                onSelected: onItemMenuPress,
+                                                itemBuilder: (context) {
+                                                  return myChoices.map((Choice choice) {
+                                                    return PopupMenuItem<Choice>(
+                                                      value: choice,
+                                                      child: Row(
+                                                        children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
+                                                      ),
+                                                    );
+                                                  }).toList();
+                                                },
+                                              )
+                                            : PopupMenuButton<Choice>(
+                                                onSelected: onItemMenuPress,
+                                                itemBuilder: (context) {
+                                                  return otherChoices.map((Choice choice) {
+                                                    return PopupMenuItem<Choice>(
+                                                      value: choice,
+                                                      child: Row(
+                                                        children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
+                                                      ),
+                                                    );
+                                                  }).toList();
+                                                },
+                                              ),
+                                      ],
+                                    )
+                                  ]);
+                                }));
                       } else {
                         return CircularProgressIndicator();
                       }
@@ -932,6 +1116,21 @@ class CommunityShowState extends State<CommunityShow> {
         .collection('comments')
         .doc(DateTime.now().millisecondsSinceEpoch.toString())
         .set({'comment': commentInput.text, 'commentCount': 0, 'commentFrom': myInfo['nick'], 'likeCount': 0, 'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), 'whoLike': []});
+
+    commentInput.clear();
+  }
+
+  void ccommentUploadOnFS(String commentId) async {
+    var myInfo = fp.getInfo();
+    await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentId).update({'commentCount': FieldValue.increment(1)});
+    await fs
+        .collection('community_board')
+        .doc(widget.id)
+        .collection('comments')
+        .doc(commentId)
+        .collection('comments')
+        .doc(DateTime.now().millisecondsSinceEpoch.toString())
+        .set({'comment': ccommentInput.text, 'commentCount': 0, 'commentFrom': myInfo['nick'], 'likeCount': 0, 'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), 'whoLike': []});
 
     commentInput.clear();
   }

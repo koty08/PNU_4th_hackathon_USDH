@@ -229,13 +229,8 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                           itemCount: allMembers.length,
                           itemBuilder: (context, index) {
                             bool wasrejected = false;
-
-                            if (hasrejected) {
-                              if (rejectedMembers.contains(allMembers[index])) wasrejected = true;
-                            }
-                            if (members.length != 0) {
-                              if (members.contains(allMembers[index])) ismember = true;
-                            }
+                            if (hasrejected && rejectedMembers.contains(allMembers[index])) wasrejected = true;
+                            if (members.length != 0 && members.contains(allMembers[index])) ismember = true;
                             return Column(children: [
                               Container(
                                   height: height * 0.12,
@@ -260,9 +255,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                               ),
                                               Container(
                                                 width: width * 0.3,
-                                                child: (snapshot.data!['messages'].length != 0)?
-                                                smallText(snapshot.data!['messages'][index], 15, Colors.black87):
-                                                Text(""),
+                                                child: (snapshot.data!['messages'].length != 0) ? smallText(snapshot.data!['messages'][index], 15, Colors.black87) : Text(""),
                                               ),
                                             ],
                                           ),
@@ -379,10 +372,10 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                 await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).update({
                                   'isFineForMembers': FieldValue.arrayRemove([peerNick]),
                                   'members': FieldValue.arrayUnion([peerNick]),
-                                  'messages' : FieldValue.arrayRemove([peerMsg]),
+                                  'messages': FieldValue.arrayRemove([peerMsg]),
                                 });
-                                // peer의 정보 수정(참가 신청 제거, 참가한 방 추가)
-                                await fs.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
+                                // peer의 정보 수정(참가 신청 제거)
+                                await fs.collection('users').doc(peerId).collection('myApplication').doc(title).update({'isJoined': true});
 
                                 currentMember += 1;
                                 members.add(peerNick);
@@ -431,7 +424,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                 'rejectedMembers': FieldValue.arrayUnion([peerNick]),
                               });
                               //신청자 정보 수정(신청 목록 제거)
-                              await fs.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
+                              await fs.collection('users').doc(peerId).collection('myApplication').doc(title).update({'isRejected': true});
 
                               //Navigator.pop(context);
                             },
@@ -571,13 +564,28 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                               if (where == 'sgroup_board') navigate2Board(where, SgroupShow(doc.id), doc);
                             },
                             child: Card(
-                                margin: EdgeInsets.fromLTRB(width*0.07, 20, width*0.07, 0),
+                                margin: EdgeInsets.fromLTRB(width * 0.07, 20, width * 0.07, 0),
                                 child: Padding(
-                                    padding: EdgeInsets.fromLTRB(width*0.05, 15, width*0.05, 15),
+                                    padding: EdgeInsets.fromLTRB(width * 0.05, 15, width * 0.05, 15),
                                     child: Row(children: [
-                                      if (where == 'deleted') Image(image: AssetImage('assets/images/icon/iconx.png'), height: 30, width: 30,),
-                                      if (where == 'delivery_board') Image(image: AssetImage('assets/images/icon/iconmotorcycle.png'), height: 30, width: 30,),
-                                      if (where == 'sgroup_board') Image(image: AssetImage('assets/images/icon/iconplay.png'), height: 30, width: 30,),
+                                      if (where == 'deleted')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconx.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
+                                      if (where == 'delivery_board')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconmotorcycle.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
+                                      if (where == 'sgroup_board')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconplay.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
                                       cSizedBox(0, 20),
                                       FutureBuilder(
                                           future: getApplicantInfo(where, doc.id),

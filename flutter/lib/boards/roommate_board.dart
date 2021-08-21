@@ -35,11 +35,10 @@ bool isTomorrow(String time) {
   String now = formatDate(DateTime.now(), [HH, ':', nn, ':', ss]);
   print("마감 " + time);
   print("현재 " + now);
-  if(time.compareTo(now) == -1){
+  if (time.compareTo(now) == -1) {
     print("내일");
     return true;
-  }
-  else{
+  } else {
     print("오늘");
     return false;
   }
@@ -145,41 +144,44 @@ class RoommateWriteState extends State<RoommateWrite> {
                     spacing: 15,
                     children: [
                       Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
-                      Wrap(
-                        spacing : 15,
-                        children: [
-                          cond2Text("날짜 선택 ->"),
-                          IconButton(
-                            onPressed: () {
-                              Future<DateTime?> future = showDatePicker(
-                                context: context,
-                                initialDate: selectedDate,
-                                firstDate: DateTime.now(),
-                                lastDate: DateTime(2025),
-                                builder: (BuildContext context, Widget? child){
-                                  return Theme(
-                                    data: ThemeData.light(),
-                                    child: child!,
-                                  );
-                                },
-                              );
+                      Wrap(spacing: 15, children: [
+                        cond2Text("날짜 선택 ->"),
+                        IconButton(
+                          onPressed: () {
+                            Future<DateTime?> future = showDatePicker(
+                              context: context,
+                              initialDate: selectedDate,
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime(2025),
+                              builder: (BuildContext context, Widget? child) {
+                                return Theme(
+                                  data: ThemeData.light(),
+                                  child: child!,
+                                );
+                              },
+                            );
 
-                              future.then((date){
-                                if(date == null){
-                                  print("날짜를 선택해주십시오.");
-                                }
-                                else{
-                                  setState(() {
-                                    selectedDate = date;
-                                  });
-                                }
-                              });
-                            }, 
-                            icon: Icon(Icons.calendar_today),
-                          ),
-                          Text("마감 날짜 : " + formatDate(selectedDate, [yyyy, '-', mm, '-', dd,]))
-                        ]
-                      ),
+                            future.then((date) {
+                              if (date == null) {
+                                print("날짜를 선택해주십시오.");
+                              } else {
+                                setState(() {
+                                  selectedDate = date;
+                                });
+                              }
+                            });
+                          },
+                          icon: Icon(Icons.calendar_today),
+                        ),
+                        Text("마감 날짜 : " +
+                            formatDate(selectedDate, [
+                              yyyy,
+                              '-',
+                              mm,
+                              '-',
+                              dd,
+                            ]))
+                      ]),
                       Padding(
                           padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
                           child: Wrap(
@@ -192,24 +194,23 @@ class RoommateWriteState extends State<RoommateWrite> {
                                 spacing: 15,
                                 children: [
                                   cond2Text("마감시간"),
-                                  Container(width: 250, height: 20,
+                                  Container(
+                                    width: 250,
+                                    height: 20,
                                     margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
                                     child: TextFormField(
-                                      controller: timeInput,
-                                      style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
-                                      decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)", border: InputBorder.none, focusedBorder: InputBorder.none),
-                                      validator: (text) {
-                                        if (text == null || text.isEmpty) {
-                                          return "마감 시간은 필수 입력 사항입니다.";
-                                        }
-                                        else if(isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])){
-                                          return null;
-                                        }
-                                        else{
-                                          return "올바른 형식으로 입력해주세요. (ex 09:10)";
-                                        }
-                                      }
-                                    ),
+                                        controller: timeInput,
+                                        style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
+                                        decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)", border: InputBorder.none, focusedBorder: InputBorder.none),
+                                        validator: (text) {
+                                          if (text == null || text.isEmpty) {
+                                            return "마감 시간은 필수 입력 사항입니다.";
+                                          } else if (isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])) {
+                                            return null;
+                                          } else {
+                                            return "올바른 형식으로 입력해주세요. (ex 09:10)";
+                                          }
+                                        }),
                                   )
                                 ],
                               ),
@@ -262,23 +263,22 @@ class RoommateWriteState extends State<RoommateWrite> {
                 thickness: 2.5,
               ),
               Container(
-                padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
-                child: TextFormField(
-                    controller: contentInput,
-                    keyboardType: TextInputType.multiline,
-                    maxLines: null,
-                    style: TextStyle(fontSize: 14),
-                    decoration: InputDecoration(
-                      hintText: "내용을 입력하세요.",
-                      border: InputBorder.none,
-                    ),
-                    validator: (text) {
-                      if (text == null || text.isEmpty) {
-                        return "내용은 필수 입력 사항입니다.";
-                      }
-                      return null;
-                    })
-              ),
+                  padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
+                  child: TextFormField(
+                      controller: contentInput,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
+                      style: TextStyle(fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: "내용을 입력하세요.",
+                        border: InputBorder.none,
+                      ),
+                      validator: (text) {
+                        if (text == null || text.isEmpty) {
+                          return "내용은 필수 입력 사항입니다.";
+                        }
+                        return null;
+                      })),
               condWrap("자기소개", myintroInput, "자기소개 혹은 어필을 할 수 있는 칸", "자기소개는 필수 입력 사항입니다."),
               cSizedBox(350, 0)
             ],
@@ -299,12 +299,12 @@ class RoommateWriteState extends State<RoommateWrite> {
       'stuid': stuidInput.text,
       'location': locationInput.text,
       'tagList': tagList,
-      'myintro' : myintroInput.text,
+      'myintro': myintroInput.text,
       'views': 0,
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['nick'] + myInfo['postcount'].toString()).set({
       'where': 'roommate_board',
-      'title' : titleInput.text,
+      'title': titleInput.text,
       'isFineForMembers': [],
       'messages': [],
       'members': [],
@@ -734,79 +734,78 @@ class RoommateShowState extends State<RoommateShow> {
 
                 return SingleChildScrollView(
                     child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      cSizedBox(35, 0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    cSizedBox(35, 0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        headerText("룸메이트"),
+                        cSizedBox(0, 250),
+                      ],
+                    ),
+                    headerDivider(),
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                        child: Wrap(direction: Axis.vertical, spacing: 15, children: [
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            child: tagText(snapshot.data!['tagList'].join('')),
                           ),
-                          headerText("룸메이트"),
-                          cSizedBox(0, 250),
-                        ],
-                      ),
-                      headerDivider(),
-                      Padding(
-                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                          child: Wrap(direction: Axis.vertical, spacing: 15, children: [
-                            Container(
-                              width: MediaQuery.of(context).size.width * 0.8,
-                              child: tagText(snapshot.data!['tagList'].join('')),
-                            ),
-                            Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
-                            smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
-                          ])),
-                      Divider(
-                        color: Color(0xffe9e9e9),
-                        thickness: 15,
-                      ),
-                      Padding(
-                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                          child: Wrap(
-                            direction: Axis.vertical,
-                            spacing: 15,
-                            children: [
-                              Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
-                                  child: Wrap(
-                                    direction: Axis.vertical,
-                                    spacing: 15,
-                                    children: [
-                                      cond2Wrap("모집기간", "~ " + time),
-                                      cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
-                                      cond2Wrap("학번", snapshot.data!['stuid']),
-                                      cond2Wrap("모집분야", snapshot.data!['location']),
-                                    ],
-                                  ))
-                            ],
-                          )
-                      ),
-                      Divider(
-                        color: Color(0xffe9e9e9),
-                        thickness: 15,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
-                        child: Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
-                      ),
-                      Padding(
-                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                          child: Wrap(
-                            direction: Axis.vertical,
-                            spacing: 15,
-                            children: [
-                              Text("팀장 정보", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
-                              FutureBuilder<QuerySnapshot>(
+                          Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
+                          smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
+                        ])),
+                    Divider(
+                      color: Color(0xffe9e9e9),
+                      thickness: 15,
+                    ),
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                        child: Wrap(
+                          direction: Axis.vertical,
+                          spacing: 15,
+                          children: [
+                            Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                            Padding(
+                                padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
+                                child: Wrap(
+                                  direction: Axis.vertical,
+                                  spacing: 15,
+                                  children: [
+                                    cond2Wrap("모집기간", "~ " + time),
+                                    cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
+                                    cond2Wrap("학번", snapshot.data!['stuid']),
+                                    cond2Wrap("모집분야", snapshot.data!['location']),
+                                  ],
+                                ))
+                          ],
+                        )),
+                    Divider(
+                      color: Color(0xffe9e9e9),
+                      thickness: 15,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
+                      child: Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
+                    ),
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                        child: Wrap(
+                          direction: Axis.vertical,
+                          spacing: 15,
+                          children: [
+                            Text("팀장 정보", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                            FutureBuilder<QuerySnapshot>(
                                 future: fs.collection('users').where('nick', isEqualTo: writer).get(),
-                                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap){
-                                  if(snap.hasData){
+                                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
+                                  if (snap.hasData) {
                                     DocumentSnapshot doc = snap.data!.docs[0];
                                     return Column(
                                       children: [
@@ -816,7 +815,8 @@ class RoommateShowState extends State<RoommateShow> {
                                               borderRadius: BorderRadius.circular(60),
                                               child: Image.network(
                                                 doc['photoUrl'],
-                                                width: 60, height: 60,
+                                                width: 60,
+                                                height: 60,
                                               ),
                                             ),
                                             cSizedBox(10, 20),
@@ -826,12 +826,11 @@ class RoommateShowState extends State<RoommateShow> {
                                         Text(snapshot.data!['myintro']),
                                         TextButton(
                                           onPressed: () {
-                                            if(status == false){
+                                            if (status == false) {
                                               setState(() {
                                                 status = true;
                                               });
-                                            }
-                                            else{
+                                            } else {
                                               setState(() {
                                                 status = false;
                                               });
@@ -868,15 +867,12 @@ class RoommateShowState extends State<RoommateShow> {
                                         //   )
                                       ],
                                     );
-                                  }
-                                  else{
+                                  } else {
                                     return CircularProgressIndicator();
                                   }
-                                }
-                              ),
-                            ],
-                          )
-                      ),
+                                }),
+                          ],
+                        )),
                   ],
                 ));
               } else {
@@ -915,8 +911,7 @@ class RoommateShowState extends State<RoommateShow> {
                                 print(snapshot.data!['title'] + '에는 참가자가 없었습니다.');
                               }
                             });
-                            
-                            //isFineForMembers(신청자목록)에 있는 신청자들의 참가 신청 목록에서 where을 deleted로 바꿈
+
                             if (isFineForMemberNicks.length != 0) {
                               for (String iFFmember in isFineForMemberNicks) {
                                 await fs.collection('users').where('nick', isEqualTo: iFFmember).get().then((QuerySnapshot snap) {
@@ -931,38 +926,38 @@ class RoommateShowState extends State<RoommateShow> {
                             }
 
                             await fs.collection('roommate_board').doc(widget.id).delete();
-                            fp.updateIntInfo('postcount', -1);
                             await fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(snapshot.data!.id).delete();
+                            fp.updateIntInfo('postcount', -1);
                           },
                         ),
                       ),
-                      (isAvailable(snapshot.data!['time'], snapshot.data!['currentMember'], snapshot.data!['limitedMember']))?
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.5,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Color(0xff639ee1),
-                          ),
-                          child: GestureDetector(
-                            child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
-                            onTap: () async {
-                              var tmp;
-                              await fs.collection('roommate_board').doc(widget.id).get().then((snap) {
-                                tmp = snap.data() as Map<String, dynamic>;
-                              });
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => RoommateModify(widget.id, tmp)));
-                              setState(() {});
-                            },
-                          ),
-                        ):
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.5,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Color(0xff639ee1),
-                          ),
-                          child:  Align(alignment: Alignment.center, child: smallText("수정 불가", 14, Colors.white)),
-                        ),
+                      (isAvailable(snapshot.data!['time'], snapshot.data!['currentMember'], snapshot.data!['limitedMember']))
+                          ? Container(
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Color(0xff639ee1),
+                              ),
+                              child: GestureDetector(
+                                child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
+                                onTap: () async {
+                                  var tmp;
+                                  await fs.collection('roommate_board').doc(widget.id).get().then((snap) {
+                                    tmp = snap.data() as Map<String, dynamic>;
+                                  });
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => RoommateModify(widget.id, tmp)));
+                                  setState(() {});
+                                },
+                              ),
+                            )
+                          : Container(
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Color(0xff639ee1),
+                              ),
+                              child: Align(alignment: Alignment.center, child: smallText("수정 불가", 14, Colors.white)),
+                            ),
                     ],
                   );
                 } else {
@@ -1001,12 +996,24 @@ class RoommateShowState extends State<RoommateShow> {
                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
                               showMessage("참가 신청하지 않은 방입니다.");
                             } else {
-                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
+                              List<dynamic> _messages = [];
+                              List<dynamic> _isFineForMember = [];
+                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
+                                _messages = value['messages'];
                               });
+                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
+                                _isFineForMember = value['isFineForMembers'];
+                              });
+                              int _msgIndex = _isFineForMember.indexWhere((element) => element == myInfo['nick']);
+                              if (_msgIndex >= 0) {
+                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                  'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
+                                  'messages': FieldValue.arrayRemove([_messages[_msgIndex]])
+                                });
+                              }
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              showMessage("참가 신청을 보냈습니다.");
+                              showMessage("참가 신청을 취소했습니다.");
                             }
                           },
                         ),
@@ -1029,79 +1036,72 @@ class RoommateShowState extends State<RoommateShow> {
                               return tmp['email'];
                             });
                             List<String> _myApplication = [];
-                            
-                            showDialog(context: context,
-                              builder: (BuildContext con){
-                                return Form(
-                                    key: _formKey,
-                                    child:
-                                    AlertDialog(
-                                      title: Text("방장한테 보낼 메세지를 입력하세요"),
-                                      content: Column(
-                                        children: [
-                                          TextFormField(
-                                              controller: msgInput,
-                                              decoration: InputDecoration(hintText: "메세지를 입력하세요."),
-                                              validator: (text) {
-                                                if (text == null || text.isEmpty) {
-                                                  return "메세지를 입력하지 않으셨습니다.";
+
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext con) {
+                                  return Form(
+                                      key: _formKey,
+                                      child: AlertDialog(
+                                        title: Text("방장한테 보낼 메세지를 입력하세요"),
+                                        content: Column(
+                                          children: [
+                                            TextFormField(
+                                                controller: msgInput,
+                                                decoration: InputDecoration(hintText: "메세지를 입력하세요."),
+                                                validator: (text) {
+                                                  if (text == null || text.isEmpty) {
+                                                    return "메세지를 입력하지 않으셨습니다.";
+                                                  }
+                                                  return null;
+                                                }),
+                                          ],
+                                        ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                              onPressed: () async {
+                                                if (_formKey.currentState!.validate()) {
+                                                  await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                                                    if (snap.docs.length != 0) {
+                                                      for (DocumentSnapshot doc in snap.docs) {
+                                                        _myApplication.add(doc.id);
+                                                      }
+                                                    } else {
+                                                      print('myApplication 콜렉션이 비어있읍니다.');
+                                                    }
+                                                  });
+
+                                                  if (_myApplication.contains(title)) {
+                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                    showMessage("이미 신청한 방입니다.");
+                                                    // print('이미 신청(가입)한 방입니다!!');
+                                                  } else if (_currentMember >= _limitedMember) {
+                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                    showMessage("방이 모두 차있습니다.");
+                                                  } else {
+                                                    // 방장에게 날리는 메세지
+                                                    await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                                      'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
+                                                      'messages': FieldValue.arrayUnion([msgInput.text]),
+                                                    });
+                                                    // 내 정보에 신청 정보를 기록
+                                                    await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({'where': "roommate_board", 'isRejected': false, 'isJoined': false});
+                                                    // print('참가 신청을 보냈습니다.');
+                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                    showMessage("참가 신청을 보냈습니다.");
+                                                  }
+                                                  Navigator.pop(con);
                                                 }
-                                                return null;
-                                              }
-                                          ),
+                                              },
+                                              child: Text("확인")),
+                                          TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(con);
+                                              },
+                                              child: Text("취소")),
                                         ],
-                                      ),
-                                      actions: <Widget>[
-                                        TextButton(onPressed: () async {
-                                          if(_formKey.currentState!.validate()){
-                                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
-                                              if (snap.docs.length != 0) {
-                                                for (DocumentSnapshot doc in snap.docs) {
-                                                  _myApplication.add(doc.id);
-                                                }
-                                              } else {
-                                                print('myApplication 콜렉션이 비어있읍니다.');
-                                              }
-                                            });
-                                            
-                                            if (_myApplication.contains(title)) {
-                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                              showMessage("이미 신청한 방입니다.");
-                                              // print('이미 신청(가입)한 방입니다!!');
-                                            } 
-                                            else if (_currentMember >= _limitedMember) {
-                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                              showMessage("방이 모두 차있습니다.");
-                                            } 
-                                            else {
-                                              // 방장에게 날리는 메세지
-                                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                                'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
-                                                'messages' : FieldValue.arrayUnion([msgInput.text]),
-                                              });
-                                              // 내 정보에 신청 정보를 기록
-                                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
-                                                'where': "roommate_board",
-                                              });
-                                              // print('참가 신청을 보냈습니다.');
-                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                              showMessage("참가 신청을 보냈습니다.");
-                                            }
-                                            Navigator.pop(con);
-                                          }
-                                        },
-                                            child: Text("확인")
-                                        ),
-                                        TextButton(onPressed: (){
-                                          Navigator.pop(con);
-                                        },
-                                            child: Text("취소")
-                                        ),
-                                      ],
-                                    )
-                                );
-                              }
-                            );
+                                      ));
+                                });
                           },
                         ),
                       ),
@@ -1112,7 +1112,8 @@ class RoommateShowState extends State<RoommateShow> {
                 return CircularProgressIndicator();
             }));
   }
-  showMessage(String msg){
+
+  showMessage(String msg) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       backgroundColor: Colors.blue[200],
@@ -1244,41 +1245,44 @@ class RoommateModifyState extends State<RoommateModify> {
                                   spacing: 15,
                                   children: [
                                     Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
-                                    Wrap(
-                                      spacing : 15,
-                                      children: [
-                                        cond2Text("날짜 선택 ->"),
-                                        IconButton(
-                                          onPressed: () {
-                                            Future<DateTime?> future = showDatePicker(
-                                              context: context,
-                                              initialDate: selectedDate,
-                                              firstDate: DateTime.now(),
-                                              lastDate: DateTime(2025),
-                                              builder: (BuildContext context, Widget? child){
-                                                return Theme(
-                                                  data: ThemeData.light(),
-                                                  child: child!,
-                                                );
-                                              },
-                                            );
+                                    Wrap(spacing: 15, children: [
+                                      cond2Text("날짜 선택 ->"),
+                                      IconButton(
+                                        onPressed: () {
+                                          Future<DateTime?> future = showDatePicker(
+                                            context: context,
+                                            initialDate: selectedDate,
+                                            firstDate: DateTime.now(),
+                                            lastDate: DateTime(2025),
+                                            builder: (BuildContext context, Widget? child) {
+                                              return Theme(
+                                                data: ThemeData.light(),
+                                                child: child!,
+                                              );
+                                            },
+                                          );
 
-                                            future.then((date){
-                                              if(date == null){
-                                                print("날짜를 선택해주십시오.");
-                                              }
-                                              else{
-                                                setState(() {
-                                                  selectedDate = date;
-                                                });
-                                              }
-                                            });
-                                          }, 
-                                          icon: Icon(Icons.calendar_today),
-                                        ),
-                                        Text("마감 날짜 : " + formatDate(selectedDate, [yyyy, '-', mm, '-', dd,]))
-                                      ]
-                                    ),
+                                          future.then((date) {
+                                            if (date == null) {
+                                              print("날짜를 선택해주십시오.");
+                                            } else {
+                                              setState(() {
+                                                selectedDate = date;
+                                              });
+                                            }
+                                          });
+                                        },
+                                        icon: Icon(Icons.calendar_today),
+                                      ),
+                                      Text("마감 날짜 : " +
+                                          formatDate(selectedDate, [
+                                            yyyy,
+                                            '-',
+                                            mm,
+                                            '-',
+                                            dd,
+                                          ]))
+                                    ]),
                                     Padding(
                                         padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
                                         child: Wrap(
@@ -1289,24 +1293,23 @@ class RoommateModifyState extends State<RoommateModify> {
                                               spacing: 15,
                                               children: [
                                                 cond2Text("마감시간"),
-                                                Container(width: 250, height: 20,
+                                                Container(
+                                                  width: 250,
+                                                  height: 20,
                                                   margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
                                                   child: TextFormField(
-                                                    controller: timeInput,
-                                                    style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
-                                                    decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)", border: InputBorder.none, focusedBorder: InputBorder.none),
-                                                    validator: (text) {
-                                                      if (text == null || text.isEmpty) {
-                                                        return "마감 시간은 필수 입력 사항입니다.";
-                                                      }
-                                                      else if(isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])){
-                                                        return null;
-                                                      }
-                                                      else{
-                                                        return "올바른 형식으로 입력해주세요. (ex 09:10)";
-                                                      }
-                                                    }
-                                                  ),
+                                                      controller: timeInput,
+                                                      style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
+                                                      decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)", border: InputBorder.none, focusedBorder: InputBorder.none),
+                                                      validator: (text) {
+                                                        if (text == null || text.isEmpty) {
+                                                          return "마감 시간은 필수 입력 사항입니다.";
+                                                        } else if (isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])) {
+                                                          return null;
+                                                        } else {
+                                                          return "올바른 형식으로 입력해주세요. (ex 09:10)";
+                                                        }
+                                                      }),
                                                 )
                                               ],
                                             ),
@@ -1362,21 +1365,20 @@ class RoommateModifyState extends State<RoommateModify> {
                             Container(
                                 padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
                                 child: TextFormField(
-                                  controller: contentInput,
-                                  keyboardType: TextInputType.multiline,
-                                  maxLines: null,
-                                  style: TextStyle(fontSize: 14),
-                                  decoration: InputDecoration(
-                                    hintText: "내용을 입력하세요.",
-                                    border: InputBorder.none,
-                                  ),
-                                  validator: (text) {
-                                    if (text == null || text.isEmpty) {
-                                      return "내용은 필수 입력 사항입니다.";
-                                    }
-                                    return null;
-                                  })
-                            ),
+                                    controller: contentInput,
+                                    keyboardType: TextInputType.multiline,
+                                    maxLines: null,
+                                    style: TextStyle(fontSize: 14),
+                                    decoration: InputDecoration(
+                                      hintText: "내용을 입력하세요.",
+                                      border: InputBorder.none,
+                                    ),
+                                    validator: (text) {
+                                      if (text == null || text.isEmpty) {
+                                        return "내용은 필수 입력 사항입니다.";
+                                      }
+                                      return null;
+                                    })),
                             condWrap("자기소개", myintroInput, "자기소개 혹은 어필을 할 수 있는 칸", "자기소개는 필수 입력 사항입니다."),
                             cSizedBox(350, 0)
                           ],
@@ -1406,4 +1408,3 @@ class RoommateModifyState extends State<RoommateModify> {
     });
   }
 }
-
