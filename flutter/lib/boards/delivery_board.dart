@@ -11,6 +11,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'package:usdh/maps/place_autocomplete.dart';
 import 'package:validators/validators.dart';
 import 'package:usdh/maps/delivery.dart';
 import 'dart:async';
@@ -162,7 +163,25 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                               ),
                               condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                               condWrap("음식종류", foodInput, "음식 종류를 입력하세요.", "음식 종류는 필수 입력 사항입니다."),
-                              condWrap("배분위치", locationInput, "위치를 입력하세요.", "위치는 필수 입력 사항입니다."),
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.start,
+                                spacing: 15,
+                                children: [
+                                  cond2Text("배분위치"),
+                                  Container(width: width*0.3, height: 20,
+                                      margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
+                                      child: condField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")
+                                  ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    icon: Image.asset('assets/images/icon/iconsearch.png', width: 20, height: 20),
+                                    onPressed: () {
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
+                                    },
+                                  ),
+                                ],
+                              )
                             ],
                           )),
                     ],
@@ -209,22 +228,23 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                 thickness: 2.5,
               ),
               Container(
-                  padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
-                  child: TextFormField(
-                      controller: contentInput,
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                      style: TextStyle(fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: "내용을 입력하세요.",
-                        border: InputBorder.none,
-                      ),
-                      validator: (text) {
-                        if (text == null || text.isEmpty) {
-                          return "내용은 필수 입력 사항입니다.";
-                        }
-                        return null;
-                      })),
+                padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
+                child: TextFormField(
+                    controller: contentInput,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    style: TextStyle(fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: "내용을 입력하세요.",
+                      border: InputBorder.none,
+                    ),
+                    validator: (text) {
+                      if (text == null || text.isEmpty) {
+                        return "내용은 필수 입력 사항입니다.";
+                      }
+                      return null;
+                    })
+              ),
               cSizedBox(350, 0)
             ],
           ),
@@ -251,6 +271,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'where': 'delivery_board',
       'title': titleInput.text,
       'isFineForMembers': [],
+      'messages' : [],
       'members': [],
     });
     fp.updateIntInfo('postcount', 1);
@@ -804,6 +825,8 @@ class DeliveryShowState extends State<DeliveryShow> {
   bool alreadyLiked = false;
 
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
+  final _formKey = GlobalKey<FormState>();
+  TextEditingController msgInput = TextEditingController();
 
   @override
   void initState() {
@@ -812,6 +835,7 @@ class DeliveryShowState extends State<DeliveryShow> {
 
   @override
   void dispose() {
+    msgInput.dispose();
     commentInput.dispose();
     super.dispose();
   }
@@ -1041,6 +1065,7 @@ class DeliveryShowState extends State<DeliveryShow> {
                         child: GestureDetector(
                           child: Align(alignment: Alignment.center, child: smallText("참가신청", 14, Colors.white)),
                           onTap: () async {
+
                             var myInfo = fp.getInfo();
                             int _currentMember = snapshot.data!['currentMember'];
                             int _limitedMember = snapshot.data!['limitedMember'];
@@ -1050,36 +1075,78 @@ class DeliveryShowState extends State<DeliveryShow> {
                               return tmp['email'];
                             });
                             List<String> _myApplication = [];
-
-                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
-                              if (snap.docs.length != 0) {
-                                for (DocumentSnapshot doc in snap.docs) {
-                                  _myApplication.add(doc.id);
-                                }
-                              } else {
-                                print('myApplication 콜렉션이 비어있읍니다.');
-                              }
-                            });
                             
-                            if (_myApplication.contains(title)) {
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              showMessage("이미 신청한 방입니다.");
-                              print('이미 신청(가입)한 방입니다!!');
-                            } else if (_currentMember >= _limitedMember) {
-                              print('This room is full');
-                            } else {
-                              // 방장에게 날리는 메세지
-                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
-                              });
-                              // 내 정보에 신청 정보를 기록
-                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
-                                'where': "delivery_board",
-                              });
-                              // print('참가 신청을 보냈습니다.');
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              showMessage("참가 신청을 보냈습니다.");
-                            }
+                            showDialog(context: context,
+                              builder: (BuildContext con){
+                                return Form(
+                                    key: _formKey,
+                                    child:
+                                    AlertDialog(
+                                      title: Text("방장한테 보낼 메세지를 입력하세요"),
+                                      content: Column(
+                                        children: [
+                                          TextFormField(
+                                              controller: msgInput,
+                                              decoration: InputDecoration(hintText: "메세지를 입력하세요."),
+                                              validator: (text) {
+                                                if (text == null || text.isEmpty) {
+                                                  return "메세지를 입력하지 않으셨습니다.";
+                                                }
+                                                return null;
+                                              }
+                                          ),
+                                        ],
+                                      ),
+                                      actions: <Widget>[
+                                        TextButton(onPressed: () async {
+                                          if(_formKey.currentState!.validate()){
+                                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                                              if (snap.docs.length != 0) {
+                                                for (DocumentSnapshot doc in snap.docs) {
+                                                  _myApplication.add(doc.id);
+                                                }
+                                              } else {
+                                                print('myApplication 콜렉션이 비어있읍니다.');
+                                              }
+                                            });
+                                            
+                                            if (_myApplication.contains(title)) {
+                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                              showMessage("이미 신청한 방입니다.");
+                                              // print('이미 신청(가입)한 방입니다!!');
+                                            } 
+                                            else if (_currentMember >= _limitedMember) {
+                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                              showMessage("방이 모두 차있습니다.");
+                                            } 
+                                            else {
+                                              // 방장에게 날리는 메세지
+                                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                                'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
+                                                'messages' : FieldValue.arrayUnion([msgInput.text]),
+                                              });
+                                              // 내 정보에 신청 정보를 기록
+                                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
+                                                'where': "delivery_board",
+                                              });
+                                              // print('참가 신청을 보냈습니다.');
+                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                              showMessage("참가 신청을 보냈습니다.");
+                                            }
+                                            Navigator.pop(con);
+                                          }
+                                        },
+                                            child: Text("확인")
+                                        ),
+                                        TextButton(onPressed: (){
+                                          Navigator.pop(con);
+                                        },
+                                            child: Text("취소")
+                                        ),
+                                      ],
+                                    )
+                                );
+                            });
                           },
                         ),
                       ),
@@ -1173,6 +1240,9 @@ class DeliveryModifyState extends State<DeliveryModify> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
     return Scaffold(
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
@@ -1209,7 +1279,25 @@ class DeliveryModifyState extends State<DeliveryModify> {
                                             condWrap("모집기간", timeInput, "마감 시간 입력 : xx:xx (ex 21:32 형태)", "마감 시간은 필수 입력 사항입니다."),
                                             condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                                             condWrap("음식종류", foodInput, "음식 종류를 입력하세요.", "음식 종류는 필수 입력 사항입니다."),
-                                            condWrap("배분위치", locationInput, "위치를 입력하세요.", "위치는 필수 입력 사항입니다."),
+                                            Wrap(
+                                              spacing: 15,
+                                              children: [
+
+                                                cond2Text("배분위치"),
+                                                Container(width: width*0.3, height: 20,
+                                                    margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
+                                                    child: condField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")
+                                                ),
+                                                IconButton(
+                                                  padding: EdgeInsets.zero,
+                                                  constraints: BoxConstraints(),
+                                                  icon: Image.asset('assets/images/icon/iconsearch.png', width: 20, height: 20),
+                                                  onPressed: () {
+                                                    Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
+                                                  },
+                                                ),
+                                              ],
+                                            )
                                           ],
                                         )),
                                   ],

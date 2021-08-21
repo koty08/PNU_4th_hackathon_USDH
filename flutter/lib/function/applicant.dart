@@ -58,7 +58,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                     return CircularProgressIndicator();
                   } else if (snapshot.hasData) {
                     return Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                      topbar2(context, "신청자 목록"),
+                      topbar2(context, "내가 쓴 글"),
                       Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 10)),
                       Text('아이콘을 누르면 게시물로 이동합니다.', style: TextStyle(fontFamily: "SCDream", color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13.5)),
                       Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 10)),
@@ -252,9 +252,19 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                           if (where == "sgroup_board") showProfile(allMembers[index], "coverletter", "coverletter_tag"),
                                           if (where != 'teambuild_board' && where != 'sgroup_board') Image(image: AssetImage('assets/images/icon/profile.png'), width: 18, height: 18),
                                           cSizedBox(0, width * 0.07),
-                                          Container(
-                                            width: width * 0.45,
-                                            child: smallText(allMembers[index], 15, Colors.black87),
+                                          Column(
+                                            children: [
+                                              Container(
+                                                width: width * 0.45,
+                                                child: smallText(allMembers[index], 15, Colors.black87),
+                                              ),
+                                              Container(
+                                                width: width * 0.3,
+                                                child: (snapshot.data!['messages'].length != 0)?
+                                                smallText(snapshot.data!['messages'][index], 15, Colors.black87):
+                                                Text(""),
+                                              ),
+                                            ],
                                           ),
                                           (ismember)
                                               ? smallText(' 승인', 13, Color(0xff548ee0))
@@ -353,6 +363,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                               String title = widget.id;
                               String board = snapshot.data!.get('where');
                               String peerNick = await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).get().then((value) => value.get('isFineForMembers')[index]);
+                              String peerMsg = await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).get().then((value) => value.get('messages')[index]);
                               String peerId = await fs.collection('users').where('nick', isEqualTo: peerNick).get().then((value) => value.docs[0].get('email'));
 
                               await fs.collection(board).doc(title).get().then((value) {
@@ -367,7 +378,8 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                 // 내 정보 수정(대기에서 제거, 멤버에 추가)
                                 await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).update({
                                   'isFineForMembers': FieldValue.arrayRemove([peerNick]),
-                                  'members': FieldValue.arrayUnion([peerNick])
+                                  'members': FieldValue.arrayUnion([peerNick]),
+                                  'messages' : FieldValue.arrayRemove([peerMsg]),
                                 });
                                 // peer의 정보 수정(참가 신청 제거, 참가한 방 추가)
                                 await fs.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
@@ -515,6 +527,9 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
     colstream = fs.collection('users').doc(myId).collection('myApplication').snapshots();
     return Scaffold(
         body: RefreshIndicator(
@@ -556,28 +571,13 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                               if (where == 'sgroup_board') navigate2Board(where, SgroupShow(doc.id), doc);
                             },
                             child: Card(
-                                margin: EdgeInsets.fromLTRB(30, 20, 30, 0),
+                                margin: EdgeInsets.fromLTRB(width*0.07, 20, width*0.07, 0),
                                 child: Padding(
-                                    padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+                                    padding: EdgeInsets.fromLTRB(width*0.05, 15, width*0.05, 15),
                                     child: Row(children: [
-                                      if (where == 'deleted')
-                                        Image(
-                                          image: AssetImage('assets/images/icon/iconx.png'),
-                                          height: 30,
-                                          width: 30,
-                                        ),
-                                      if (where == 'delivery_board')
-                                        Image(
-                                          image: AssetImage('assets/images/icon/iconmotorcycle.png'),
-                                          height: 30,
-                                          width: 30,
-                                        ),
-                                      if (where == 'sgroup_board')
-                                        Image(
-                                          image: AssetImage('assets/images/icon/iconplay.png'),
-                                          height: 30,
-                                          width: 30,
-                                        ),
+                                      if (where == 'deleted') Image(image: AssetImage('assets/images/icon/iconx.png'), height: 30, width: 30,),
+                                      if (where == 'delivery_board') Image(image: AssetImage('assets/images/icon/iconmotorcycle.png'), height: 30, width: 30,),
+                                      if (where == 'sgroup_board') Image(image: AssetImage('assets/images/icon/iconplay.png'), height: 30, width: 30,),
                                       cSizedBox(0, 20),
                                       FutureBuilder(
                                           future: getApplicantInfo(where, doc.id),
