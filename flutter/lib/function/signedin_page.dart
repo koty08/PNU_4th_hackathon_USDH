@@ -12,6 +12,7 @@ import 'package:usdh/function/board.dart';
 import 'package:usdh/function/mypage.dart';
 import 'package:usdh/boards/delivery_board.dart';
 import 'package:usdh/boards/community_board.dart';
+import 'package:usdh/maps/delivery.dart';
 
 late SignedInPageState pageState;
 

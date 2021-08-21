@@ -917,29 +917,7 @@ class CommunityShowState extends State<CommunityShow> {
                         child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        cSizedBox(35, 0),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            IconButton(
-                              icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                            ),
-                            headerText("커뮤니티"),
-                            cSizedBox(0, 175),
-                            IconButton(
-                              icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                              onPressed: () {
-                                var myInfo = fp.getInfo();
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                              },
-                            ),
-                          ],
-                        ),
-                        headerDivider(),
+                        topbar2(context, "커뮤니티"),
                         Padding(
                             padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                             child: Wrap(direction: Axis.vertical, spacing: 15, children: [
@@ -1197,34 +1175,13 @@ class CommunityModifyState extends State<CommunityModify> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      cSizedBox(35, 0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                          headerText("글 수정"),
-                          cSizedBox(0, 160),
-                          IconButton(
-                              icon: Icon(
-                                Icons.check,
-                                color: Color(0xff639ee1),
-                              ),
-                              onPressed: () {
-                                FocusScope.of(context).requestFocus(new FocusNode());
-                                if (_formKey.currentState!.validate()) {
-                                  updateOnFS();
-                                  Navigator.pop(context);
-                                }
-                              }),
-                        ],
-                      ),
-                      headerDivider(),
+                      topbar3(context, "글 수정", () {
+                        FocusScope.of(context).requestFocus(new FocusNode());
+                        if (_formKey.currentState!.validate()) {
+                          updateOnFS();
+                          Navigator.pop(context);
+                        }
+                      }),
                       Padding(
                         padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
                         child: Column(

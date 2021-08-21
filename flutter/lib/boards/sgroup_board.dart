@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/services.dart';
 import 'package:material_tag_editor/tag_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:usdh/Widget/widget.dart';
@@ -736,22 +737,7 @@ class SgroupShowState extends State<SgroupShow> {
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    cSizedBox(35, 0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                        headerText("소모임"),
-                        cSizedBox(0, 250),
-                      ],
-                    ),
-                    headerDivider(),
+                    topbar2(context, "소모임"),
                     Padding(
                         padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                         child: Wrap(direction: Axis.vertical, spacing: 15, children: [
@@ -874,6 +860,8 @@ class SgroupShowState extends State<SgroupShow> {
         bottomNavigationBar: StreamBuilder(
             stream: fs.collection('sgroup_board').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+              final width = MediaQuery.of(context).size.width;
+              final height = MediaQuery.of(context).size.height;
               if (snapshot.hasData && !snapshot.data!.exists) {
                 return CircularProgressIndicator();
               } else if (snapshot.hasData) {
@@ -1030,67 +1018,96 @@ class SgroupShowState extends State<SgroupShow> {
                             List<String> _myApplication = [];
 
                             showDialog(
-                                context: context,
-                                builder: (BuildContext con) {
-                                  return Form(
-                                      key: _formKey,
-                                      child: AlertDialog(
-                                        title: Text("방장한테 보낼 메세지를 입력하세요"),
-                                        content: Column(
-                                          children: [
-                                            TextFormField(
-                                                controller: msgInput,
-                                                decoration: InputDecoration(hintText: "메세지를 입력하세요."),
-                                                validator: (text) {
-                                                  if (text == null || text.isEmpty) {
-                                                    return "메세지를 입력하지 않으셨습니다.";
-                                                  }
-                                                  return null;
-                                                }),
-                                          ],
-                                        ),
-                                        actions: <Widget>[
-                                          TextButton(
-                                              onPressed: () async {
-                                                if (_formKey.currentState!.validate()) {
-                                                  await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
-                                                    if (snap.docs.length != 0) {
-                                                      for (DocumentSnapshot doc in snap.docs) {
-                                                        _myApplication.add(doc.id);
-                                                      }
-                                                    } else {
-                                                      print('myApplication 콜렉션이 비어있읍니다.');
+                              context: context,
+                              barrierColor: null,
+                              builder: (BuildContext con) {
+                                return Form(
+                                    key: _formKey,
+                                    child: AlertDialog(
+                                        elevation: 0.3,
+                                        contentPadding: EdgeInsets.zero,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+                                        backgroundColor: Colors.grey[200],
+                                        content: Container(
+                                          height: height * 0.32,
+                                          width: width*0.8,
+                                          padding: EdgeInsets.fromLTRB(0, height*0.05, 0, 0),
+                                          child: Column(
+                                            children: [
+                                              Container(width: width*0.65, child: smallText("팀장한테 보낼 메세지를 입력하세요\n(20자 이내)", 16, Color(0xB2000000))),
+                                              Container(width: width*0.65,
+                                                padding: EdgeInsets.fromLTRB(0, height*0.02, 0, 0),
+                                                child: TextFormField(
+                                                  controller: msgInput,
+                                                  keyboardType: TextInputType.multiline,
+                                                  inputFormatters: [
+                                                    LengthLimitingTextInputFormatter(20),
+                                                  ],
+                                                  style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14),
+                                                  decoration: InputDecoration(
+                                                      focusedBorder: UnderlineInputBorder(
+                                                        borderSide: BorderSide(color: Colors.black87, width: 1.5),
+                                                      ),
+                                                      hintText: "메세지를 입력하세요.", hintStyle: TextStyle(fontFamily: "SCDream", color: Colors.black45, fontWeight: FontWeight.w500, fontSize: 14)
+                                                  ),
+                                                  validator: (text) {
+                                                    if (text == null || text.isEmpty) {
+                                                      return "메세지를 입력하지 않으셨습니다.";
                                                     }
-                                                  });
-
-                                                  if (_myApplication.contains(title)) {
-                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                    showMessage("이미 신청한 방입니다.");
-                                                  } else if (_currentMember >= _limitedMember) {
-                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                    showMessage("방이 모두 차있습니다.");
-                                                  } else {
-                                                    // 방장에게 날리는 메세지
-                                                    await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                                      'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
-                                                      'messages': FieldValue.arrayUnion([msgInput.text]),
-                                                    });
-                                                    // 내 정보에 신청 정보를 기록
-                                                    await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({'where': "sgroup_board", 'isRejected': false, 'isJoined': false});
-                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                    showMessage("참가 신청을 보냈습니다.");
+                                                    return null;
                                                   }
-                                                  Navigator.pop(con);
-                                                }
-                                              },
-                                              child: Text("확인")),
-                                          TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(con);
-                                              },
-                                              child: Text("취소")),
-                                        ],
-                                      ));
+                                                ),
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                children: [
+                                                  TextButton(
+                                                    onPressed: () async {
+                                                      if (_formKey.currentState!.validate()) {
+                                                        await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                                                          if (snap.docs.length != 0) {
+                                                            for (DocumentSnapshot doc in snap.docs) {
+                                                              _myApplication.add(doc.id);
+                                                            }
+                                                          } else {
+                                                            print('myApplication 콜렉션이 비어있읍니다.');
+                                                          }
+                                                        });
+
+                                                        if (_myApplication.contains(title)) {
+                                                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                          showMessage("이미 신청한 방입니다.");
+                                                        } else if (_currentMember >= _limitedMember) {
+                                                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                          showMessage("방이 모두 차있습니다.");
+                                                        } else {
+                                                          // 방장에게 날리는 메세지
+                                                          await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                                            'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
+                                                            'messages': FieldValue.arrayUnion([msgInput.text]),
+                                                          });
+                                                          // 내 정보에 신청 정보를 기록
+                                                          await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({'where': "sgroup_board", 'isRejected': false, 'isJoined': false});
+                                                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                          showMessage("참가 신청을 보냈습니다.");
+                                                        }
+                                                        Navigator.pop(con);
+                                                      }
+                                                    },
+                                                    child: info2Text("확인")
+                                                  ),
+                                                  TextButton(onPressed: (){
+                                                    Navigator.pop(con);
+                                                  },
+                                                      child: info2Text("취소")
+                                                  ),
+                                                  cSizedBox(0, width*0.05)
+                                                ],
+                                              )
+                                            ],
+                                          )
+                                        )
+                                    ));
                                 });
                           },
                         ),
@@ -1200,34 +1217,13 @@ class SgroupModifyState extends State<SgroupModify> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            cSizedBox(35, 0),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                headerText("글 수정"),
-                                cSizedBox(0, 160),
-                                IconButton(
-                                    icon: Icon(
-                                      Icons.check,
-                                      color: Color(0xff639ee1),
-                                    ),
-                                    onPressed: () {
-                                      FocusScope.of(context).requestFocus(new FocusNode());
-                                      if (_formKey.currentState!.validate()) {
-                                        updateOnFS();
-                                        Navigator.pop(context);
-                                      }
-                                    }),
-                              ],
-                            ),
-                            headerDivider(),
+                            topbar3(context, "글 수정", () {
+                              FocusScope.of(context).requestFocus(new FocusNode());
+                              if (_formKey.currentState!.validate()) {
+                                updateOnFS();
+                                Navigator.pop(context);
+                              }
+                            }),
                             Padding(
                                 padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                                 child: Wrap(

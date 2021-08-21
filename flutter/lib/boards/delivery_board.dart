@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_tag_editor/tag_editor.dart';
@@ -17,7 +18,6 @@ import 'package:usdh/maps/delivery.dart';
 import 'dart:async';
 
 late DeliveryWriteState pageState;
-late DeliveryMapState pageState1;
 late DeliveryListState pageState2;
 late DeliveryShowState pageState3;
 late DeliveryModifyState pageState4;
@@ -304,159 +304,6 @@ class _Chip extends StatelessWidget {
   }
 }
 
-/* ---------------------- Board Map (Delivery) ---------------------- */
-
-class DeliveryMap extends StatefulWidget {
-  @override
-  DeliveryMapState createState() {
-    pageState1 = DeliveryMapState();
-    return pageState1;
-  }
-}
-
-class DeliveryMapState extends State<DeliveryMap> {
-  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
-  late FirebaseProvider fp;
-  Completer<GoogleMapController> _controller = Completer();
-
-  // 초기 위치 : 부산대학교 정문
-  CameraPosition _initialCameraPosition = CameraPosition(
-    target: LatLng(35.23159301295487, 129.08395882267462),
-    zoom: 16,
-  );
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    fp = Provider.of<FirebaseProvider>(context);
-    fp.setInfo();
-
-    return Scaffold(
-      body: RefreshIndicator(
-        //당겨서 새로고침
-        onRefresh: () async {
-          setState(() {
-            colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
-          });
-        },
-        child: StreamBuilder<QuerySnapshot>(
-            stream: colstream,
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (!snapshot.hasData) {
-                return CircularProgressIndicator();
-              }
-              return Column(children: [
-                cSizedBox(35, 0),
-                Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      headerText("배달"),
-                      cSizedBox(0, 50),
-                      Wrap(
-                        spacing: -5,
-                        children: [
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
-                            onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryMap()));
-                            },
-                          ),
-                          //새로고침 기능
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
-                            onPressed: () {
-                              setState(() {
-                                colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
-                              });
-                            },
-                          ),
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                            onPressed: () {
-                              var myInfo = fp.getInfo();
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                            },
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                headerDivider(),
-                // ------------------------------ 아래에 지도 추가 ------------------------------
-                Expanded(
-                    child: Stack(
-                  children: [
-                    GoogleMap(
-                        mapType: MapType.normal,
-                        initialCameraPosition: _initialCameraPosition,
-                        onMapCreated: (GoogleMapController controller) {
-                          _controller.complete(controller);
-                        },
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: true),
-                    Positioned(
-                      top: 27,
-                      left: 26,
-                      child: IconButton(
-                        icon: Icon(Icons.my_location), //Image.asset('assets/images/icon/iconteam.png', width: 22, height: 22),
-                        onPressed: _goToCurrentLocation,
-                      ),
-                    ),
-                  ],
-                )),
-              ]);
-            }),
-      ),
-      floatingActionButton: FloatingActionButton(
-          backgroundColor: Color(0xff639ee1),
-          child: Image(
-            image: AssetImage('assets/images/icon/iconpencil.png'),
-            height: 28,
-            width: 28,
-          ),
-          onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryWrite()));
-          }),
-    );
-  }
-
-  // Floating 버튼 클릭 시 현재 위치 표시
-  void _goToCurrentLocation() async {
-    final locData = await Location().getLocation();
-    final lat = locData.latitude;
-    final lng = locData.longitude;
-
-    CameraPosition _currentLocation = CameraPosition(
-      target: LatLng(lat!, lng!),
-      zoom: 16,
-    );
-
-    final GoogleMapController controller = await _controller.future;
-    Location location = new Location();
-    location.onLocationChanged.listen((event) {
-      controller.animateCamera(CameraUpdate.newCameraPosition(_currentLocation));
-    });
-  }
-}
-
 /* ---------------------- Board List (Delivery) ---------------------- */
 
 class DeliveryList extends StatefulWidget {
@@ -501,6 +348,8 @@ class DeliveryListState extends State<DeliveryList> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: RefreshIndicator(
@@ -517,143 +366,27 @@ class DeliveryListState extends State<DeliveryList> {
                 return CircularProgressIndicator();
               }
               return Column(children: [
-                cSizedBox(35, 0),
-                Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      headerText("배달"),
-                      cSizedBox(0, 50),
-                      Wrap(
-                        spacing: -5,
-                        children: [
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
-                            onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryGoogleMap()));
-                            },
-                          ),
-                          //새로고침 기능
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
-                            onPressed: () {
-                              setState(() {
-                                colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
-                              });
-                            },
-                          ),
-                          //검색 기능 팝업
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
-                            onPressed: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (BuildContext con) {
-                                    return StatefulBuilder(builder: (con, setS) {
-                                      return Form(
-                                          key: _formKey,
-                                          child: AlertDialog(
-                                            title: Row(
-                                              children: [
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "제목",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setS(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
-                                                ),
-                                                Text(
-                                                  "제목 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "태그",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setS(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
-                                                ),
-                                                Text(
-                                                  "태그 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            content: TextFormField(
-                                                controller: searchInput,
-                                                decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
-                                                validator: (text) {
-                                                  if (text == null || text.isEmpty) {
-                                                    return "검색어를 입력하지 않으셨습니다.";
-                                                  }
-                                                  return null;
-                                                }),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                  onPressed: () {
-                                                    if (_formKey.currentState!.validate()) {
-                                                      if (search == "제목") {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      } else {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      }
-                                                    }
-                                                  },
-                                                  child: Text("검색")),
-                                              TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(con);
-                                                    searchInput.clear();
-                                                  },
-                                                  child: Text("취소")),
-                                            ],
-                                          ));
-                                    });
-                                  });
-                            },
-                          ),
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                            onPressed: () {
-                              var myInfo = fp.getInfo();
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                            },
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                headerDivider(),
+                topbar6_map(context, "배달", DeliveryMap(), () {
+                  setState(() {
+                    colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+                  });
+                }, _formKey, search, searchInput,() {
+                  if (_formKey.currentState!.validate()) {
+                    if (search == "제목") {
+                      setState(() {
+                        colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                      });
+                      searchInput.clear();
+                      Navigator.pop(context);
+                    } else {
+                      setState(() {
+                        colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
+                      });
+                      searchInput.clear();
+                      Navigator.pop(context);
+                    }
+                  }
+                } ),
                 Container(
                     padding: EdgeInsets.fromLTRB(0, 10, 25, 5),
                     child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -705,36 +438,36 @@ class DeliveryListState extends State<DeliveryList> {
                         String time = ' | ' + '마감' + doc['time'].substring(10, 16) + ' | ';
                         String writer = doc['writer'];
                         return Column(children: [
-                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                           InkWell(
                               onTap: () {
                                 Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(id: doc.id)));
                                 FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views": doc["views"] + 1});
                               },
                               child: Container(
-                                  margin: EdgeInsets.fromLTRB(25, 17, 10, 0),
+                                  margin: EdgeInsets.fromLTRB(width*0.07, height*0.018, 0, 0),
                                   child: Column(children: [
                                     Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                                      cSizedBox(0, 10),
+                                      cSizedBox(0, width*0.01),
                                       Container(
-                                          width: MediaQuery.of(context).size.width * 0.7,
-                                          height: 13,
-                                          child: ListView.builder(
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount: doc['tagList'].length,
-                                              itemBuilder: (context, index) {
-                                                String tag = doc['tagList'][index].toString();
-                                                return GestureDetector(
-                                                    onTap: () {
-                                                      setState(() {
-                                                        colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: tag).snapshots();
-                                                      });
-                                                    },
-                                                    child: smallText(tag, 12, Color(0xffa9aaaf)));
-                                              })),
-                                      cSizedBox(0, 10),
+                                        width: width * 0.63,
+                                        height: 13,
+                                        child: ListView.builder(
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: doc['tagList'].length,
+                                          itemBuilder: (context, index) {
+                                            String tag = doc['tagList'][index].toString();
+                                            return GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: tag).snapshots();
+                                                  });
+                                                },
+                                                child: smallText(tag, 12, Color(0xffa9aaaf)));
+                                          })
+                                      ),
+                                      cSizedBox(0, width*0.05),
                                       Container(
-                                          width: 50,
+                                          width: width*0.2,
                                           child: Row(
                                             crossAxisAlignment: CrossAxisAlignment.end,
                                             children: [
@@ -749,8 +482,8 @@ class DeliveryListState extends State<DeliveryList> {
                                                       height: 15,
                                                       width: 15,
                                                     ),
-                                              cSizedBox(20, 7),
-                                              smallText(member, 13, Color(0xffa9aaaf))
+                                              cSizedBox(20, width*0.02),
+                                              Container(width: width*0.13, child: smallText(member, 13, Color(0xffa9aaaf)))
                                             ],
                                           ))
                                     ]),
@@ -843,8 +576,8 @@ class DeliveryShowState extends State<DeliveryShow> {
 
     return Scaffold(
         body: StreamBuilder(
-            stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
-            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+          stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
+          builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               fp.setInfo();
 
               if (snapshot.hasData && !snapshot.data!.exists) {
@@ -854,25 +587,10 @@ class DeliveryShowState extends State<DeliveryShow> {
                 String time = snapshot.data!['time'].substring(10, 16);
                 String writer = snapshot.data!['writer'];
                 return SingleChildScrollView(
-                    child: Column(
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    cSizedBox(35, 0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                        headerText("배달"),
-                        cSizedBox(0, 250),
-                      ],
-                    ),
-                    headerDivider(),
+                    topbar2(context, "배달"),
                     Padding(
                         padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                         child: Wrap(direction: Axis.vertical, spacing: 15, children: [
@@ -923,8 +641,10 @@ class DeliveryShowState extends State<DeliveryShow> {
               }
             }),
         bottomNavigationBar: StreamBuilder(
-            stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
-            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+          stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
+          builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+            final width = MediaQuery.of(context).size.width;
+            final height = MediaQuery.of(context).size.height;
               if (snapshot.hasData && !snapshot.data!.exists) {
                 return CircularProgressIndicator();
               } else if (snapshot.hasData) {
@@ -1080,67 +800,96 @@ class DeliveryShowState extends State<DeliveryShow> {
                             List<String> _myApplication = [];
 
                             showDialog(
-                                context: context,
-                                builder: (BuildContext con) {
+                              context: context,
+                              barrierColor: null,
+                              builder: (BuildContext con) {
                                   return Form(
-                                      key: _formKey,
-                                      child: AlertDialog(
-                                        title: Text("방장한테 보낼 메세지를 입력하세요"),
-                                        content: Column(
+                                    key: _formKey,
+                                    child: AlertDialog(
+                                      elevation: 0.3,
+                                      contentPadding: EdgeInsets.zero,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+                                      backgroundColor: Colors.grey[200],
+                                      content: Container(
+                                        height: height * 0.32,
+                                        width: width*0.8,
+                                        padding: EdgeInsets.fromLTRB(0, height*0.05, 0, 0),
+                                        child: Column(
                                           children: [
-                                            TextFormField(
+                                            Container(width: width*0.65, child: smallText("방장한테 보낼 메세지를 입력하세요\n(20자 이내)", 16, Color(0xB2000000))),
+                                            Container(width: width*0.65,
+                                              padding: EdgeInsets.fromLTRB(0, height*0.02, 0, 0),
+                                              child: TextFormField(
                                                 controller: msgInput,
-                                                decoration: InputDecoration(hintText: "메세지를 입력하세요."),
+                                                keyboardType: TextInputType.multiline,
+                                                inputFormatters: [
+                                                  LengthLimitingTextInputFormatter(20),
+                                                ],
+                                                style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14),
+                                                decoration: InputDecoration(
+                                                  focusedBorder: UnderlineInputBorder(
+                                                    borderSide: BorderSide(color: Colors.black87, width: 1.5),
+                                                  ),
+                                                  hintText: "메세지를 입력하세요.", hintStyle: TextStyle(fontFamily: "SCDream", color: Colors.black45, fontWeight: FontWeight.w500, fontSize: 14)
+                                                ),
                                                 validator: (text) {
                                                   if (text == null || text.isEmpty) {
                                                     return "메세지를 입력하지 않으셨습니다.";
                                                   }
                                                   return null;
-                                                }),
-                                          ],
-                                        ),
-                                        actions: <Widget>[
-                                          TextButton(
-                                              onPressed: () async {
-                                                if (_formKey.currentState!.validate()) {
-                                                  await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
-                                                    if (snap.docs.length != 0) {
-                                                      for (DocumentSnapshot doc in snap.docs) {
-                                                        _myApplication.add(doc.id);
-                                                      }
-                                                    } else {
-                                                      print('myApplication 콜렉션이 비어있읍니다.');
-                                                    }
-                                                  });
-
-                                                  if (_myApplication.contains(title)) {
-                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                    showMessage("이미 신청한 방입니다.");
-                                                  } else if (_currentMember >= _limitedMember) {
-                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                    showMessage("방이 모두 차있습니다.");
-                                                  } else {
-                                                    // 방장에게 날리는 메세지
-                                                    await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                                      'isFineForMembers.${myInfo['nick']}': msgInput.text,
-                                                    });
-                                                    // 내 정보에 신청 정보를 기록
-                                                    await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({'where': "delivery_board", 'isRejected': false, 'isJoined': false});
-                                                    // print('참가 신청을 보냈습니다.');
-                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                    showMessage("참가 신청을 보냈습니다.");
-                                                  }
-                                                  Navigator.pop(con);
                                                 }
-                                              },
-                                              child: Text("확인")),
-                                          TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(con);
-                                              },
-                                              child: Text("취소")),
-                                        ],
-                                      ));
+                                              ),
+                                            ),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: [
+                                                TextButton(
+                                                  onPressed: () async {
+                                                    if (_formKey.currentState!.validate()) {
+                                                      await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                                                        if (snap.docs.length != 0) {
+                                                          for (DocumentSnapshot doc in snap.docs) {
+                                                            _myApplication.add(doc.id);
+                                                          }
+                                                        } else {
+                                                          print('myApplication 콜렉션이 비어있읍니다.');
+                                                        }
+                                                      });
+
+                                                      if (_myApplication.contains(title)) {
+                                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                        showMessage("이미 신청한 방입니다.");
+                                                      } else if (_currentMember >= _limitedMember) {
+                                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                        showMessage("방이 모두 차있습니다.");
+                                                      } else {
+                                                        // 방장에게 날리는 메세지
+                                                        await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                                          'isFineForMembers.${myInfo['nick']}': msgInput.text,
+                                                        });
+                                                        // 내 정보에 신청 정보를 기록
+                                                        await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({'where': "delivery_board", 'isRejected': false, 'isJoined': false});
+                                                        // print('참가 신청을 보냈습니다.');
+                                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                        showMessage("참가 신청을 보냈습니다.");
+                                                      }
+                                                      Navigator.pop(con);
+                                                    }
+                                                  },
+                                                  child: info2Text("확인")
+                                                ),
+                                                TextButton(onPressed: (){
+                                                  Navigator.pop(con);
+                                                },
+                                                    child: info2Text("취소")
+                                                ),
+                                                cSizedBox(0, width*0.05)
+                                              ],
+                                            )
+                                          ],
+                                        )
+                                      )
+                                    ));
                                 });
                           },
                         ),

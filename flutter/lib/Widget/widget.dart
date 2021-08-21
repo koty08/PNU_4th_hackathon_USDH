@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:usdh/chat/home.dart';
+import 'package:usdh/login/firebase_provider.dart';
 
 Widget cSizedBox(double h, double w) {
   return SizedBox(
@@ -31,6 +34,32 @@ Widget topbar2 (BuildContext context, String text) {
           cSizedBox(0, width*0.08),
           Container(width: MediaQuery.of(context).size.width * 0.6,
             child: headerText(text),),
+        ],
+      ),
+      headerDivider(),
+    ],
+  );
+}
+
+Widget profilebar2 (BuildContext context, String nick, String text) {
+  final width = MediaQuery.of(context).size.width;
+  final height = MediaQuery.of(context).size.height;
+  return Column(
+    children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(
+            padding: EdgeInsets.fromLTRB(width*0.05, 0, 0, 0),
+            icon: Image.asset('assets/images/icon/iconback.png', width: 20, height: 20),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          cSizedBox(0, width*0.05),
+          Container(width: MediaQuery.of(context).size.width * 0.6,
+            child: smallText(nick + " 님의 " + text, 16, Color(0xff548ee0)),),
         ],
       ),
       headerDivider(),
@@ -71,6 +100,188 @@ Widget topbar3 (BuildContext context, String text, Function()? function) {
     ],
   );
 }
+
+Widget topbar5 (BuildContext context, String text, Function()? function, Widget route) {
+  final width = MediaQuery.of(context).size.width;
+  final height = MediaQuery.of(context).size.height;
+  late FirebaseProvider fp = Provider.of<FirebaseProvider>(context);
+  return Column(
+    children: [
+      cSizedBox(35, 0),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(
+            padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
+            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          cSizedBox(0, width*0.07),
+          headerText(text),
+          cSizedBox(0, width*0.34),
+          Wrap(
+            spacing: -5,
+            children: [
+              IconButton(
+                icon: Image.asset('assets/images/icon/icongoboard.png', width: 22, height: 22),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => route));
+                },
+              ),
+              //새로고침 기능
+              IconButton(
+                icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
+                onPressed: function,
+              ),
+              IconButton(
+                icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
+                onPressed: () {
+                  var myInfo = fp.getInfo();
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
+                },
+              ),
+            ],
+          )
+        ],
+      ),
+      headerDivider(),
+    ],
+  );
+}
+
+Widget topbar6_map (BuildContext context, String text, Widget route, Function()? function, Key? key,
+    String search, TextEditingController? searchInput, Function()? function2) {
+  final width = MediaQuery.of(context).size.width;
+  final height = MediaQuery.of(context).size.height;
+  late FirebaseProvider fp = Provider.of<FirebaseProvider>(context);
+  return Column(
+    children: [
+      cSizedBox(35, 0),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(
+            padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
+            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          cSizedBox(0, width*0.07),
+          headerText(text),
+          cSizedBox(0, width*0.23),
+          Wrap(
+            spacing: -5,
+            children: [
+              IconButton(
+                icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => route));
+                },
+              ),
+              //새로고침 기능
+              IconButton(
+                icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
+                onPressed: function,
+              ),
+              //검색 기능 팝업
+              IconButton(
+                icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext con) {
+                        return StatefulBuilder(builder: (con, setS) {
+                          return Form(
+                              key: key,
+                              child: AlertDialog(
+                                title: Row(
+                                  children: [
+                                    Theme(
+                                      data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                      child: Radio(
+                                          value: "제목",
+                                          activeColor: Colors.black38,
+                                          groupValue: search,
+                                          onChanged: (String? value) {
+                                            setS(() {
+                                              search = value!;
+                                            });
+                                          }),
+                                    ),
+                                    Text(
+                                      "제목 검색",
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                    Theme(
+                                      data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                      child: Radio(
+                                          value: "태그",
+                                          activeColor: Colors.black38,
+                                          groupValue: search,
+                                          onChanged: (String? value) {
+                                            setS(() {
+                                              search = value!;
+                                            });
+                                          }),
+                                    ),
+                                    Text(
+                                      "태그 검색",
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                content: TextFormField(
+                                    controller: searchInput,
+                                    decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
+                                    validator: (text) {
+                                      if (text == null || text.isEmpty) {
+                                        return "검색어를 입력하지 않으셨습니다.";
+                                      }
+                                      return null;
+                                    }),
+                                actions: <Widget>[
+                                  TextButton(
+                                      onPressed: function2,
+                                      child: Text("검색")),
+                                  TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(con);
+                                        searchInput!.clear();
+                                      },
+                                      child: Text("취소")),
+                                ],
+                              ));
+                        });
+                      });
+                },
+              ),
+              IconButton(
+                icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
+                onPressed: () {
+                  var myInfo = fp.getInfo();
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
+                },
+              ),
+            ],
+          )
+        ],
+      ),
+      headerDivider(),
+    ],
+  );
+}
+
 
 /* ---------------------- inputNav ---------------------- */
 
@@ -139,6 +350,13 @@ Widget smallText(String text, double size, Color color) {
   return Text(
     text, overflow: TextOverflow.ellipsis,
       style: TextStyle(fontFamily: "SCDream", color: color, fontWeight: FontWeight.w500, fontSize: size)
+  );
+}
+
+Widget middleText(String text, double size, Color color) {
+  return Text(
+      text, overflow: TextOverflow.ellipsis,
+      style: TextStyle(fontFamily: "SCDream", color: color, fontWeight: FontWeight.w700, fontSize: size)
   );
 }
 

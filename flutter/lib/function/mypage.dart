@@ -56,6 +56,8 @@ class MyPageState extends State<MyPage> {
         body: StreamBuilder(
         stream: fs.collection('users').doc(fp.getInfo()['email']).snapshots(),
         builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+          final width = MediaQuery.of(context).size.width;
+          final height = MediaQuery.of(context).size.height;
           if (snapshot.hasData) {
             return SingleChildScrollView(
                 child: Column(
@@ -229,62 +231,88 @@ class MyPageState extends State<MyPage> {
 
                           touchableText(() {
                             showDialog(context: context,
-                                builder: (BuildContext con){
-                                  return Form(
-                                      key: _formKey2,
-                                      child:
-                                      AlertDialog(
-                                        title: Text("탈퇴하시려면 현재 웹메일과 비밀번호를 입력해주세요."),
-                                        content: Column(
+                              barrierColor: null,
+                              builder: (BuildContext con){
+                                return Form(
+                                    key: _formKey2,
+                                    child:
+                                    AlertDialog(
+                                      elevation: 0.5,
+                                      contentPadding: EdgeInsets.zero,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+                                      backgroundColor: Colors.grey[200],
+                                      content: Container(
+                                        height: height * 0.4,
+                                        width: width*0.8,
+                                        padding: EdgeInsets.fromLTRB(0, height*0.05, 0, 0),
+                                        child: Column(
                                           children: [
-                                            TextFormField(
+                                            Container(width: width*0.6, child: smallText("탈퇴하시려면 현재 웹메일과 \n비밀번호를 입력해주세요.", 16, Color(0xB2000000))),
+                                            Container(width: width*0.6,
+                                              padding: EdgeInsets.fromLTRB(0, height*0.02, 0, 0),
+                                              child: TextFormField(
                                                 controller: emailInput,
-                                                decoration: InputDecoration(hintText: "이메일을 입력하세요."),
+                                                maxLines: 1,
+                                                style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14),
+                                                decoration: InputDecoration(
+                                                  focusedBorder: UnderlineInputBorder(
+                                                    borderSide: BorderSide(color: Colors.black87, width: 1.5),
+                                                  ),
+                                                  hintText: "이메일을 입력하세요.", hintStyle: TextStyle(fontFamily: "SCDream", color: Colors.black45, fontWeight: FontWeight.w500, fontSize: 14)
+                                                ),
                                                 validator: (text) {
                                                   if (text == null || text.isEmpty) {
                                                     return "이메일을 입력하지 않으셨습니다.";
                                                   }
                                                   return null;
                                                 }
+                                              )
                                             ),
-                                            TextFormField(
+                                            Container(width: width*0.6,
+                                              child: TextFormField(
                                                 controller: pwdInput,
-                                                decoration: InputDecoration(hintText: "비밀번호를 입력하세요."),
-                                                validator: (text) {
+                                                maxLines: 1,
+                                                decoration: InputDecoration(hintText: "비밀번호를 입력하세요.", hintStyle: TextStyle(fontFamily: "SCDream", color: Colors.black45, fontWeight: FontWeight.w500, fontSize: 14)),
+                                                  validator: (text) {
                                                   if (text == null || text.isEmpty) {
                                                     return "비밀번호를 입력하지 않으셨습니다.";
                                                   }
                                                   return null;
                                                 }
+                                              )
                                             ),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: [
+                                                TextButton(onPressed: () {
+                                                  if(_formKey2.currentState!.validate()){
+                                                    if(fp.signIn(emailInput.text, pwdInput.text) == true){
+                                                      fp.withdraw();
+                                                      Navigator.popUntil(con, (route) => route.isFirst);
+                                                    } else{
+                                                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                      showErrorMessage();
+                                                      Navigator.pop(con);
+                                                    }
+                                                  }
+                                                },
+                                                    child: info2Text("확인")
+                                                ),
+                                                TextButton(onPressed: (){
+                                                  Navigator.pop(con);
+                                                },
+                                                    child: info2Text("취소")
+                                                ),
+                                                cSizedBox(0, width*0.05)
+                                              ],
+                                            )
                                           ],
                                         ),
-                                        actions: <Widget>[
-                                          TextButton(onPressed: () {
-                                            if(_formKey2.currentState!.validate()){
-                                              if(fp.signIn(emailInput.text, pwdInput.text) == true){
-                                                fp.withdraw();
-                                                Navigator.popUntil(con, (route) => route.isFirst);
-                                              }
-                                              else{
-                                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                showErrorMessage();
-                                                Navigator.pop(con);
-                                              }
-                                            }
-                                          },
-                                              child: Text("확인")
-                                          ),
-                                          TextButton(onPressed: (){
-                                            Navigator.pop(con);
-                                          },
-                                              child: Text("취소")
-                                          ),
-                                        ],
-                                      )
-                                  );
-                                });
-                          }, "계정 탈퇴"),
+                                      ),
+                                    )
+                                );
+                              });
+                          }, "회원 탈퇴"),
                         ],
                       ),
                     ),

@@ -1,26 +1,30 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:provider/provider.dart';
+import 'package:usdh/Widget/widget.dart';
+import 'package:usdh/boards/delivery_board.dart';
+import 'package:usdh/chat/home.dart';
+import 'package:usdh/login/firebase_provider.dart';
 
 
-class DeliveryGoogleMap extends StatelessWidget {
+late DeliveryMapState pageState1;
+
+
+class DeliveryMap extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Google Maps Demo',
-      home: MapSample(),
-    );
+  DeliveryMapState createState() {
+    pageState1 = DeliveryMapState();
+    return pageState1;
   }
 }
 
-class MapSample extends StatefulWidget {
-  @override
-  State<MapSample> createState() => MapSampleState();
-}
-
-class MapSampleState extends State<MapSample> {
+class DeliveryMapState extends State<DeliveryMap> {
+  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+  late FirebaseProvider fp;
   Completer<GoogleMapController> _controller = Completer();
   var _viewType = 0;
   var _buttonText = "내 위치";
@@ -29,19 +33,69 @@ class MapSampleState extends State<MapSample> {
   // 초기 위치 : 부산대학교 정문
   static final CameraPosition _pusanUniversity = CameraPosition(
     target: LatLng(35.23159301295487, 129.08395882267462),
-    zoom: 16);
+    zoom: 16
+  );
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      body: GoogleMap(
-        mapType: MapType.normal,
-        initialCameraPosition: _pusanUniversity,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
+    fp = Provider.of<FirebaseProvider>(context);
+    fp.setInfo();
+
+    return Scaffold(
+      body: RefreshIndicator(
+        //당겨서 새로고침
+        onRefresh: () async {
+          setState(() {
+            colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+          });
         },
-        myLocationEnabled: true,
-        myLocationButtonEnabled: false,
+        child: StreamBuilder<QuerySnapshot>(
+            stream: colstream,
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (!snapshot.hasData) {
+                return CircularProgressIndicator();
+              }
+              return Column(children: [
+                topbar5(context, "배달", () {
+                  setState(() {
+                    colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+                  });
+                }, DeliveryList()),
+                // ------------------------------ 아래에 지도 추가 ------------------------------
+                Expanded(
+                    child: Stack(
+                      children: [
+                        GoogleMap(
+                          mapType: MapType.normal,
+                          initialCameraPosition: _pusanUniversity,
+                          onMapCreated: (GoogleMapController controller) {
+                            _controller.complete(controller);
+                          },
+                          myLocationEnabled: true,
+                          myLocationButtonEnabled: false,
+                        ),
+                        /*Positioned(
+                          top: 27,
+                          left: 26,
+                          child: IconButton(
+                            icon: Icon(Icons.my_location), //Image.asset('assets/images/icon/iconteam.png', width: 22, height: 22),
+                            onPressed: _goToCurrentLocation,
+                          ),
+                        ),*/
+                      ],
+                    )),
+              ]);
+            }),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAndChangeViewType,
@@ -90,8 +144,8 @@ class MapSampleState extends State<MapSample> {
     currentLocation = await location.getLocation();
     controller.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(
-        target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-        zoom: 16),
+          target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
+          zoom: 16),
     ));
     _lock = true;
   }

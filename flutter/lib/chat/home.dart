@@ -205,6 +205,8 @@ class HomeScreenState extends State<HomeScreen> {
                     return StreamBuilder<QuerySnapshot>(
                         stream: streamMessages,
                         builder: (context, AsyncSnapshot<QuerySnapshot> colSnapshotM) {
+                          final width = MediaQuery.of(context).size.width;
+                          final height = MediaQuery.of(context).size.height;
                           if (!docSnapshotMW.hasData || !colSnapshotM.hasData) {
                             return CircularProgressIndicator();
                           }
@@ -249,11 +251,8 @@ class HomeScreenState extends State<HomeScreen> {
                                 margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
                               ),
                               Container(
-                                child: Text(
-                                  lastMessage,
-                                  maxLines: 1,
-                                  style: TextStyle(color: primaryColor),
-                                ),
+                                width: width * 0.5,
+                                child: smallText(lastMessage, 13, Colors.black87),
                                 alignment: Alignment.centerLeft,
                                 margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
                               ),

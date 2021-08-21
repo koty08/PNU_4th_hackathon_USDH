@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:date_format/date_format.dart';
+import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/chat/const.dart';
 import 'package:usdh/chat/widget/loading.dart';
 import 'package:usdh/chat/widget/full_photo.dart';
@@ -35,7 +36,7 @@ class ChatState extends State<Chat> {
 
   // 설정, 퇴장 버튼 생성(버튼이름, 아이콘)
   List<Choice> choices = const <Choice>[
-    const Choice(title: '설정', icon: Icons.settings),
+    const Choice(title: '대화정보', icon: Icons.settings),
     const Choice(title: '퇴장', icon: Icons.exit_to_app),
   ];
 
@@ -45,7 +46,7 @@ class ChatState extends State<Chat> {
       exitChat();
       print('채팅방 퇴장');
     } else {
-      print('프로필 설정');
+      print('대화 정보');
     }
   }
 
@@ -100,24 +101,23 @@ class ChatState extends State<Chat> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Padding(padding: EdgeInsets.fromLTRB(10, 0, 0, 0)),
             IconButton(
+              padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
               icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
-            Padding(padding: EdgeInsets.fromLTRB(10, 0, 0, 0)),
-            Text(
-              '채팅',
-              style: TextStyle(fontFamily: "SCDream", color: Color(0xff548ee0), fontWeight: FontWeight.w500, fontSize: 18),
-            ),
+            cSizedBox(0, width*0.07),
+            headerText("채팅"),
           ],
         ),
         titleSpacing: 0.0,
@@ -126,7 +126,7 @@ class ChatState extends State<Chat> {
         // 채팅방 내의 퇴장, 설정 버튼
         actions: <Widget>[
           PopupMenuButton<Choice>(
-            icon: Image.asset('assets/images/icon/iconthreedot.png', width: 20, height: 20),
+            icon: Image.asset('assets/images/icon/iconthreedot.png', width: 22, height: 22),
             onSelected: onItemMenuPress,
             itemBuilder: (BuildContext context) {
               return choices.map((Choice choice) {
@@ -357,7 +357,7 @@ class ChatScreenState extends State<ChatScreen> {
   //년,월,일
   Text whatDay(DateTime dateTime) {
     String formatted = formatDate(dateTime, [yyyy, '-', mm, '-', dd]);
-    String currentDay = '-------------------------' + formatted.substring(0, 4) + '년 ' + int.parse(formatted.substring(5, 7)).toString() + '월 ' + int.parse(formatted.substring(8, 10)).toString() + '일' + '-------------------------';
+    String currentDay = '-------------------------- ' + formatted.substring(0, 4) + '년 ' + int.parse(formatted.substring(5, 7)).toString() + '월 ' + int.parse(formatted.substring(8, 10)).toString() + '일' + ' --------------------------';
     return Text(currentDay);
   }
 
@@ -433,24 +433,25 @@ class ChatScreenState extends State<ChatScreen> {
 
   //채팅방 내부 메세지 블럭 생성
   Widget buildItem(int index, DocumentSnapshot? document) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     if (document != null) {
       if (document.get('idFrom') == myId) {
-        // 내가 보낸 메세지는 오른쪽에 ( 텍스트, 사진 순서)
+        // 내가 보낸 메세지는 오른쪽에 (텍스트, 사진 순서)
         return Container(
-            child: Column(
+          child: Column(
           children: <Widget>[
             Row(
               children: [
                 document.get('type') == 0
                     ? Container(
-                        child: Text(
-                          document.get('content'),
-                          style: TextStyle(color: primaryColor),
-                        ),
+                        // send 'message'
+                        child: info2Text(document.get('content')),
                         padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
                         width: 200.0,
                         decoration: BoxDecoration(color: Color(0xffc7c7c7), borderRadius: BorderRadius.circular(8.0)),
-                        margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
+                        // 여기 margin 은 채팅~시간 간격인데 이건 큰 의미가 없어보임.. 차라리 시간 부분을 좌측으로 옮기는 게 나을듯함
+                        margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? height * 0.01 : 0, right: 10.0),
                       )
                     : Container(
                         child: OutlinedButton(
@@ -516,14 +517,14 @@ class ChatScreenState extends State<ChatScreen> {
             ),
             // 메세지 보낸 시간 표시
             isLastMessageRight(index)
-                ? Container(
-                    child: Text(
-                      whatTime(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
-                      style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
-                    ),
-                    margin: EdgeInsets.only(right: 10.0, top: 5.0, bottom: 5.0),
-                  )
-                : Container()
+              ? Container(
+                  child: Text(
+                    whatTime(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
+                    style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
+                  ),
+                  margin: EdgeInsets.only(right: 10.0),
+                )
+              : Container()
           ],
           crossAxisAlignment: CrossAxisAlignment.end,
         ));
@@ -643,9 +644,9 @@ class ChatScreenState extends State<ChatScreen> {
                         whatTime(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
                         style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
                       ),
-                      margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
+                      //margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
                     )
-                  : Container()
+                  : SizedBox.shrink()
             ],
             crossAxisAlignment: CrossAxisAlignment.start,
           ),

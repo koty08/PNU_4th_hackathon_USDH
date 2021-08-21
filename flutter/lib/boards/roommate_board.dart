@@ -736,22 +736,7 @@ class RoommateShowState extends State<RoommateShow> {
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    cSizedBox(35, 0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                        headerText("룸메이트"),
-                        cSizedBox(0, 250),
-                      ],
-                    ),
-                    headerDivider(),
+                    topbar2(context, "룸메이트"),
                     Padding(
                         padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                         child: Wrap(direction: Axis.vertical, spacing: 15, children: [
@@ -838,33 +823,6 @@ class RoommateShowState extends State<RoommateShow> {
                                           },
                                           child: Text("팀장 포트폴리오 V"),
                                         ),
-                                        //포트폴리오 onoff표시
-                                        // (doc['portfolio'] == List.empty())?
-                                        //   Visibility(
-                                        //     visible: status,
-                                        //     child: Column(
-                                        //       children: [
-                                        //         Text("자기소개서를 작성하지 않으셨습니다."),
-                                        //       ],
-                                        //     )
-                                        //   ):
-
-                                        //   Visibility(
-                                        //     visible: status,
-                                        //     child: Column(
-                                        //       children: [
-                                        //         (doc['portfolio_tag'] != List.empty())?
-                                        //           tagText(doc['portfolio_tag'].join('')):
-                                        //           Text("태그없음"),
-                                        //         (doc['portfolio'] == List.empty())? Text("작성 X"):
-                                        //         Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                        //         cond2Text(doc['portfolio'][0]),
-                                        //         (doc['portfolio'] == List.empty())? Text("작성 X"):
-                                        //         Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                        //         cond2Text(doc['portfolio'][1]),
-                                        //       ],
-                                        //     )
-                                        //   )
                                       ],
                                     );
                                   } else {
@@ -1210,34 +1168,13 @@ class RoommateModifyState extends State<RoommateModify> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            cSizedBox(35, 0),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                headerText("글 수정"),
-                                cSizedBox(0, 160),
-                                IconButton(
-                                    icon: Icon(
-                                      Icons.check,
-                                      color: Color(0xff639ee1),
-                                    ),
-                                    onPressed: () {
-                                      FocusScope.of(context).requestFocus(new FocusNode());
-                                      if (_formKey.currentState!.validate()) {
-                                        updateOnFS();
-                                        Navigator.pop(context);
-                                      }
-                                    }),
-                              ],
-                            ),
-                            headerDivider(),
+                            topbar3(context, "글 수정", () {
+                              FocusScope.of(context).requestFocus(new FocusNode());
+                              if (_formKey.currentState!.validate()) {
+                                updateOnFS();
+                                Navigator.pop(context);
+                              }
+                            }),
                             Padding(
                                 padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                                 child: Wrap(
