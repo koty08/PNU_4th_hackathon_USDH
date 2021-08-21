@@ -837,32 +837,32 @@ class RoommateShowState extends State<RoommateShow> {
                                           child: Text("팀장 포트폴리오 V"),
                                         ),
                                         //포트폴리오 onoff표시
-                                        (doc['portfolio'] == List.empty())?
-                                          Visibility(
-                                            visible: status,
-                                            child: Column(
-                                              children: [
-                                                Text("자기소개서를 작성하지 않으셨습니다."),
-                                              ],
-                                            )
-                                          ):
+                                        // (doc['portfolio'] == List.empty())?
+                                        //   Visibility(
+                                        //     visible: status,
+                                        //     child: Column(
+                                        //       children: [
+                                        //         Text("자기소개서를 작성하지 않으셨습니다."),
+                                        //       ],
+                                        //     )
+                                        //   ):
 
-                                          Visibility(
-                                            visible: status,
-                                            child: Column(
-                                              children: [
-                                                (doc['portfolio_tag'] != List.empty())?
-                                                  tagText(doc['portfolio_tag'].join('')):
-                                                  Text("태그없음"),
-                                                (doc['portfolio'] == List.empty())? Text("작성 X"):
-                                                Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                                cond2Text(doc['portfolio'][0]),
-                                                (doc['portfolio'] == List.empty())? Text("작성 X"):
-                                                Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                                cond2Text(doc['portfolio'][1]),
-                                              ],
-                                            )
-                                          )
+                                        //   Visibility(
+                                        //     visible: status,
+                                        //     child: Column(
+                                        //       children: [
+                                        //         (doc['portfolio_tag'] != List.empty())?
+                                        //           tagText(doc['portfolio_tag'].join('')):
+                                        //           Text("태그없음"),
+                                        //         (doc['portfolio'] == List.empty())? Text("작성 X"):
+                                        //         Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
+                                        //         cond2Text(doc['portfolio'][0]),
+                                        //         (doc['portfolio'] == List.empty())? Text("작성 X"):
+                                        //         Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
+                                        //         cond2Text(doc['portfolio'][1]),
+                                        //       ],
+                                        //     )
+                                        //   )
                                       ],
                                     );
                                   }
@@ -995,14 +995,15 @@ class RoommateShowState extends State<RoommateShow> {
                             });
 
                             if (!_myApplication.contains(title)) {
-                              print('참가 신청하지 않은 방입니다!!');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              showMessage("참가 신청하지 않은 방입니다.");
                             } else {
                               await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
                                 'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
                               });
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
-
-                              print('참가 신청을 취소했습니다.');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              showMessage("참가 신청을 보냈습니다.");
                             }
                           },
                         ),
@@ -1037,7 +1038,8 @@ class RoommateShowState extends State<RoommateShow> {
                             });
 
                             if (_myApplication.contains(title)) {
-                              print('이미 신청(가입)한 방입니다!!');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              showMessage("이미 신청한 방입니다.");
                             } else if (_currentMember >= _limitedMember) {
                               print('This room is full');
                             } else {
@@ -1049,7 +1051,8 @@ class RoommateShowState extends State<RoommateShow> {
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
                                 'where': "roommate_board",
                               });
-                              print('참가 신청을 보냈습니다.');
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              showMessage("참가 신청을 보냈습니다.");
                             }
                           },
                         ),
@@ -1060,6 +1063,19 @@ class RoommateShowState extends State<RoommateShow> {
               } else
                 return CircularProgressIndicator();
             }));
+  }
+  showMessage(String msg){
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Colors.blue[200],
+      duration: Duration(seconds: 10),
+      content: Text(msg),
+      action: SnackBarAction(
+        label: "확인",
+        textColor: Colors.black,
+        onPressed: () {},
+      ),
+    ));
   }
 }
 

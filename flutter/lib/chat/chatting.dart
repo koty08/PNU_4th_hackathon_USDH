@@ -102,7 +102,6 @@ class ChatState extends State<Chat> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -116,20 +115,15 @@ class ChatState extends State<Chat> {
             Padding(padding: EdgeInsets.fromLTRB(10, 0, 0, 0)),
             Text(
               '채팅',
-              style: TextStyle(fontFamily: "SCDream", color: Color(0xff548ee0), fontWeight: FontWeight.w500, fontSize: 18),),
+              style: TextStyle(fontFamily: "SCDream", color: Color(0xff548ee0), fontWeight: FontWeight.w500, fontSize: 18),
+            ),
           ],
         ),
         titleSpacing: 0.0,
         automaticallyImplyLeading: false,
 
-
-
-
-
         // 채팅방 내의 퇴장, 설정 버튼
         actions: <Widget>[
-
-
           PopupMenuButton<Choice>(
             onSelected: onItemMenuPress,
             itemBuilder: (BuildContext context) {
@@ -149,8 +143,6 @@ class ChatState extends State<Chat> {
                           choice.title,
                           style: TextStyle(color: primaryColor),
                         ),
-
-
                       ],
                     ));
               }).toList();
@@ -314,20 +306,15 @@ class ChatScreenState extends State<ChatScreen> {
       textEditingController.clear();
 
       DocumentReference myDocumentReference = FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString());
-
       List<DocumentReference> peersDocumentReference = [];
       for (var peerId in peerIds) {
         peersDocumentReference.add(FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString()));
       }
-
-      // 나와 상대의 메세지를 firestore에 동시에 저장
       FirebaseFirestore.instance.runTransaction((transaction) async {
-        // 내 messages에 기록
         transaction.set(
           myDocumentReference,
           {'idFrom': myId, 'idTo': peerIds, 'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), 'content': content, 'type': type},
         );
-        // 상대 messages에 기록
         for (var peerDocumentReference in peersDocumentReference) {
           transaction.set(
             peerDocumentReference,
@@ -367,11 +354,7 @@ class ChatScreenState extends State<ChatScreen> {
   //년,월,일
   Text whatDay(DateTime dateTime) {
     String formatted = formatDate(dateTime, [yyyy, '-', mm, '-', dd]);
-    String currentDay = '-------------------------' 
-      + formatted.substring(0, 4) + '년 ' 
-      + int.parse(formatted.substring(5, 7)).toString() + '월 ' 
-      + int.parse(formatted.substring(8, 10)).toString() + '일' 
-      + '-------------------------';
+    String currentDay = '-------------------------' + formatted.substring(0, 4) + '년 ' + int.parse(formatted.substring(5, 7)).toString() + '월 ' + int.parse(formatted.substring(8, 10)).toString() + '일' + '-------------------------';
     return Text(currentDay);
   }
 
@@ -415,8 +398,14 @@ class ChatScreenState extends State<ChatScreen> {
     return true;
   }
 
+  //바로 전이 다른 유저 채팅?
+  bool isDiffUser(int index) {
+    if (listMessage[index + 1].get('idFrom') == listMessage[index].get('idFrom')) return false;
+    return true;
+  }
+
   bool isFirstMessageLeft(int index) {
-    if ((index < listMessage.length - 1 && (listMessage[index + 1].get('idFrom') == myId) || isDiffTimeWithPrevious(index)) || index == listMessage.length - 1) {
+    if ((index < listMessage.length - 1 && (listMessage[index + 1].get('idFrom') == myId) || isDiffTimeWithPrevious(index)) || isDiffUser(index) || index == listMessage.length - 1) {
       return true;
     } else {
       return false;
@@ -424,7 +413,7 @@ class ChatScreenState extends State<ChatScreen> {
   }
 
   bool isLastMessageLeft(int index) {
-    if ((index > 0 && (listMessage[index - 1].get('idFrom') == myId) || isDiffTimeWithFormer(index)) || index == 0) {
+    if ((index > 0 && (listMessage[index - 1].get('idFrom') == myId) || isDiffTimeWithFormer(index)) || isDiffUser(index) || index == 0) {
       return true;
     } else {
       return false;

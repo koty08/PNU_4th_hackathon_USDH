@@ -200,7 +200,6 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                 List<dynamic> rejectedMembers = [];
                 List<dynamic> allMembers = isFineForMembers;
                 bool hasrejected = false;
-                bool wassrejected = false;
                 bool ismember = false;
 
                 if (dataMap.containsKey('rejectedMembers')) {
@@ -229,8 +228,10 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                           shrinkWrap: true,
                           itemCount: allMembers.length,
                           itemBuilder: (context, index) {
+                            bool wasrejected = false;
+
                             if (hasrejected) {
-                              if (rejectedMembers.contains(allMembers[index])) wassrejected = true;
+                              if (rejectedMembers.contains(allMembers[index])) wasrejected = true;
                             }
                             if (members.length != 0) {
                               if (members.contains(allMembers[index])) ismember = true;
@@ -244,7 +245,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                     child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
-                                        if (!wassrejected) ...[
+                                        if (!wasrejected) ...[
                                           cSizedBox(0, width * 0.05),
                                           // 팀빌딩, 소모임 -> 프로필 보기
                                           if (where == "teambuild_board") showProfile(allMembers[index], "portfolio", "portfolio_tag"),
@@ -262,7 +263,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                                     select(snapshot, index, where, members);
                                                   },
                                                   child: smallText('요청중', 13, Color(0xff548ee0))),
-                                        ] else if (wassrejected) ...[
+                                        ] else if (wasrejected) ...[
                                           cSizedBox(0, width * 0.05),
                                           // 팀빌딩, 소모임 -> 프로필 보기
                                           if (where == "teambuild_board") showProfile(allMembers[index], "portfolio", "portfolio_tag"),
@@ -291,20 +292,15 @@ class ShowApplicantListState extends State<ShowApplicantList> {
   // 방 초기화 메세지
   void onSendMessage(String content, String myId, List<dynamic> peerIds, String groupChatId) {
     DocumentReference myDocumentReference = FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString());
-
     List<DocumentReference> peersDocumentReference = [];
     for (var peerId in peerIds) {
       peersDocumentReference.add(FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString()));
     }
-
-    // 나와 상대의 메세지를 firestore에 동시에 저장
     FirebaseFirestore.instance.runTransaction((transaction) async {
-      // 내 messages에 기록
       transaction.set(
         myDocumentReference,
         {'idFrom': myId, 'idTo': peerIds, 'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), 'content': content, 'type': 0},
       );
-      // 상대 messages에 기록
       for (var peerDocumentReference in peersDocumentReference) {
         transaction.set(
           peerDocumentReference,
@@ -379,8 +375,8 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                 currentMember += 1;
                                 members.add(peerNick);
 
-                                Navigator.pop(context);
-                                Navigator.pop(context);
+                                // Navigator.pop(context);
+                                // Navigator.pop(context);
 
                                 String content = myInfo['nick'] + '님의 채팅방입니다.';
                                 List<dynamic> peerIds = [];
@@ -391,6 +387,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                   });
                                 }
                                 onSendMessage(content, myInfo['email'], peerIds, title);
+
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -424,7 +421,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                               //신청자 정보 수정(신청 목록 제거)
                               await fs.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
 
-                              Navigator.pop(context);
+                              //Navigator.pop(context);
                             },
                           ),
                         ],
