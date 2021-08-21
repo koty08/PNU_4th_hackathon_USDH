@@ -1062,9 +1062,9 @@ class DeliveryShowState extends State<DeliveryShow> {
                             });
                             
                             if (_myApplication.contains(title)) {
-                              // print('이미 신청(가입)한 방입니다!!');
                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
                               showMessage("이미 신청한 방입니다.");
+                              print('이미 신청(가입)한 방입니다!!');
                             } else if (_currentMember >= _limitedMember) {
                               print('This room is full');
                             } else {
