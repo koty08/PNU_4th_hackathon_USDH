@@ -11,6 +11,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'package:usdh/maps/place_autocomplete.dart';
 import 'package:validators/validators.dart';
 import 'package:usdh/maps/delivery.dart';
 import 'dart:async';
@@ -162,7 +163,25 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                               ),
                               condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                               condWrap("음식종류", foodInput, "음식 종류를 입력하세요.", "음식 종류는 필수 입력 사항입니다."),
-                              condWrap("배분위치", locationInput, "위치를 입력하세요.", "위치는 필수 입력 사항입니다."),
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.start,
+                                spacing: 15,
+                                children: [
+                                  cond2Text("배분위치"),
+                                  Container(width: width*0.3, height: 20,
+                                      margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
+                                      child: condField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")
+                                  ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    icon: Image.asset('assets/images/icon/iconsearch.png', width: 20, height: 20),
+                                    onPressed: () {
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
+                                    },
+                                  ),
+                                ],
+                              )
                             ],
                           )),
                     ],
@@ -209,22 +228,23 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                 thickness: 2.5,
               ),
               Container(
-                  padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
-                  child: TextFormField(
-                      controller: contentInput,
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                      style: TextStyle(fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: "내용을 입력하세요.",
-                        border: InputBorder.none,
-                      ),
-                      validator: (text) {
-                        if (text == null || text.isEmpty) {
-                          return "내용은 필수 입력 사항입니다.";
-                        }
-                        return null;
-                      })),
+                padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
+                child: TextFormField(
+                    controller: contentInput,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    style: TextStyle(fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: "내용을 입력하세요.",
+                      border: InputBorder.none,
+                    ),
+                    validator: (text) {
+                      if (text == null || text.isEmpty) {
+                        return "내용은 필수 입력 사항입니다.";
+                      }
+                      return null;
+                    })
+              ),
               cSizedBox(350, 0)
             ],
           ),
@@ -1220,6 +1240,9 @@ class DeliveryModifyState extends State<DeliveryModify> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
     return Scaffold(
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
@@ -1256,7 +1279,25 @@ class DeliveryModifyState extends State<DeliveryModify> {
                                             condWrap("모집기간", timeInput, "마감 시간 입력 : xx:xx (ex 21:32 형태)", "마감 시간은 필수 입력 사항입니다."),
                                             condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                                             condWrap("음식종류", foodInput, "음식 종류를 입력하세요.", "음식 종류는 필수 입력 사항입니다."),
-                                            condWrap("배분위치", locationInput, "위치를 입력하세요.", "위치는 필수 입력 사항입니다."),
+                                            Wrap(
+                                              spacing: 15,
+                                              children: [
+
+                                                cond2Text("배분위치"),
+                                                Container(width: width*0.3, height: 20,
+                                                    margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
+                                                    child: condField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")
+                                                ),
+                                                IconButton(
+                                                  padding: EdgeInsets.zero,
+                                                  constraints: BoxConstraints(),
+                                                  icon: Image.asset('assets/images/icon/iconsearch.png', width: 20, height: 20),
+                                                  onPressed: () {
+                                                    Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
+                                                  },
+                                                ),
+                                              ],
+                                            )
                                           ],
                                         )),
                                   ],
