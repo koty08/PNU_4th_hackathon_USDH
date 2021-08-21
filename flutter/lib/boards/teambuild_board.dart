@@ -306,6 +306,7 @@ class TeambuildWriteState extends State<TeambuildWrite> {
       'where': 'teambuild_board',
       'title' : titleInput.text,
       'isFineForMembers': [],
+      'messages' : [],
       'members': [],
     });
     fp.updateIntInfo('postcount', 1);
@@ -697,7 +698,8 @@ class TeambuildShowState extends State<TeambuildShow> {
   bool alreadyLiked = false;
   bool status = false;
 
-
+  final _formKey = GlobalKey<FormState>(); 
+  TextEditingController msgInput = TextEditingController();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
 
   @override
@@ -708,6 +710,7 @@ class TeambuildShowState extends State<TeambuildShow> {
   @override
   void dispose() {
     commentInput.dispose();
+    msgInput.dispose();
     super.dispose();
   }
 
@@ -1018,7 +1021,7 @@ class TeambuildShowState extends State<TeambuildShow> {
                         child: GestureDetector(
                           child: Align(alignment: Alignment.center, child: smallText("참가신청", 14, Colors.white)),
                           onTap: () async {
-                            var myInfo = fp.getInfo();
+                                                        var myInfo = fp.getInfo();
                             int _currentMember = snapshot.data!['currentMember'];
                             int _limitedMember = snapshot.data!['limitedMember'];
                             String title = widget.id;
@@ -1027,34 +1030,78 @@ class TeambuildShowState extends State<TeambuildShow> {
                               return tmp['email'];
                             });
                             List<String> _myApplication = [];
-
-                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
-                              if (snap.docs.length != 0) {
-                                for (DocumentSnapshot doc in snap.docs) {
-                                  _myApplication.add(doc.id);
-                                }
-                              } else {
-                                print('myApplication 콜렉션이 비어있읍니다.');
-                              }
+                            
+                            showDialog(context: context,
+                              builder: (BuildContext con){
+                                return Form(
+                                    key: _formKey,
+                                    child:
+                                    AlertDialog(
+                                      title: Text("방장한테 보낼 메세지를 입력하세요"),
+                                      content: Column(
+                                        children: [
+                                          TextFormField(
+                                              controller: msgInput,
+                                              decoration: InputDecoration(hintText: "메세지를 입력하세요."),
+                                              validator: (text) {
+                                                if (text == null || text.isEmpty) {
+                                                  return "메세지를 입력하지 않으셨습니다.";
+                                                }
+                                                return null;
+                                              }
+                                          ),
+                                        ],
+                                      ),
+                                      actions: <Widget>[
+                                        TextButton(onPressed: () async {
+                                          if(_formKey.currentState!.validate()){
+                                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                                              if (snap.docs.length != 0) {
+                                                for (DocumentSnapshot doc in snap.docs) {
+                                                  _myApplication.add(doc.id);
+                                                }
+                                              } else {
+                                                print('myApplication 콜렉션이 비어있읍니다.');
+                                              }
+                                            });
+                                            
+                                            if (_myApplication.contains(title)) {
+                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                              showMessage("이미 신청한 방입니다.");
+                                              // print('이미 신청(가입)한 방입니다!!');
+                                            } 
+                                            else if (_currentMember >= _limitedMember) {
+                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                              showMessage("방이 모두 차있습니다.");
+                                            } 
+                                            else {
+                                              // 방장에게 날리는 메세지
+                                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                                'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
+                                                'messages' : FieldValue.arrayUnion([msgInput.text]),
+                                              });
+                                              // 내 정보에 신청 정보를 기록
+                                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
+                                                'where': "teambuild_board",
+                                              });
+                                              // print('참가 신청을 보냈습니다.');
+                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                              showMessage("참가 신청을 보냈습니다.");
+                                            }
+                                            Navigator.pop(con);
+                                          }
+                                        },
+                                            child: Text("확인")
+                                        ),
+                                        TextButton(onPressed: (){
+                                          Navigator.pop(con);
+                                        },
+                                            child: Text("취소")
+                                        ),
+                                      ],
+                                    )
+                                );
                             });
-
-                            if (_myApplication.contains(title)) {
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              showMessage("이미 신청한 방입니다.");
-                            } else if (_currentMember >= _limitedMember) {
-                              print('This room is full');
-                            } else {
-                              // 방장에게 날리는 메세지
-                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
-                              });
-                              // 내 정보에 신청 정보를 기록
-                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({
-                                'where': "teambuild_board",
-                              });
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              showMessage("참가 신청을 보냈습니다.");
-                            }
                           },
                         ),
                       ),

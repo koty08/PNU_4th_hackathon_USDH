@@ -251,9 +251,19 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                           if (where == "sgroup_board") showProfile(allMembers[index], "coverletter", "coverletter_tag"),
                                           if (where != 'teambuild_board' && where != 'sgroup_board') Image(image: AssetImage('assets/images/icon/profile.png'), width: 18, height: 18),
                                           cSizedBox(0, width * 0.07),
-                                          Container(
-                                            width: width * 0.45,
-                                            child: smallText(allMembers[index], 15, Colors.black87),
+                                          Column(
+                                            children: [
+                                              Container(
+                                                width: width * 0.45,
+                                                child: smallText(allMembers[index], 15, Colors.black87),
+                                              ),
+                                              Container(
+                                                width: width * 0.3,
+                                                child: (snapshot.data!['messages'].length != 0)?
+                                                smallText(snapshot.data!['messages'][index], 15, Colors.black87):
+                                                Text(""),
+                                              ),
+                                            ],
                                           ),
                                           (ismember)
                                               ? smallText(' 승인', 13, Color(0xff548ee0))
@@ -357,6 +367,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                               String title = widget.id;
                               String board = snapshot.data!.get('where');
                               String peerNick = await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).get().then((value) => value.get('isFineForMembers')[index]);
+                              String peerMsg = await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).get().then((value) => value.get('messages')[index]);
                               String peerId = await fs.collection('users').where('nick', isEqualTo: peerNick).get().then((value) => value.docs[0].get('email'));
 
                               await fs.collection(board).doc(title).get().then((value) {
@@ -371,7 +382,8 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                 // 내 정보 수정(대기에서 제거, 멤버에 추가)
                                 await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).update({
                                   'isFineForMembers': FieldValue.arrayRemove([peerNick]),
-                                  'members': FieldValue.arrayUnion([peerNick])
+                                  'members': FieldValue.arrayUnion([peerNick]),
+                                  'messages' : FieldValue.arrayRemove([peerMsg]),
                                 });
                                 // peer의 정보 수정(참가 신청 제거, 참가한 방 추가)
                                 await fs.collection('users').doc(peerId).collection('myApplication').doc(title).delete();
