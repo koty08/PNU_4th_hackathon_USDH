@@ -129,7 +129,9 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                     primary: Colors.white,
                     onPrimary: Colors.blue,
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pop(context, _searchController.text);
+                  },
                   child: Text('여기로 결정!'))
             ],
           ),

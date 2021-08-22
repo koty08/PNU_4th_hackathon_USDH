@@ -173,8 +173,9 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                                     padding: EdgeInsets.zero,
                                     constraints: BoxConstraints(),
                                     icon: Image.asset('assets/images/icon/iconsearch.png', width: 20, height: 20),
-                                    onPressed: () {
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
+                                    onPressed: () async {
+                                      final loca = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
+                                      locationInput.text = "$loca";
                                     },
                                   ),
                                 ],
