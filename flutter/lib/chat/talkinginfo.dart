@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:usdh/Widget/widget.dart';
 
-void main() => runApp(talkinginformation());
+class ChatInfo extends StatefulWidget {
+  @override
+  State createState() => ChatInfoState();
+}
 
-class talkinginformation extends StatelessWidget {
+class ChatInfoState extends State<ChatInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

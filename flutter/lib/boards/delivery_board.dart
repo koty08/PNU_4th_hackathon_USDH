@@ -124,55 +124,40 @@ class DeliveryWriteState extends State<DeliveryWrite> {
               }),
               Padding(
                   padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.03, width * 0.1, 20),
-                  child: Wrap(
-                    direction: Axis.vertical,
-                    spacing: 15,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      cSizedBox(height*0.01, 0),
                       Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                      cSizedBox(height*0.02, 0),
                       Padding(
-                          padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
+                          padding: EdgeInsets.fromLTRB(width*0.02, 0, width*0.02, 0),
                           child: Wrap(
                             direction: Axis.vertical,
-                            spacing: 15,
+                            spacing: -8,
                             children: [
-                              // 시간은 validator 처리때문에 따로 파겠습니다.
-                              // condWrap("모집기간", timeInput, "마감 시간 입력 : xx:xx (ex 21:32 형태)", "마감 시간은 필수 입력 사항입니다."),
-                              Wrap(
-                                spacing: 15,
-                                children: [
-                                  cond2Text("모집기간"),
-                                  Container(
-                                    width: 250,
-                                    height: 20,
-                                    margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
-                                    child: TextFormField(
-                                        controller: timeInput,
-                                        style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
-                                        decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)", border: InputBorder.none, focusedBorder: InputBorder.none),
-                                        validator: (text) {
-                                          if (text == null || text.isEmpty) {
-                                            return "마감 시간은 필수 입력 사항입니다.";
-                                          } else if (isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])) {
-                                            return null;
-                                          } else {
-                                            return "올바른 형식으로 입력해주세요. (ex 09:10)";
-                                          }
-                                        }),
-                                  )
-                                ],
-                              ),
+                              ccondWrap("모집기간", timeInput, "마감 시간 입력 : xx:xx (ex 21:32 형태)", (text) {
+                                if (text == null || text.isEmpty) {
+                                  return "마감 시간은 필수 입력 사항입니다.";
+                                } else if (isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])) {
+                                  return null;
+                                } else {
+                                  return "올바른 형식으로 입력해주세요. (ex 09:10)";
+                                }
+                              }),
                               condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                               condWrap("음식종류", foodInput, "음식 종류를 입력하세요.", "음식 종류는 필수 입력 사항입니다."),
                               Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.start,
                                 spacing: 15,
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
                                   cond2Text("배분위치"),
-                                  Container(width: width * 0.3, height: 20, margin: EdgeInsets.fromLTRB(0, 3, 0, 0), child: condField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")),
+                                  Container(width: width * 0.4,
+                                      child: ccondField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")),
                                   IconButton(
                                     padding: EdgeInsets.zero,
                                     constraints: BoxConstraints(),
-                                    icon: Image.asset('assets/images/icon/iconsearch.png', width: 20, height: 20),
+                                    icon: Icon(Icons.search, size: 18,),
                                     onPressed: () async {
                                       final loca = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
                                       locationInput.text = "$loca";
@@ -585,7 +570,7 @@ class DeliveryShowState extends State<DeliveryShow> {
                 return CircularProgressIndicator();
               } else if (snapshot.hasData) {
                 String info = snapshot.data!['write_time'].substring(5, 7) + "/" + snapshot.data!['write_time'].substring(8, 10) + snapshot.data!['write_time'].substring(10, 16) + ' | ';
-                String time = snapshot.data!['time'].substring(10, 16);
+                String time = snapshot.data!['time'].substring(11, 16);
                 String writer = snapshot.data!['writer'];
                 return SingleChildScrollView(
                   child: Column(
@@ -1010,31 +995,35 @@ class DeliveryModifyState extends State<DeliveryModify> {
                             }),
                             Padding(
                                 padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                                child: Wrap(
-                                  direction: Axis.vertical,
-                                  spacing: 15,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    cSizedBox(height*0.01, 0),
                                     Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                                    cSizedBox(height*0.02, 0),
                                     Padding(
-                                        padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
+                                        padding: EdgeInsets.fromLTRB(width*0.02, 0, width*0.02, 0),
                                         child: Wrap(
                                           direction: Axis.vertical,
-                                          spacing: 15,
+                                          spacing: -8,
                                           children: [
                                             condWrap("모집기간", timeInput, "마감 시간 입력 : xx:xx (ex 21:32 형태)", "마감 시간은 필수 입력 사항입니다."),
                                             condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                                             condWrap("음식종류", foodInput, "음식 종류를 입력하세요.", "음식 종류는 필수 입력 사항입니다."),
                                             Wrap(
                                               spacing: 15,
+                                              crossAxisAlignment: WrapCrossAlignment.center,
                                               children: [
                                                 cond2Text("배분위치"),
-                                                Container(width: width * 0.3, height: 20, margin: EdgeInsets.fromLTRB(0, 3, 0, 0), child: condField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")),
+                                                Container(width: width * 0.3,
+                                                    child: ccondField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")),
                                                 IconButton(
                                                   padding: EdgeInsets.zero,
                                                   constraints: BoxConstraints(),
-                                                  icon: Image.asset('assets/images/icon/iconsearch.png', width: 20, height: 20),
-                                                  onPressed: () {
-                                                    Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
+                                                  icon: Icon(Icons.search, size: 18,),
+                                                  onPressed: () async {
+                                                    final loca = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
+                                                    locationInput.text = "$loca";
                                                   },
                                                 ),
                                               ],

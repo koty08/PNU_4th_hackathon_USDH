@@ -30,6 +30,7 @@ class GoogleMapServices {
     for (int i = 0; i < predictions.length; i++) {
       final place = Place.fromJson(predictions[i]);
       suggestions.add(place);
+      //print(predictions[i]);
     }
 
     return suggestions;

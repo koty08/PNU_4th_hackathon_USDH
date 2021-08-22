@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:date_format/date_format.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/chat/const.dart';
+import 'package:usdh/chat/talkinginfo.dart';
 import 'package:usdh/chat/widget/loading.dart';
 import 'package:usdh/chat/widget/full_photo.dart';
 
@@ -47,6 +48,12 @@ class ChatState extends State<Chat> {
       print('채팅방 퇴장');
     } else {
       print('대화 정보');
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatInfo()
+        ),
+      );
     }
   }
 

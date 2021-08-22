@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:usdh/login/firebase_provider.dart';
@@ -142,6 +143,83 @@ Widget topbar5 (BuildContext context, String text, Function()? function, Widget 
                 onPressed: () {
                   var myInfo = fp.getInfo();
                   Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
+                },
+              ),
+            ],
+          )
+        ],
+      ),
+      headerDivider(),
+    ],
+  );
+}
+
+
+Widget topbar4_nomap (BuildContext context, String text, Function()? function, Key? key,
+    String search, TextEditingController? searchInput, Function()? function2) {
+  final width = MediaQuery.of(context).size.width;
+  final height = MediaQuery.of(context).size.height;
+  late FirebaseProvider fp = Provider.of<FirebaseProvider>(context);
+  return Column(
+    children: [
+      cSizedBox(35, 0),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(
+            padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
+            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          cSizedBox(0, width*0.07),
+          headerText(text),
+          cSizedBox(0, width*0.35),
+          Wrap(
+            spacing: -5,
+            children: [
+              //새로고침 기능
+              IconButton(
+                icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
+                onPressed: function,
+              ),
+              //검색 기능 팝업
+              IconButton(
+                icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext con) {
+                        return StatefulBuilder(builder: (con, setS) {
+                          return Form(
+                              key: key,
+                              child: AlertDialog(
+                                content: TextFormField(
+                                  controller: searchInput,
+                                  decoration: InputDecoration(hintText: "검색할 제목을 입력하세요."),
+                                  validator: (text) {
+                                    if (text == null || text.isEmpty) {
+                                      return "검색어를 입력하지 않으셨습니다.";
+                                    }
+                                    return null;
+                                  }
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                      onPressed: function2,
+                                      child: Text("검색")),
+                                  TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(con);
+                                        searchInput!.clear();
+                                      },
+                                      child: Text("취소")),
+                                ],
+                              ));
+                        });
+                      });
                 },
               ),
             ],
@@ -437,16 +515,19 @@ Widget cond2Text(String text) {
 
 Widget titleField(TextEditingController controller) {
   return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.multiline, maxLines: null,
-      style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w600, fontSize: 18),
-      decoration: InputDecoration(hintText: "제목을 입력하세요.", border: InputBorder.none, focusedBorder: InputBorder.none),
-      validator: (text) {
-        if (text == null || text.isEmpty) {
-          return "제목은 필수 입력 사항입니다.";
-        }
-        return null;
+    controller: controller,
+    inputFormatters: [
+      LengthLimitingTextInputFormatter(30),
+    ],
+    keyboardType: TextInputType.multiline, maxLines: null,
+    style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w600, fontSize: 18),
+    decoration: InputDecoration(hintText: "제목을 입력하세요.", border: InputBorder.none, focusedBorder: InputBorder.none),
+    validator: (text) {
+      if (text == null || text.isEmpty) {
+        return "제목은 필수 입력 사항입니다.";
       }
+      return null;
+    }
   );
 }
 
@@ -464,14 +545,47 @@ Widget condField(TextEditingController controller, String hint, String valid) {
   );
 }
 
+// 양산형 위젯... ㅈㅅㅈㅅ...
+Widget ccondField(TextEditingController controller, String hint, String valid) {
+  return TextFormField(
+      enabled: false,
+      controller: controller,
+      style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
+      decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none),
+      validator: (text) {
+        if (text == null || text.isEmpty) {
+          return valid;
+        }
+        return null;
+      }
+  );
+}
+
 Widget condWrap(String ctext, TextEditingController controller, String hint, String valid){
   return Wrap(
     spacing: 15,
+    crossAxisAlignment: WrapCrossAlignment.center,
     children: [
       cond2Text(ctext),
-      Container(width: 250, height: 20,
-        margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
-        child: condField(controller, hint, valid)
+      Container(width: 250,
+          child: condField(controller, hint, valid)
+      )
+    ],
+  );
+}
+Widget ccondWrap(String ctext, TextEditingController controller, String hint, String? Function(String?)? function){
+  return Wrap(
+    spacing: 15,
+    crossAxisAlignment: WrapCrossAlignment.center,
+    children: [
+      cond2Text(ctext),
+      Container(width: 250,
+          child: TextFormField(
+            controller: controller,
+            style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
+            decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none),
+            validator: function
+          )
       )
     ],
   );

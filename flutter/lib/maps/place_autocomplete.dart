@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:usdh/Widget/widget.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:async';
 
@@ -33,6 +34,7 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
   var uuid = Uuid();
   var sessionToken;
   var googleMapServices;
+  String main_text = '';
 
   PlaceDetail placeDetail;
   Completer<GoogleMapController> _controller = Completer();
@@ -125,57 +127,83 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Places Autocomplete'),
-      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 3.0, vertical: 2.0),
         child: SingleChildScrollView(
           child: Column(
             children: <Widget> [
-              SizedBox(height: 5.0),
+              topbar2(context, "위치"),
+              cSizedBox(height*0.02, 0),
               Container(
-                width: double.infinity,
-                height: 60,
-                child: TypeAheadField(
-                  debounceDuration: Duration(milliseconds: 500),
-                  textFieldConfiguration: TextFieldConfiguration(
-                    controller: _searchController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: '위치 찾아보기'
+                width: width*0.8,
+                padding: EdgeInsets.fromLTRB(width*0.04, 0, width*0.02, 0),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1
+                  )
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.only(right: 5.0),
+                      child:Image.asset('assets/images/icon/iconsearch.png', scale: 1.3),
                     ),
-                  ),
+                    Flexible(
+                      child: Container(
+                        width: width*0.8,
+                        child: TypeAheadField(
+                          debounceDuration: Duration(milliseconds: 500),
+                          textFieldConfiguration: TextFieldConfiguration(
+                            scrollPadding: EdgeInsets.all(0),
+                            controller: _searchController,
+                            autofocus: true,
+                            decoration: InputDecoration(
+                              border: InputBorder.none, focusedBorder: InputBorder.none,
+                              contentPadding: EdgeInsets.all(10),
+                              isDense: true,
+                              hintText: '위치 찾아보기',
+                              hintStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 14),
+                            ),
+                            style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14),
+                            cursorColor: Colors.grey,
+                          ),
 
-                  suggestionsCallback: (pattern) async {
-                    if (sessionToken == null) {
-                      sessionToken = uuid.v4();
-                    }
-
-                    googleMapServices = GoogleMapServices(sessionToken:
-                    sessionToken);
-
-                    return await googleMapServices.getSuggestions(pattern);
-                  },
-                  itemBuilder: (context, suggestion) {
-                    return ListTile(
-                        title: Text(suggestion.description),
-                        subtitle: Text('${suggestion.placeId}')
-                    );
-                  },
-                  onSuggestionSelected: (suggestion) async {
-                    placeDetail = await googleMapServices.getPlaceDetail(
-                      suggestion.placeId,
-                      sessionToken,
-                    );
-                    sessionToken = null;
-                    _moveCamera();
-                  },
+                          suggestionsCallback: (pattern) async {
+                            if (sessionToken == null) {
+                              sessionToken = uuid.v4();
+                            }
+                            googleMapServices = GoogleMapServices(sessionToken: sessionToken);
+                            return await googleMapServices.getSuggestions(pattern);
+                          },
+                          itemBuilder: (context, suggestion) {
+                            String main_text = suggestion.main_text;
+                            return ListTile(
+                              title: condText(suggestion.main_text),
+                              //subtitle: Text('${suggestion.placeId}')
+                            );
+                          },
+                          onSuggestionSelected: (suggestion) async {
+                            placeDetail = await googleMapServices.getPlaceDetail(
+                              suggestion.placeId,
+                              sessionToken,
+                            );
+                            sessionToken = null;
+                            _moveCamera();
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 6),
+              cSizedBox(height*0.02, 0),
               Container(
                   width: double.infinity,
                   height: 400,
@@ -251,7 +279,12 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                     ),
                     onPressed: () {
                       if (state == "_moveCamera") {
-                        Navigator.pop(context, placeDetail.name);
+                        if (placeDetail.name.length <= 9) {
+                          Navigator.pop(context, placeDetail.name);
+                        }
+                        else {
+                          Navigator.pop(context, main_text);
+                        }
                       }
                       else if (state == "_moveCameraByButton") {
                         Navigator.pop(context, name);

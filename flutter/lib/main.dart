@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
             create: (_) => FirebaseProvider())
       ],
       child: MaterialApp(
-        title: "1234",
+        title: "USDH",
         home: AuthPage(),
         theme: ThemeData(errorColor: Colors.indigo.shade200),
         debugShowCheckedModeBanner: false,

@@ -2,6 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:parallax_image/parallax_image.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/login/firebase_provider.dart';
@@ -84,48 +87,29 @@ class CommunityWriteState extends State<CommunityWrite> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: SingleChildScrollView(
-            child: Form(
+      resizeToAvoidBottomInset: false,
+      body: SingleChildScrollView(
+        child: Form(
           key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              cSizedBox(35, 0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  headerText("글 작성"),
-                  cSizedBox(0, 160),
-                  IconButton(
-                      icon: Icon(
-                        Icons.check,
-                        color: Color(0xff639ee1),
-                      ),
-                      onPressed: () {
-                        FocusScope.of(context).requestFocus(new FocusNode());
-                        if (_formKey.currentState!.validate()) {
-                          uploadOnFS();
-                          Navigator.pop(context);
-                        }
-                      }),
-                ],
-              ),
-              headerDivider(),
+              topbar3(context, "글 작성", () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+                if (_formKey.currentState!.validate()) {
+                  uploadOnFS();
+                  Navigator.pop(context);
+                }
+              }),
               Padding(
-                padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
+                padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.01, width * 0.1, height * 0.01),
                 child: Column(
                   children: [
-                    Container(width: MediaQuery.of(context).size.width * 0.8, child: titleField(titleInput)),
+                    Container(width: width * 0.8, child: titleField(titleInput)),
                   ],
                 ),
               ),
@@ -133,64 +117,89 @@ class CommunityWriteState extends State<CommunityWrite> {
                 color: Color(0xffe9e9e9),
                 thickness: 2.5,
               ),
-              Padding(
-                  padding: EdgeInsets.fromLTRB(40, 10, 40, 30),
-                  child: TextFormField(
-                      controller: contentInput,
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                      style: TextStyle(fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: "내용을 입력하세요.",
-                        border: InputBorder.none,
-                      ),
-                      validator: (text) {
-                        if (text == null || text.isEmpty) {
-                          return "내용은 필수 입력 사항입니다.";
-                        }
-                        return null;
-                      })),
+              Container(
+                height: height*0.4,
+                padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.01, width * 0.1, height * 0.01),
+                child: TextFormField(
+                  controller: contentInput,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
+                  style: TextStyle(fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: "내용을 입력하세요.",
+                    border: InputBorder.none,
+                  ),
+                  validator: (text) {
+                    if (text == null || text.isEmpty) {
+                      return "내용은 필수 입력 사항입니다.";
+                    }
+                    return null;
+                  })
+              ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
-                  ElevatedButton(
-                      child: Text("갤러리에서 불러오기"),
-                      onPressed: () {
-                        uploadImage();
-                      }),
+                  cSizedBox(0, width*0.05),
+                  IconButton(
+                    icon: Icon(Icons.image),
+                    onPressed: () {
+                      addImage();
+                    }
+                  ),
                 ],
               ),
-              Divider(
-                color: Colors.black,
-              ),
               urlList.isEmpty
-                  ? Container()
-                  : Container(
-                      height: 300,
-                      child: ListView.builder(
-                          itemCount: urlList.length,
-                          itemBuilder: (BuildContext context, int idx) {
-                            return Card(
-                              child: Column(
-                                children: [
-                                  TextButton(
-                                    onPressed: () {
-                                      deleteImage(urlList[idx]);
-                                    },
-                                    child: Text("X"),
-                                  ),
-                                  Image.network(urlList[idx]),
-                                ],
-                              ),
-                            );
-                          }),
-                    ),
+              ? SizedBox.shrink()
+              : Container(
+                  height: 100,
+                  width: width * 0.9,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent
+                  ),
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: urlList.length,
+                    itemBuilder: (BuildContext context, int idx) {
+                      return Card(
+                        child: Stack(
+                          children: [
+                            Image.network(urlList[idx], width: 100, height: 100, fit:BoxFit.contain),
+                            IconButton(
+                              onPressed: () {
+                                deleteImage(urlList[idx]);
+                              },
+                              icon: Image.asset('assets/images/icon/iconx.png', width: 22, height: 22),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  ),
+              ),
+              Container(
+                height: height*0.29,
+                width: width,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300]
+                ),
+                margin: EdgeInsets.fromLTRB(0, height * 0.02, 0, 0),
+                padding: EdgeInsets.fromLTRB(width * 0.07, height * 0.055, width * 0.07, height * 0.04),
+                child: Column(
+                  children: [
+                    info2Text("커뮤니티 이용규칙\n"),
+                    smallText("유소더하 커뮤니티는 누구나 가볍고 즐겁게 이용할 수 있는\n"
+                        "커뮤니티를 만들기 위해 아래와 같은 게시물 규칙을 기반으로 운영합니다.\n"
+                        "\n1. 정치, 사회 관련 게시물 게시 금지\n2. 혐오성 발언 금지\n3. 성적인 발언 금지\n"
+                        "\n클린한 커뮤니티 조성을 위해 이용규칙을 반드시 지켜주세요.", 10.5, Colors.black54)
+                  ],
+                )
+              ),
             ],
           ),
         )));
   }
 
-  void uploadImage() async {
+  void addImage() async {
     final pickedImgList = await _picker.pickMultiImage();
 
     List<String> pickUrlList = [];
@@ -207,7 +216,7 @@ class CommunityWriteState extends State<CommunityWrite> {
     }
 
     setState(() {
-      urlList = pickUrlList;
+      urlList.addAll(pickUrlList);
     });
   }
 
@@ -237,34 +246,6 @@ class CommunityWriteState extends State<CommunityWrite> {
     fp.updateIntInfo('postcount', 1);
   }
 }
-
-// class _Chip extends StatelessWidget {
-//   const _Chip({
-//     required this.label,
-//     required this.onDeleted,
-//     required this.index,
-//   });
-//   final String label;
-//   final ValueChanged<int> onDeleted;
-//   final int index;
-//   @override
-//   Widget build(BuildContext context) {
-//     return Chip(
-//       labelStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 11.5),
-//       labelPadding: EdgeInsets.only(left: 10),
-//       backgroundColor: Color(0xff639ee1).withOpacity(0.7),
-//       label: smallText(label, 11, Colors.white),
-//       deleteIcon: const Icon(
-//         Icons.close,
-//         color: Colors.white,
-//         size: 13,
-//       ),
-//       onDeleted: () {
-//         onDeleted(index);
-//       },
-//     );
-//   }
-// }
 
 /* ---------------------- Board List (Community) ---------------------- */
 
@@ -301,6 +282,8 @@ class CommunityListState extends State<CommunityList> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: RefreshIndicator(
@@ -317,100 +300,24 @@ class CommunityListState extends State<CommunityList> {
                 return CircularProgressIndicator();
               }
               return Column(children: [
-                cSizedBox(35, 0),
-                Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      headerText("커뮤니티"),
-                      cSizedBox(0, 50),
-                      Wrap(
-                        spacing: -5,
-                        children: [
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                          //새로고침 기능
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
-                            onPressed: () {
-                              setState(() {
-                                colstream = FirebaseFirestore.instance.collection('community_board').orderBy("write_time", descending: true).snapshots();
-                              });
-                            },
-                          ),
-                          //검색 기능 팝업
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
-                            onPressed: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (BuildContext con) {
-                                    return StatefulBuilder(builder: (con, setS) {
-                                      return Form(
-                                          key: _formKey,
-                                          child: AlertDialog(
-                                            content: TextFormField(
-                                                controller: searchInput,
-                                                decoration: InputDecoration(hintText: "검색할 제목을 입력하세요."),
-                                                validator: (text) {
-                                                  if (text == null || text.isEmpty) {
-                                                    return "검색어를 입력하지 않으셨습니다.";
-                                                  }
-                                                  return null;
-                                                }),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                  onPressed: () {
-                                                    if (_formKey.currentState!.validate()) {
-                                                      setState(() {
-                                                        colstream = FirebaseFirestore.instance.collection('community_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
-                                                      });
-                                                      searchInput.clear();
-                                                      Navigator.pop(con);
-                                                    }
-                                                  },
-                                                  child: Text("검색")),
-                                              TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(con);
-                                                    searchInput.clear();
-                                                  },
-                                                  child: Text("취소")),
-                                            ],
-                                          ));
-                                    });
-                                  });
-                            },
-                          ),
-                          //채팅 기능
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                            onPressed: () {
-                              var myInfo = fp.getInfo();
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                            },
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                headerDivider(),
+                topbar4_nomap(context, "커뮤니티", () {
+                  setState(() {
+                    colstream = FirebaseFirestore.instance.collection('community_board').orderBy("write_time", descending: true).snapshots();
+                  });
+                }, _formKey, search, searchInput,() {
+                  if (_formKey.currentState!.validate()) {
+                    setState(() {
+                      colstream = FirebaseFirestore.instance.collection('community_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                    });
+                    searchInput.clear();
+                    Navigator.pop(context);
+                  }
+                }, ),
+                cSizedBox(height*0.02, 0),
                 Expanded(
-                    // 아래 간격 두고 싶으면 Container, height 사용
-                    //height: MediaQuery.of(context).size.height * 0.8,
-                    child: MediaQuery.removePadding(
+                  // 아래 간격 두고 싶으면 Container, height 사용
+                  //height: MediaQuery.of(context).size.height * 0.8,
+                  child: MediaQuery.removePadding(
                   context: context,
                   removeTop: true,
                   child: ListView.separated(
@@ -419,34 +326,29 @@ class CommunityListState extends State<CommunityList> {
                       itemCount: snapshot.data!.docs.length,
                       itemBuilder: (context, index) {
                         final DocumentSnapshot doc = snapshot.data!.docs[index];
-                        String time = doc['write_time'] + ' | ';
+                        String time = doc['write_time'].substring(0, 16) + ' | ';
                         String writer = doc['writer'];
                         return Column(children: [
-                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                           InkWell(
-                              onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => CommunityShow(doc.id)));
-                                FirebaseFirestore.instance.collection('community_board').doc(doc.id).update({"views": doc["views"] + 1});
-                              },
-                              child: Container(
-                                  margin: EdgeInsets.fromLTRB(25, 17, 10, 0),
-                                  child: Column(children: [
-                                    Row(children: [
-                                      Container(
-                                        width: MediaQuery.of(context).size.width * 0.6,
-                                        child: Text(doc['title'].toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w700, fontSize: 15)),
-                                      ),
-                                      cSizedBox(35, 0),
-                                    ]),
-                                    Row(
-                                      children: [
-                                        cSizedBox(20, 5),
-                                        smallText(time, 10, Color(0xffa9aaaf)),
-                                        smallText(writer, 10, Color(0xffa9aaaf)),
-                                      ],
-                                    ),
-                                    cSizedBox(10, 0)
-                                  ])))
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommunityShow(doc.id)));
+                              FirebaseFirestore.instance.collection('community_board').doc(doc.id).update({"views": doc["views"] + 1});
+                            },
+                            child: Container(
+                              margin: EdgeInsets.fromLTRB(width * 0.03, height * 0.025, width * 0.05, height * 0.015),
+                              child: Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.start,
+                                spacing: height*0.01,
+                                children: [
+                                  Container(
+                                    width: width * 0.8,
+                                    child: Text(doc['title'].toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w500, fontSize: 14)),
+                                  ),
+                                  cSizedBox(height*0.035, 0),
+                                      smallText(time + writer, 10, Color(0xffa9aaaf)),
+                                  cSizedBox(height*0.03, 0)
+                              ]))
+                          )
                         ]);
                       }),
                 )),
@@ -533,6 +435,8 @@ class CommunityShowState extends State<CommunityShow> {
 
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
 
     Future<String?> getPhotoUrl(dynamic nick) async {
       String? photoUrl;
@@ -906,7 +810,6 @@ class CommunityShowState extends State<CommunityShow> {
                 stream: commentsStream,
                 builder: (context, AsyncSnapshot<QuerySnapshot> commentsSnapshot) {
                   fp.setInfo();
-
                   if (boardSnapshot.hasData && !boardSnapshot.data!.exists) {
                     return CircularProgressIndicator();
                   } else if (boardSnapshot.hasData) {
@@ -914,7 +817,7 @@ class CommunityShowState extends State<CommunityShow> {
                     String writeTime = boardSnapshot.data!['write_time'].substring(10, 16) + ' | ';
                     String writer = boardSnapshot.data!['writer'];
                     return SingleChildScrollView(
-                        child: Column(
+                      child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         topbar2(context, "커뮤니티"),
@@ -933,15 +836,26 @@ class CommunityShowState extends State<CommunityShow> {
                           child: Text(boardSnapshot.data!['contents'], style: TextStyle(fontSize: 14)),
                         ),
                         boardSnapshot.data!['pic'].isEmpty
-                            ? Container()
-                            : Container(
-                                height: 300,
-                                child: ListView.builder(
-                                    itemCount: boardSnapshot.data!['pic'].length,
-                                    itemBuilder: (BuildContext context, int idx) {
-                                      return Image.network(boardSnapshot.data!['pic'][idx]);
-                                    }),
-                              ),
+                        ? SizedBox.shrink()
+                        : Container(
+                          margin: EdgeInsets.fromLTRB(width*0.03, 0, width*0.03, 0),
+                          height: 100,
+                          width: width,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemBuilder: (BuildContext context, int idx) {
+                              return GestureDetector(
+                                onTap: (){open(context, idx, boardSnapshot.data!['pic']);},
+                                child: Card(
+                                  elevation: 0,
+                                  child: Image.network(boardSnapshot.data!['pic'][idx], width: 100, height: 100, fit:BoxFit.contain),
+                                )
+                              );
+                            },
+                            itemCount: boardSnapshot.data!['pic'].length,
+                          )
+                        ),
+
                         // 좋아요
                         headerDivider(),
                         StreamBuilder(
@@ -1085,6 +999,22 @@ class CommunityShowState extends State<CommunityShow> {
             }));
   }
 
+  void open(BuildContext context, final int index, List items) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GalleryPhotoViewWrapper(
+          galleryItems: items,
+          backgroundDecoration: const BoxDecoration(
+            color: Colors.black,
+          ),
+          initialIndex: index,
+          scrollDirection: Axis.horizontal,
+        ),
+      ),
+    );
+  }
+
   void commentUploadOnFS() async {
     var myInfo = fp.getInfo();
     await fs.collection('community_board').doc(widget.id).update({'commentCount': FieldValue.increment(1)});
@@ -1161,9 +1091,13 @@ class CommunityModifyState extends State<CommunityModify> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: StreamBuilder(
+      resizeToAvoidBottomInset: false,
+      body: SingleChildScrollView(
+          child: StreamBuilder(
             stream: fs.collection('community_board').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               if (snapshot.hasData && !snapshot.data!.exists) {
@@ -1183,10 +1117,10 @@ class CommunityModifyState extends State<CommunityModify> {
                         }
                       }),
                       Padding(
-                        padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
+                        padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.01, width * 0.1, height * 0.01),
                         child: Column(
                           children: [
-                            Container(width: MediaQuery.of(context).size.width * 0.8, child: titleField(titleInput)),
+                            Container(width: width * 0.8, child: titleField(titleInput)),
                           ],
                         ),
                       ),
@@ -1194,65 +1128,92 @@ class CommunityModifyState extends State<CommunityModify> {
                         color: Color(0xffe9e9e9),
                         thickness: 2.5,
                       ),
-                      Padding(
-                          padding: EdgeInsets.fromLTRB(40, 10, 40, 30),
-                          child: TextFormField(
-                              controller: contentInput,
-                              keyboardType: TextInputType.multiline,
-                              maxLines: null,
-                              style: TextStyle(fontSize: 14),
-                              decoration: InputDecoration(
-                                hintText: "내용을 입력하세요.",
-                                border: InputBorder.none,
-                              ),
-                              validator: (text) {
-                                if (text == null || text.isEmpty) {
-                                  return "내용은 필수 입력 사항입니다.";
-                                }
-                                return null;
-                              })),
-                      Divider(
-                        color: Colors.black,
+                      Container(
+                        height: height*0.4,
+                        padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.01, width * 0.1, height * 0.01),
+                        child: TextFormField(
+                          controller: contentInput,
+                          keyboardType: TextInputType.multiline,
+                          maxLines: null,
+                          style: TextStyle(fontSize: 14),
+                          decoration: InputDecoration(
+                            hintText: "내용을 입력하세요.",
+                            border: InputBorder.none,
+                          ),
+                          validator: (text) {
+                            if (text == null || text.isEmpty) {
+                              return "내용은 필수 입력 사항입니다.";
+                            }
+                            return null;
+                          })
                       ),
-                      snapshot.data!['pic'].isEmpty
-                          ? Container()
-                          : Container(
-                              height: 300,
-                              child: ListView.builder(
-                                  itemCount: urlList.length,
-                                  itemBuilder: (BuildContext context, int idx) {
-                                    return Card(
-                                      child: Column(
-                                        children: [
-                                          TextButton(
-                                            onPressed: () {
-                                              deleteImage(urlList[idx]);
-                                              setState(() {});
-                                            },
-                                            child: Text("X"),
-                                          ),
-                                          Image.network(urlList[idx]),
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                            ),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
-                          ElevatedButton(
-                              child: Text("사진 추가"),
+                          cSizedBox(0, width*0.05),
+                          IconButton(
+                              icon: Icon(Icons.image),
                               onPressed: () {
                                 addImage();
-                              }),
+                              }
+                          ),
                         ],
                       ),
+                    snapshot.data!['pic'].isEmpty
+                    ? SizedBox.shrink()
+                    : Container(
+                      height: 100,
+                      width: width * 0.9,
+                      decoration: BoxDecoration(
+                          color: Colors.transparent
+                      ),
+                      child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: urlList.length,
+                          itemBuilder: (BuildContext context, int idx) {
+                            return Card(
+                              child: Stack(
+                                children: [
+                                  Image.network(urlList[idx], width: 100, height: 100, fit:BoxFit.contain),
+                                  IconButton(
+                                    onPressed: () {
+                                      deleteImage(urlList[idx]);
+                                    },
+                                    icon: Image.asset('assets/images/icon/iconx.png', width: 22, height: 22),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                      ),
+                    ),
+                    Container(
+                      height: height*0.29,
+                      width: width,
+                      decoration: BoxDecoration(
+                          color: Colors.grey[300]
+                      ),
+                      margin: EdgeInsets.fromLTRB(0, height * 0.02, 0, 0),
+                      padding: EdgeInsets.fromLTRB(width * 0.07, height * 0.055, width * 0.07, height * 0.04),
+                      child: Column(
+                        children: [
+                          info2Text("커뮤니티 이용규칙\n"),
+                          smallText("유소더하 커뮤니티는 누구나 가볍고 즐겁게 이용할 수 있는\n"
+                              "커뮤니티를 만들기 위해 아래와 같은 게시물 규칙을 기반으로 운영합니다.\n"
+                              "\n1. 정치, 사회 관련 게시물 게시 금지\n2. 혐오성 발언 금지\n3. 성적인 발언 금지\n"
+                              "\n클린한 커뮤니티 조성을 위해 이용규칙을 반드시 지켜주세요.", 10.5, Colors.black54)
+                        ],
+                      )
+                    ),
                     ],
                   ),
                 );
               }
               return CircularProgressIndicator();
-            }));
+            }
+          )
+      )
+    );
   }
 
   void addImage() async {
@@ -1299,5 +1260,75 @@ class CommunityModifyState extends State<CommunityModify> {
       'contents': contentInput.text,
       'pic': urlList,
     });
+  }
+}
+
+
+// photo view - gallery
+
+class GalleryPhotoViewWrapper extends StatefulWidget {
+  GalleryPhotoViewWrapper({
+    this.backgroundDecoration,
+    this.minScale,
+    this.maxScale,
+    this.initialIndex = 0,
+    required this.galleryItems,
+    this.scrollDirection = Axis.horizontal,
+  }) : pageController = PageController(initialPage: initialIndex);
+
+  final BoxDecoration? backgroundDecoration;
+  final dynamic minScale;
+  final dynamic maxScale;
+  final int initialIndex;
+  final PageController pageController;
+  List galleryItems;
+  final Axis scrollDirection;
+
+  @override
+  State<StatefulWidget> createState() {
+    return _GalleryPhotoViewWrapperState();
+  }
+}
+
+class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
+  late int currentIndex = widget.initialIndex;
+
+  void onPageChanged(int index) {
+    setState(() {
+      currentIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: widget.backgroundDecoration,
+        constraints: BoxConstraints.expand(
+          height: MediaQuery.of(context).size.height,
+        ),
+        child: Stack(
+          alignment: Alignment.bottomRight,
+          children: <Widget>[
+            PhotoViewGallery.builder(
+              scrollPhysics: const BouncingScrollPhysics(),
+              builder: (BuildContext context, int index) {
+                return PhotoViewGalleryPageOptions(
+                  imageProvider: NetworkImage(widget.galleryItems[index]),
+                  initialScale: PhotoViewComputedScale.contained * 0.8,
+                  minScale: PhotoViewComputedScale.contained * (0.5 + index / 10),
+                  maxScale: PhotoViewComputedScale.covered * 4.1,
+                );
+              },
+              itemCount: widget.galleryItems.length,
+              backgroundDecoration: widget.backgroundDecoration,
+              pageController: widget.pageController,
+              onPageChanged: onPageChanged,
+              scrollDirection: widget.scrollDirection,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

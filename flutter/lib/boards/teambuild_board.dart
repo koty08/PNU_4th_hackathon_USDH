@@ -110,34 +110,13 @@ class TeambuildWriteState extends State<TeambuildWrite> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              cSizedBox(35, 0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  headerText("글 작성"),
-                  cSizedBox(0, 160),
-                  IconButton(
-                      icon: Icon(
-                        Icons.check,
-                        color: Color(0xff639ee1),
-                      ),
-                      onPressed: () {
-                        FocusScope.of(context).requestFocus(new FocusNode());
-                        if (_formKey.currentState!.validate()) {
-                          uploadOnFS();
-                          Navigator.pop(context);
-                        }
-                      }),
-                ],
-              ),
-              headerDivider(),
+              topbar3(context, "글 작성", () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+                if (_formKey.currentState!.validate()) {
+                  uploadOnFS();
+                  Navigator.pop(context);
+                }
+              }),
               Padding(
                   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                   child: Wrap(

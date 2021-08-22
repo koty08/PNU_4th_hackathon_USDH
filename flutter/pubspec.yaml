@@ -41,6 +41,7 @@ dependencies:
     git: https://github.com/Zeswen/flutter-autocomplete-textfield
   flutter_switch: ^0.3.2
   validators: ^3.0.0
+  parallax_image: ^0.3.1+1
 
   fluttertoast: ^8.0.8
   firebase_messaging: ^10.0.4
