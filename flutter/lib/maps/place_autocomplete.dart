@@ -46,6 +46,14 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
 
   var state;
 
+  /*
+  state는 _moveCamera, _moveCameraByButton이 있습니다.
+  state가 _moveCamera면
+  placeDetail.lat, placeDetail.lng가 위도와 경도이고
+  state가 _moveCameraByButton이면
+  lat와 lng가 위도와 경도입니다.
+  */
+
   @override
   void initState() {
     super.initState();
@@ -170,7 +178,7 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
               SizedBox(height: 6),
               Container(
                   width: double.infinity,
-                  height: 450,
+                  height: 400,
                   child: GoogleMap(
                     mapType: MapType.normal,
                     initialCameraPosition: CameraPosition(
@@ -188,18 +196,21 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                 children: [
                   ElevatedButton(
                       onPressed: () => {
+                        _searchController.text = "부산은행 장전점",
                         _setPlaceToBank(),
                         _moveCameraByButton(),
                       },
                       child: Text("학교 앞 부산은행")),
                   ElevatedButton(
                       onPressed: () => {
+                        _searchController.text = "부산대 NC백화점",
                         _setPlaceToNC(),
                         _moveCameraByButton()
                       },
                       child: Text("NC백화점")),
                   ElevatedButton(
                       onPressed: () => {
+                        _searchController.text = "GS25 장전효원점",
                         _setPlaceToGS25(),
                         _moveCameraByButton(),
                       },
@@ -210,18 +221,21 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                 children: [
                   ElevatedButton(
                       onPressed: () => {
+                        _searchController.text = "부산대학교 자유관",
                         _setPlaceToJayu(),
                         _moveCameraByButton(),
                       },
                       child: Text("자유관")),
                   ElevatedButton(
                       onPressed: () => {
+                        _searchController.text = "부산대학교 웅비관",
                         _setPlaceToWoongbi(),
                         _moveCameraByButton(),
                       },
                       child: Text("웅비관")),
                   ElevatedButton(
                       onPressed: () => {
+                        _searchController.text = "부산대학교 진리관",
                         _setPlaceToJinri(),
                         _moveCameraByButton(),
                       },
@@ -237,12 +251,7 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                     ),
                     onPressed: () {
                       if (state == "_moveCamera") {
-                        if (placeDetail.name.length <= 9) {
-                          Navigator.pop(context, placeDetail.name);
-                        }
-                        else {
-                          Navigator.pop(context, _searchController.text);
-                        }
+                        Navigator.pop(context, placeDetail.name);
                       }
                       else if (state == "_moveCameraByButton") {
                         Navigator.pop(context, name);
