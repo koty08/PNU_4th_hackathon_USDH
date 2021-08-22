@@ -512,3 +512,16 @@ class CurvePainter extends CustomPainter {
     return true;
   }
 }
+
+//---profile--//
+
+Widget imageProfile() {
+  return Stack(children : [
+    Padding(padding: EdgeInsets.fromLTRB(30, 100, 0, 10)),
+    CircleAvatar(
+      radius: 80.0,
+      backgroundImage: AssetImage("assets/images/profile.png"),
+    ),
+  ]);
+
+}
