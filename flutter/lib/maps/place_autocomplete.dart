@@ -215,6 +215,9 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                     },
                     myLocationEnabled: true,
                     markers: _markers,
+                    compassEnabled: false,
+                    mapToolbarEnabled: false,
+                    zoomControlsEnabled: false,
                   )
               ),
               Row(

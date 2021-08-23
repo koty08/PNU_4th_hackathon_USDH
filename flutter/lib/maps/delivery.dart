@@ -66,7 +66,9 @@ class DeliveryMapState extends State<DeliveryMap> {
             infoWindow: InfoWindow(
                 title: datum[i][1]
             ),
-            onTap: () {} // TO DO: 게시물 정보 보이게끔
+            onTap: () {
+              // TO DO: 게시물 정보 보이게끔
+            }
           ),
         );
       }
@@ -124,6 +126,9 @@ class DeliveryMapState extends State<DeliveryMap> {
                       child: Stack(
                         children: [
                           GoogleMap(
+                            compassEnabled: false,
+                            mapToolbarEnabled: false,
+                            zoomControlsEnabled: false,
                             markers: _markers,
                             mapType: MapType.normal,
                             initialCameraPosition: _pusanUniversity,
