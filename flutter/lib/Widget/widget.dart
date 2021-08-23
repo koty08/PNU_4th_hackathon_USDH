@@ -407,6 +407,17 @@ Widget middleDivider() {
   );
 }
 
+Widget largeDivider() {
+  return Container(
+    margin: EdgeInsets.fromLTRB(0, 3, 0, 3),
+    height: 10,
+    decoration: BoxDecoration(
+      color: Color(0xffc4c4c4),
+      borderRadius: BorderRadius.circular(20),
+    ),
+  );
+}
+
 
 /* ---------------------- Text ---------------------- */
 
@@ -633,7 +644,7 @@ Widget imageProfile() {
   return Stack(children : [
     Padding(padding: EdgeInsets.fromLTRB(30, 100, 0, 10)),
     CircleAvatar(
-      radius: 80.0,
+      radius: 40.0,
       backgroundImage: AssetImage("assets/images/profile.png"),
     ),
   ]);
