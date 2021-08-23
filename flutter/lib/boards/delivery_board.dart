@@ -72,6 +72,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
   FirebaseStorage storage = FirebaseStorage.instance;
   FirebaseFirestore fs = FirebaseFirestore.instance;
   List tagList = [];
+  double lat = 0.0, lng = 0.0;
 
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
@@ -159,8 +160,13 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                                     constraints: BoxConstraints(),
                                     icon: Icon(Icons.search, size: 18,),
                                     onPressed: () async {
-                                      final loca = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
-                                      locationInput.text = "$loca";
+                                      final data = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
+                                      setState(() {
+                                        locationInput.text = data[0];
+                                        lat = data[1];
+                                        lng = data[2];
+                                      });
+                                      
                                     },
                                   ),
                                 ],
@@ -248,6 +254,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'location': locationInput.text,
       'tagList': tagList,
       'views': 0,
+      'latlng' : [lat, lng],
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['nick'] + myInfo['postcount'].toString()).set({
       'where': 'delivery_board',
@@ -928,6 +935,7 @@ class DeliveryModifyState extends State<DeliveryModify> {
   late TextEditingController tagInput;
   List<dynamic> tagList = [];
   late DateTime d;
+  double lat = 0.0, lng = 0.0;
 
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
@@ -1022,8 +1030,12 @@ class DeliveryModifyState extends State<DeliveryModify> {
                                                   constraints: BoxConstraints(),
                                                   icon: Icon(Icons.search, size: 18,),
                                                   onPressed: () async {
-                                                    final loca = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
-                                                    locationInput.text = "$loca";
+                                                    final data = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
+                                                    setState(() {
+                                                      locationInput.text = data[0];
+                                                      lat = data[1];
+                                                      lng = data[2];
+                                                    });
                                                   },
                                                 ),
                                               ],
@@ -1112,6 +1124,7 @@ class DeliveryModifyState extends State<DeliveryModify> {
       'location': locationInput.text,
       'tagList': tagList,
       'members': [],
+      'latlng' : [lat, lng],
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({
       'where': 'delivery_board',

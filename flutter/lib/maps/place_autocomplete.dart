@@ -280,14 +280,15 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                     onPressed: () {
                       if (state == "_moveCamera") {
                         if (placeDetail.name.length <= 9) {
-                          Navigator.pop(context, placeDetail.name);
+                          Navigator.pop(context, [placeDetail.name, placeDetail.lat, placeDetail.lng]);
                         }
                         else {
-                          Navigator.pop(context, main_text);
+                          //-> 9자 이상인 거는 main_text에 데이터가 안담아짐...
+                          Navigator.pop(context, [main_text, placeDetail.lat, placeDetail.lng]);
                         }
                       }
                       else if (state == "_moveCameraByButton") {
-                        Navigator.pop(context, name);
+                        Navigator.pop(context, [name, lat, lng]);
                       }
                     },
                     child: Text('여기로 결정 !')),

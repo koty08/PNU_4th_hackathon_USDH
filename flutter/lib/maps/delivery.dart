@@ -29,6 +29,7 @@ class DeliveryMapState extends State<DeliveryMap> {
   var _viewType = 0;
   var _buttonText = "내 위치";
   var _lock = true;
+  List datas = [];
 
   // 초기 위치 : 부산대학교 정문
   static final CameraPosition _pusanUniversity = CameraPosition(
@@ -56,7 +57,7 @@ class DeliveryMapState extends State<DeliveryMap> {
         //당겨서 새로고침
         onRefresh: () async {
           setState(() {
-            colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+            colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
           });
         },
         child: StreamBuilder<QuerySnapshot>(
@@ -65,36 +66,58 @@ class DeliveryMapState extends State<DeliveryMap> {
               if (!snapshot.hasData) {
                 return CircularProgressIndicator();
               }
-              return Column(children: [
-                topbar5(context, "배달", () {
-                  setState(() {
-                    colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
-                  });
-                }, DeliveryList()),
-                // ------------------------------ 아래에 지도 추가 ------------------------------
-                Expanded(
-                    child: Stack(
-                      children: [
-                        GoogleMap(
-                          mapType: MapType.normal,
-                          initialCameraPosition: _pusanUniversity,
-                          onMapCreated: (GoogleMapController controller) {
-                            _controller.complete(controller);
-                          },
-                          myLocationEnabled: true,
-                          myLocationButtonEnabled: false,
-                        ),
-                        /*Positioned(
-                          top: 27,
-                          left: 26,
-                          child: IconButton(
-                            icon: Icon(Icons.my_location), //Image.asset('assets/images/icon/iconteam.png', width: 22, height: 22),
-                            onPressed: _goToCurrentLocation,
+              else{
+                datas = [];
+                snapshot.data!.docs.forEach((doc){
+                  List tmp = [];
+                  tmp.add(doc.id);
+                  try{
+                    tmp.add(doc.get("tagList")[0].trim());
+                  } catch(e) {}
+
+                  //현재 경도위도 없는 게시물때문에 만든 오류처리 -> 이후 게시판 다 갈아엎으면 지우기
+                  try{
+                    tmp.add(doc.get("latlng")[0]);
+                    tmp.add(doc.get("latlng")[1]);
+                  } catch(e) {
+                    // print("경도 위도 없음");
+                  }
+                  datas.add(tmp);
+                });
+
+                print(datas);
+
+                return Column(children: [
+                  topbar5(context, "배달", () {
+                    setState(() {
+                      colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+                    });
+                  }, DeliveryList()),
+                  // ------------------------------ 아래에 지도 추가 ------------------------------
+                  Expanded(
+                      child: Stack(
+                        children: [
+                          GoogleMap(
+                            mapType: MapType.normal,
+                            initialCameraPosition: _pusanUniversity,
+                            onMapCreated: (GoogleMapController controller) {
+                              _controller.complete(controller);
+                            },
+                            myLocationEnabled: true,
+                            myLocationButtonEnabled: false,
                           ),
-                        ),*/
-                      ],
-                    )),
-              ]);
+                          /*Positioned(
+                            top: 27,
+                            left: 26,
+                            child: IconButton(
+                              icon: Icon(Icons.my_location), //Image.asset('assets/images/icon/iconteam.png', width: 22, height: 22),
+                              onPressed: _goToCurrentLocation,
+                            ),
+                          ),*/
+                        ],
+                      )),
+                ]);
+              }
             }),
       ),
       floatingActionButton: FloatingActionButton.extended(
