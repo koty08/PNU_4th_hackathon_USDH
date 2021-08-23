@@ -195,9 +195,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                 fp.setInfo();
                 Map<String, dynamic> dataMap = snapshot.data!.data() as Map<String, dynamic>;
 
-                /* error */
                 final List<dynamic> isFineForMembers = snapshot.data!.get('isFineForMembers');
-                /* error */
                 final List<dynamic> members = snapshot.data!.get('members');
                 String where = snapshot.data!.get('where');
                 List<dynamic> rejectedMembers = [];
@@ -390,8 +388,6 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                 currentMember += 1;
                                 members.add(peerNick);
 
-                                Navigator.pop(context);
-
                                 String content = myInfo['nick'] + '님의 채팅방입니다.';
                                 List<dynamic> peerIds = [];
                                 for (String member in members) {
@@ -414,7 +410,8 @@ class ShowApplicantListState extends State<ShowApplicantList> {
 
                                 print(peerNick + '(' + peerId + ')를 ' + title + '에 추가합니다.');
                               } else {
-                                print('인원이 다 찼습니다!');
+                                Navigator.pop(context);
+                                showMessage('인원이 다 찼습니다!');
                               }
                             },
                           ),
@@ -446,6 +443,20 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                 )),
           );
         });
+  }
+
+  showMessage(String msg) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Colors.blue[200],
+      duration: Duration(seconds: 10),
+      content: Text(msg),
+      action: SnackBarAction(
+        label: "확인",
+        textColor: Colors.black,
+        onPressed: () {},
+      ),
+    ));
   }
 
   // 프로필(포폴, 자소서) 띄움 // 디자인 수정중

@@ -748,22 +748,26 @@ class DeliveryShowState extends State<DeliveryShow> {
 
                             if (!_myApplication.contains(title)) {
                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              print("참가 신청하지 않은 방입니다.");
                               showMessage("참가 신청하지 않은 방입니다.");
                             } 
                             else {
-                              Map _isFineForMember = {};
+                              List<dynamic> _messages = [];
+                              List<dynamic> _isFineForMember = [];
+                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
+                                _messages = value['messages'];
+                              });
                               await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
                                 _isFineForMember = value['isFineForMembers'];
                               });
-                              
-                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                'isFineForMembers': _isFineForMember.remove(myInfo['nick']),
-                              });
-                              
+                              int _msgIndex = _isFineForMember.indexWhere((element) => element == myInfo['nick']);
+                              if (_msgIndex >= 0) {
+                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                  'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
+                                  'messages': FieldValue.arrayRemove([_messages[_msgIndex]])
+                                });
+                              }
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              print("참가 신청을 취소했습니다.");
                               showMessage("참가 신청을 취소했습니다.");
                             }
                           },
