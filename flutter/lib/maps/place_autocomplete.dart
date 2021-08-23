@@ -34,7 +34,6 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
   var uuid = Uuid();
   var sessionToken;
   var googleMapServices;
-  String main_text = '';
 
   PlaceDetail placeDetail;
   Completer<GoogleMapController> _controller = Completer();
@@ -183,10 +182,8 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                             return await googleMapServices.getSuggestions(pattern);
                           },
                           itemBuilder: (context, suggestion) {
-                            String main_text = suggestion.main_text;
                             return ListTile(
                               title: condText(suggestion.main_text),
-                              //subtitle: Text('${suggestion.placeId}')
                             );
                           },
                           onSuggestionSelected: (suggestion) async {
@@ -279,13 +276,7 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                     ),
                     onPressed: () {
                       if (state == "_moveCamera") {
-                        if (placeDetail.name.length <= 9) {
-                          Navigator.pop(context, [placeDetail.name, placeDetail.lat, placeDetail.lng]);
-                        }
-                        else {
-                          //-> 9자 이상인 거는 main_text에 데이터가 안담아짐...
-                          Navigator.pop(context, [main_text, placeDetail.lat, placeDetail.lng]);
-                        }
+                        Navigator.pop(context, [placeDetail.name, placeDetail.lat, placeDetail.lng]);
                       }
                       else if (state == "_moveCameraByButton") {
                         Navigator.pop(context, [name, lat, lng]);
