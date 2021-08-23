@@ -854,11 +854,11 @@ class DeliveryShowState extends State<DeliveryShow> {
                                                       } else {
                                                         // 방장에게 날리는 메세지
                                                         await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                                          'isFineForMembers.${myInfo['nick']}': msgInput.text,
+                                                          'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
+                                                          'messages': FieldValue.arrayUnion([msgInput.text]),
                                                         });
                                                         // 내 정보에 신청 정보를 기록
                                                         await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({'where': "delivery_board", 'isRejected': false, 'isJoined': false});
-                                                        // print('참가 신청을 보냈습니다.');
                                                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                                         showMessage("참가 신청을 보냈습니다.");
                                                       }

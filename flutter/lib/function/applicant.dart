@@ -93,8 +93,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                                     Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                                     InkWell(
                                         onTap: () {
-                                          if (doc['isFineForMembers'].length != 0 || rejectedMembers.length != 0 || members.length != 0)
-                                            Navigator.push(context, MaterialPageRoute(builder: (context) => ShowApplicantList(doc.id)));
+                                          if (doc['isFineForMembers'].length != 0 || rejectedMembers.length != 0 || members.length != 0) Navigator.push(context, MaterialPageRoute(builder: (context) => ShowApplicantList(doc.id)));
                                         },
                                         child: Card(
                                             margin: EdgeInsets.fromLTRB(30, 10, 30, 10),
@@ -195,7 +194,10 @@ class ShowApplicantListState extends State<ShowApplicantList> {
               } else if (snapshot.hasData) {
                 fp.setInfo();
                 Map<String, dynamic> dataMap = snapshot.data!.data() as Map<String, dynamic>;
+
+                /* error */
                 final List<dynamic> isFineForMembers = snapshot.data!.get('isFineForMembers');
+                /* error */
                 final List<dynamic> members = snapshot.data!.get('members');
                 String where = snapshot.data!.get('where');
                 List<dynamic> rejectedMembers = [];
@@ -221,7 +223,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                     Text('[요청중] 을 누르면 승인/거절할 수 있습니다.', style: TextStyle(fontFamily: "SCDream", color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13.5)),
                     Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 10)),
                     Expanded(
-                      child: MediaQuery.removePadding(
+                        child: MediaQuery.removePadding(
                       context: context,
                       removeTop: true,
                       child: ListView.builder(
@@ -251,26 +253,22 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                           if (!ismember) ...[
                                             Wrap(
                                               direction: Axis.vertical,
-                                              spacing: height*0.005,
+                                              spacing: height * 0.005,
                                               children: [
                                                 Container(
                                                   width: width * 0.45,
                                                   child: smallText(allMembers[index], 15, Colors.black87),
                                                 ),
                                                 Container(
-                                                  width: width * 0.55,
-                                                  child: (snapshot.data!['messages'].length != 0)?
-                                                  smallText("> " + snapshot.data!['messages'][index], 12, Colors.black45):
-                                                  smallText("[요청 메세지가 없어요!]", 12, Colors.black45)
-                                                ),
+                                                    width: width * 0.55,
+                                                    child: (snapshot.data!['messages'].length != 0) ? smallText("> " + snapshot.data!['messages'][index], 12, Colors.black45) : smallText("[요청 메세지가 없어요!]", 12, Colors.black45)),
                                               ],
                                             ),
                                             GestureDetector(
-                                              onTap: () {
-                                                select(snapshot, index, where, members);
-                                              },
-                                              child: smallText('요청중', 13, Color(0xff548ee0))
-                                            ),
+                                                onTap: () {
+                                                  select(snapshot, index, where, members);
+                                                },
+                                                child: smallText('요청중', 13, Color(0xff548ee0))),
                                           ] else ...[
                                             Container(
                                               width: width * 0.52,
@@ -411,15 +409,14 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                 onSendMessage(content, myInfo['email'], peerIds, title);
 
                                 Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Chat(
-                                          myId: myInfo['email'],
-                                          peerIds: peerIds,
-                                          groupChatId: title,
-                                          where: where,
-                                        ))
-                                );
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => Chat(
+                                              myId: myInfo['email'],
+                                              peerIds: peerIds,
+                                              groupChatId: title,
+                                              where: where,
+                                            )));
 
                                 print(peerNick + '(' + peerId + ')를 ' + title + '에 추가합니다.');
                               } else {
@@ -473,92 +470,95 @@ class ShowApplicantListState extends State<ShowApplicantList> {
         constraints: BoxConstraints(),
         onPressed: () {
           showDialog(
-            context: context,
-            barrierColor: null,
-            builder: (BuildContext context) {
-              final width = MediaQuery.of(context).size.width;
-              final height = MediaQuery.of(context).size.height;
-              return AlertDialog(
-                titlePadding: EdgeInsets.zero,
-                contentPadding: EdgeInsets.zero,
-                elevation: 0,
-                content: Container(
-                  height: height*0.77,
-                  width: width*0.8,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Color(0xff639ee1),
-                      width: 1.3
-                    )
-                  ),
-                  child: FutureBuilder<QuerySnapshot>(
-                    future: fs.collection('users').where('nick', isEqualTo: applicant).get(),
-                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
-                      if (snap.hasData) {
-                        DocumentSnapshot doc = snap.data!.docs[0];
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            profilebar2(context, doc['nick'], profile),
-                            cSizedBox(height*0.03, 0),
-                            Row(
+              context: context,
+              barrierColor: null,
+              builder: (BuildContext context) {
+                final width = MediaQuery.of(context).size.width;
+                final height = MediaQuery.of(context).size.height;
+                return AlertDialog(
+                  titlePadding: EdgeInsets.zero,
+                  contentPadding: EdgeInsets.zero,
+                  elevation: 0,
+                  content: Container(
+                    height: height * 0.77,
+                    width: width * 0.8,
+                    decoration: BoxDecoration(border: Border.all(color: Color(0xff639ee1), width: 1.3)),
+                    child: FutureBuilder<QuerySnapshot>(
+                        future: fs.collection('users').where('nick', isEqualTo: applicant).get(),
+                        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
+                          if (snap.hasData) {
+                            DocumentSnapshot doc = snap.data!.docs[0];
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                cSizedBox(0, width*0.1),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(60),
-                                  child: Image.network(
-                                    doc['photoUrl'],
-                                    width: 55,
-                                    height: 55,
-                                  ),
+                                profilebar2(context, doc['nick'], profile),
+                                cSizedBox(height * 0.03, 0),
+                                Row(
+                                  children: [
+                                    cSizedBox(0, width * 0.1),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(60),
+                                      child: Image.network(
+                                        doc['photoUrl'],
+                                        width: 55,
+                                        height: 55,
+                                      ),
+                                    ),
+                                    cSizedBox(0, width * 0.07),
+                                    middleText(doc['nick'] + "(" + doc['num'].toString() + ")", 15, Colors.black87),
+                                  ],
                                 ),
-                                cSizedBox(0, width*0.07),
-                                middleText(doc['nick'] + "(" + doc['num'].toString() + ")", 15, Colors.black87),
+                                cSizedBox(height * 0.04, 0),
+                                Column(
+                                  children: [
+                                    inputNav2('assets/images/icon/iconme.png', "  자기소개"),
+                                    Container(
+                                      width: width * 0.67,
+                                      height: height * 0.12,
+                                      padding: EdgeInsets.fromLTRB(width * 0.03, height * 0.02, width * 0.03, height * 0.02),
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey,
+                                            width: 0.5,
+                                          ),
+                                          borderRadius: BorderRadius.circular(10)),
+                                      child: SingleChildScrollView(
+                                        child: (doc[info].length == 0) ? Text("작성 X") : condText(doc[info][0]),
+                                      ),
+                                    ),
+                                    cSizedBox(height * 0.04, 0),
+                                    inputNav2('assets/images/icon/iconwin.png', "  경력"),
+                                    Container(
+                                      width: width * 0.67,
+                                      height: height * 0.12,
+                                      padding: EdgeInsets.fromLTRB(width * 0.03, height * 0.02, width * 0.03, height * 0.02),
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey,
+                                            width: 0.5,
+                                          ),
+                                          borderRadius: BorderRadius.circular(10)),
+                                      child: SingleChildScrollView(
+                                        child: (doc[info].length == 0) ? Text("작성 X") : condText(doc[info][1]),
+                                      ),
+                                    ),
+                                    cSizedBox(height * 0.04, 0),
+                                    inputNav2('assets/images/icon/icontag.png', "  태그"),
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: (doc[tag].length == 0) ? tagText("태그없음") : tagText(doc[tag].join(', ')),
+                                    ),
+                                  ],
+                                ),
                               ],
-                            ),
-                            cSizedBox(height*0.04, 0),
-                            Column(
-                              children: [
-                                inputNav2('assets/images/icon/iconme.png', "  자기소개"),
-                                Container(
-                                  width: width*0.67,
-                                  height: height*0.12,
-                                  padding: EdgeInsets.fromLTRB(width*0.03, height*0.02, width*0.03, height*0.02),
-                                  decoration: BoxDecoration(border: Border.all(color: Colors.grey, width: 0.5,), borderRadius: BorderRadius.circular(10)),
-                                  child: SingleChildScrollView(
-                                    child: (doc[info].length == 0)? Text("작성 X"):
-                                    condText(doc[info][0]),),
-                                ),
-                                cSizedBox(height*0.04, 0),
-                                inputNav2('assets/images/icon/iconwin.png', "  경력"),
-                                Container(
-                                  width: width*0.67,
-                                  height: height*0.12,
-                                  padding: EdgeInsets.fromLTRB(width*0.03, height*0.02, width*0.03, height*0.02),
-                                  decoration: BoxDecoration(border: Border.all(color: Colors.grey, width: 0.5,), borderRadius: BorderRadius.circular(10)),
-                                  child: SingleChildScrollView(
-                                    child: (doc[info].length == 0)? Text("작성 X"):
-                                    condText(doc[info][1]),),
-                                ),
-                                cSizedBox(height*0.04, 0),
-                                inputNav2('assets/images/icon/icontag.png', "  태그"),
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: (doc[tag].length == 0)? tagText("태그없음"):
-                                  tagText(doc[tag].join(', ')),
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      } else {
-                        return CircularProgressIndicator();
-                      }
-                    }
+                            );
+                          } else {
+                            return CircularProgressIndicator();
+                          }
+                        }),
                   ),
-                ),
-              );
-            });
+                );
+              });
         });
   }
 }
@@ -612,12 +612,12 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
               Text('클릭하면 해당 게시물로 이동합니다.', style: TextStyle(fontFamily: "SCDream", color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13.5)),
               Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
               Expanded(
-                // 아래 간격 두고 싶으면 Container, height 사용
-                //height: MediaQuery.of(context).size.height * 0.8,
-                child: MediaQuery.removePadding(
-                  context: context,
-                  removeTop: true,
-                  child: ListView.builder(
+                  // 아래 간격 두고 싶으면 Container, height 사용
+                  //height: MediaQuery.of(context).size.height * 0.8,
+                  child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                child: ListView.builder(
                     shrinkWrap: true,
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
@@ -626,7 +626,7 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
 
                       return Column(children: [
                         Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
-                          InkWell(
+                        InkWell(
                             onTap: () {
                               if (where == 'delivery_board') navigate2Board(where, DeliveryShow(id: doc.id), doc);
                               if (where == 'teambuild_board') navigate2Board(where, TeambuildShow(doc.id), doc);
@@ -637,17 +637,39 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                                 margin: EdgeInsets.fromLTRB(width * 0.07, 20, width * 0.07, 0),
                                 child: Padding(
                                     padding: EdgeInsets.fromLTRB(width * 0.05, 15, width * 0.05, 15),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        if (where == 'deleted') Image(image: AssetImage('assets/images/icon/iconx.png'), height: 30, width: 30,),
-                                        if (where == 'delivery_board') Image(image: AssetImage('assets/images/icon/iconmotorcycle.png'), height: 30, width: 30,),
-                                        if (where == 'teambuild_board') Image(image: AssetImage('assets/images/icon/iconteam.png'), height: 30, width: 30,),
-                                        if (where == 'sgroup_board') Image(image: AssetImage('assets/images/icon/iconplay.png'), height: 30, width: 30,),
-                                        if (where == 'roommate_board') Image(image: AssetImage('assets/images/icon/iconroom.png'), height: 30, width: 30,),
-
-                                        cSizedBox(0, 20),
-                                        FutureBuilder(
+                                    child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                                      if (where == 'deleted')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconx.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
+                                      if (where == 'delivery_board')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconmotorcycle.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
+                                      if (where == 'teambuild_board')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconteam.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
+                                      if (where == 'sgroup_board')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconplay.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
+                                      if (where == 'roommate_board')
+                                        Image(
+                                          image: AssetImage('assets/images/icon/iconroom.png'),
+                                          height: 30,
+                                          width: 30,
+                                        ),
+                                      cSizedBox(0, 20),
+                                      FutureBuilder(
                                           future: getApplicantInfo(where, doc.id),
                                           builder: (BuildContext context, AsyncSnapshot snapshot) {
                                             if (snapshot.hasData) {
@@ -664,12 +686,9 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                                                       smallText(snapshot.data[1] + snapshot.data[2] + snapshot.data[3], 10, Color(0xffa9aaaf)),
                                                     ],
                                                   ),
-                                                  if(!doc['isJoined'] && !doc['isRejected'])
-                                                    smallText('요청중', 13, Color(0xff548ee0)),
-                                                  if (doc['isJoined'])
-                                                    smallText('승인됨', 13, Color(0xff548ee0)),
-                                                  if (doc['isRejected'])
-                                                    smallText('거절됨', 13, Colors.grey),
+                                                  if (!doc['isJoined'] && !doc['isRejected']) smallText('요청중', 13, Color(0xff548ee0)),
+                                                  if (doc['isJoined']) smallText('승인됨', 13, Color(0xff548ee0)),
+                                                  if (doc['isRejected']) smallText('거절됨', 13, Colors.grey),
                                                 ],
                                               );
                                             } else {
