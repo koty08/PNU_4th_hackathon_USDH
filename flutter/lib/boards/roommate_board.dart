@@ -1044,7 +1044,6 @@ class RoommateShowState extends State<RoommateShow> {
                                                     });
                                                     // 내 정보에 신청 정보를 기록
                                                     await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({'where': "roommate_board", 'isRejected': false, 'isJoined': false});
-                                                    // print('참가 신청을 보냈습니다.');
                                                     ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                                     showMessage("참가 신청을 보냈습니다.");
                                                   }
