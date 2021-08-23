@@ -260,7 +260,6 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'where': 'delivery_board',
       'title': titleInput.text,
       'isFineForMembers': [],
-      'messages': [],
       'members': [],
     });
     fp.updateIntInfo('postcount', 1);
@@ -749,25 +748,22 @@ class DeliveryShowState extends State<DeliveryShow> {
 
                             if (!_myApplication.contains(title)) {
                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              print("참가 신청하지 않은 방입니다.");
                               showMessage("참가 신청하지 않은 방입니다.");
-                            } else {
-                              List<dynamic> _messages = [];
-                              List<dynamic> _isFineForMember = [];
-                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
-                                _messages = value['messages'];
-                              });
+                            } 
+                            else {
+                              Map _isFineForMember = {};
                               await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
                                 _isFineForMember = value['isFineForMembers'];
                               });
-                              int _msgIndex = _isFineForMember.indexWhere((element) => element == myInfo['nick']);
-                              if (_msgIndex >= 0) {
-                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                  'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
-                                  'messages': FieldValue.arrayRemove([_messages[_msgIndex]])
-                                });
-                              }
+                              
+                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                'isFineForMembers': _isFineForMember.remove(myInfo['nick']),
+                              });
+                              
                               await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              print("참가 신청을 취소했습니다.");
                               showMessage("참가 신청을 취소했습니다.");
                             }
                           },
@@ -866,12 +862,14 @@ class DeliveryShowState extends State<DeliveryShow> {
                                                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                                         showMessage("참가 신청을 보냈습니다.");
                                                       }
+                                                      msgInput.clear();
                                                       Navigator.pop(con);
                                                     }
                                                   },
                                                   child: info2Text("확인")
                                                 ),
                                                 TextButton(onPressed: (){
+                                                  msgInput.clear();
                                                   Navigator.pop(con);
                                                 },
                                                     child: info2Text("취소")
@@ -1123,13 +1121,12 @@ class DeliveryModifyState extends State<DeliveryModify> {
       'food': foodInput.text,
       'location': locationInput.text,
       'tagList': tagList,
-      'members': [],
       'latlng' : [lat, lng],
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({
       'where': 'delivery_board',
       'title': titleInput.text,
-      'members': [],
+      // 'members': [],
     });
   }
 }
