@@ -63,7 +63,8 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
           markerId: MarkerId('testMarker'),
           position: LatLng(35.23159301295487, 129.08395882267462),
           infoWindow: InfoWindow(title: '여기는 어디?', snippet: '바로 부산대학교!'),
-        ));
+        )
+    );
   }
 
   void _clearMarker() {

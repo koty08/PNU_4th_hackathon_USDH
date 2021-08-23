@@ -7,7 +7,7 @@ import 'package:location/location.dart';
 import 'package:provider/provider.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/boards/delivery_board.dart';
-import 'package:usdh/chat/home.dart';
+// import 'package:usdh/chat/home.dart';
 import 'package:usdh/login/firebase_provider.dart';
 
 
@@ -26,10 +26,13 @@ class DeliveryMapState extends State<DeliveryMap> {
   Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
   late FirebaseProvider fp;
   Completer<GoogleMapController> _controller = Completer();
+
   var _viewType = 0;
   var _buttonText = "내 위치";
   var _lock = true;
-  List datas = [];
+
+  List datum = [];
+  Set<Marker> _markers = Set();
 
   // 초기 위치 : 부산대학교 정문
   static final CameraPosition _pusanUniversity = CameraPosition(
@@ -40,11 +43,34 @@ class DeliveryMapState extends State<DeliveryMap> {
   @override
   void initState() {
     super.initState();
+    _setMarker();
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+
+  void _setMarker() {
+    _markers.clear();
+
+    for (int i = 0; i < datum.length; i++) {
+      // datum의 한 원소의 구성: [게시물 ID, 첫번째 태그, 위도, 경도]
+      if (datum[i].length == 4) { // 모든 요소가 있어야 표시되게
+        _markers.add(
+          Marker(
+            markerId: MarkerId(datum[i][0]),
+            position: LatLng(
+                datum[i][2], datum[i][3]
+            ),
+            infoWindow: InfoWindow(
+                title: datum[i][1]
+            ),
+            onTap: () {} // TO DO: 게시물 정보 보이게끔
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -54,7 +80,7 @@ class DeliveryMapState extends State<DeliveryMap> {
 
     return Scaffold(
       body: RefreshIndicator(
-        //당겨서 새로고침
+        // 당겨서 새로고침
         onRefresh: () async {
           setState(() {
             colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
@@ -66,8 +92,8 @@ class DeliveryMapState extends State<DeliveryMap> {
               if (!snapshot.hasData) {
                 return CircularProgressIndicator();
               }
-              else{
-                datas = [];
+              else {
+                datum = [];
                 snapshot.data!.docs.forEach((doc){
                   List tmp = [];
                   tmp.add(doc.id);
@@ -82,10 +108,10 @@ class DeliveryMapState extends State<DeliveryMap> {
                   } catch(e) {
                     // print("경도 위도 없음");
                   }
-                  datas.add(tmp);
+                  datum.add(tmp);
                 });
-
-                print(datas);
+                _setMarker();
+                print(datum);
 
                 return Column(children: [
                   topbar5(context, "배달", () {
@@ -98,6 +124,7 @@ class DeliveryMapState extends State<DeliveryMap> {
                       child: Stack(
                         children: [
                           GoogleMap(
+                            markers: _markers,
                             mapType: MapType.normal,
                             initialCameraPosition: _pusanUniversity,
                             onMapCreated: (GoogleMapController controller) {
@@ -106,14 +133,6 @@ class DeliveryMapState extends State<DeliveryMap> {
                             myLocationEnabled: true,
                             myLocationButtonEnabled: false,
                           ),
-                          /*Positioned(
-                            top: 27,
-                            left: 26,
-                            child: IconButton(
-                              icon: Icon(Icons.my_location), //Image.asset('assets/images/icon/iconteam.png', width: 22, height: 22),
-                              onPressed: _goToCurrentLocation,
-                            ),
-                          ),*/
                         ],
                       )),
                 ]);
