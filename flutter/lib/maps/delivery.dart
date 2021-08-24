@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -13,6 +14,20 @@ import 'package:usdh/login/firebase_provider.dart';
 
 late DeliveryMapState pageState1;
 
+bool isAvailable(String time, int n1, int n2) {
+  if (n1 >= n2) {
+    return false;
+  }
+  String now = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
+  DateTime d1 = DateTime.parse(now);
+  DateTime d2 = DateTime.parse(time);
+  Duration diff = d1.difference(d2);
+  if (diff.isNegative) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 class DeliveryMap extends StatefulWidget {
   @override
@@ -67,7 +82,73 @@ class DeliveryMapState extends State<DeliveryMap> {
                 title: datum[i][1]
             ),
             onTap: () {
-              // TO DO: 게시물 정보 보이게끔
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                backgroundColor: Colors.white,
+                duration: Duration(seconds: 20),
+                content: 
+                  StreamBuilder(
+                    stream: FirebaseFirestore.instance.collection('delivery_board').doc(datum[i][0]).snapshots(),
+                    builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot){
+                      if(!snapshot.hasData){
+                        return CircularProgressIndicator();
+                      }
+                      else{
+                        String info = snapshot.data!['write_time'].substring(5, 7) + "/" + snapshot.data!['write_time'].substring(8, 10) + snapshot.data!['write_time'].substring(10, 16) + ' | ';
+                        String time = snapshot.data!['time'].substring(11, 16);
+                        String writer = snapshot.data!['writer'];
+                        return SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                  padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                                  child: Wrap(direction: Axis.vertical, spacing: 15, children: [
+                                    Container(
+                                      width: MediaQuery.of(context).size.width * 0.8,
+                                      child: tagText(snapshot.data!['tagList'].join('')),
+                                    ),
+                                    Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
+                                    smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
+                                  ])),
+                              Divider(
+                                color: Color(0xffe9e9e9),
+                                thickness: 15,
+                              ),
+                              Padding(
+                                  padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                                  child: Wrap(
+                                    direction: Axis.vertical,
+                                    spacing: 15,
+                                    children: [
+                                      Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                                      Padding(
+                                          padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
+                                          child: Wrap(
+                                            direction: Axis.vertical,
+                                            spacing: 15,
+                                            children: [
+                                              cond2Wrap("모집기간", time),
+                                              cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
+                                              cond2Wrap("음식종류", snapshot.data!['food']),
+                                              cond2Wrap("배분위치", snapshot.data!['location']),
+                                            ],
+                                          ))
+                                    ],
+                                  ),
+                              ),
+                            ],
+                          )
+                        ); 
+                      }
+                    }
+                  ),
+                action: SnackBarAction(
+                  label: "X",
+                  textColor: Colors.black,
+                  onPressed: () {},
+                ),
+              ));
             }
           ),
         );
@@ -97,20 +178,22 @@ class DeliveryMapState extends State<DeliveryMap> {
               else {
                 datum = [];
                 snapshot.data!.docs.forEach((doc){
-                  List tmp = [];
-                  tmp.add(doc.id);
-                  try{
-                    tmp.add(doc.get("tagList")[0].trim());
-                  } catch(e) {}
+                  if(isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])){
+                    List tmp = [];
+                    tmp.add(doc.id);
+                    try{
+                      tmp.add(doc.get("tagList")[0].trim());
+                    } catch(e) {}
 
-                  //현재 경도위도 없는 게시물때문에 만든 오류처리 -> 이후 게시판 다 갈아엎으면 지우기
-                  try{
-                    tmp.add(doc.get("latlng")[0]);
-                    tmp.add(doc.get("latlng")[1]);
-                  } catch(e) {
-                    // print("경도 위도 없음");
+                    //현재 경도위도 없는 게시물때문에 만든 오류처리 -> 이후 게시판 다 갈아엎으면 지우기
+                    try{
+                      tmp.add(doc.get("latlng")[0]);
+                      tmp.add(doc.get("latlng")[1]);
+                    } catch(e) {
+                      // print("경도 위도 없음");
+                    }
+                    datum.add(tmp);
                   }
-                  datum.add(tmp);
                 });
                 _setMarker();
                 print(datum);
