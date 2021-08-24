@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-// import 'constants.dart';
 import 'place.dart';
 
 const API_KEY = "AIzaSyCU2qNxdkqmp0chBXCFabtclmT2XYu966U";
