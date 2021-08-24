@@ -1,4 +1,5 @@
 import 'dart:async';
+// import 'dart:html';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
@@ -102,28 +103,47 @@ class DeliveryMapState extends State<DeliveryMap> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                  padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                                  child: Wrap(direction: Axis.vertical, spacing: 15, children: [
-                                    Container(
-                                      width: MediaQuery.of(context).size.width * 0.8,
-                                      child: tagText(snapshot.data!['tagList'].join('')),
+                                  padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                                  child: Wrap(direction: Axis.vertical, spacing: 10, children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: MediaQuery.of(context).size.width * 0.8,
+                                          child: tagText(snapshot.data!['tagList'].join('')),
+                                        ),
+
+                                      ],
                                     ),
                                     Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
                                     smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
                                   ])),
-                              Divider(
-                                color: Color(0xffe9e9e9),
-                                thickness: 15,
-                              ),
+                              Container(
+                                width: double.infinity,
+                                child: Divider(
+                                  color: Color(0xffe9e9e9),
+                                  thickness: 1,
+                                )),
                               Padding(
-                                  padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
                                   child: Wrap(
                                     direction: Axis.vertical,
-                                    spacing: 15,
+                                    spacing: 10,
                                     children: [
-                                      Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        // spaceBetween 왜 적용이 안될까...? Why...
+                                        children: [
+                                          Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                                          IconButton(
+                                            icon: Image.asset('assets/images/icon/icongoboard.png', width: 20, height: 20),
+                                            onPressed: () {
+                                              // TO DO : 게시글로 이동
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                       Padding(
-                                          padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
+                                          padding: EdgeInsets.fromLTRB(7, 0, 0, 0),
                                           child: Wrap(
                                             direction: Axis.vertical,
                                             spacing: 15,
@@ -143,11 +163,6 @@ class DeliveryMapState extends State<DeliveryMap> {
                       }
                     }
                   ),
-                action: SnackBarAction(
-                  label: "X",
-                  textColor: Colors.black,
-                  onPressed: () {},
-                ),
               ));
             }
           ),
@@ -232,7 +247,7 @@ class DeliveryMapState extends State<DeliveryMap> {
         label: Text("$_buttonText"),
         icon: Icon(Icons.my_location),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
