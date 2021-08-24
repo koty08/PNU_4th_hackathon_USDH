@@ -16,7 +16,7 @@ FirebaseFirestore fs = FirebaseFirestore.instance;
 
 class Chat extends StatefulWidget {
   final String myId;
-  final List<dynamic> peerIds; // chat에 참가한 유저의 email들
+  final List<dynamic> peerIds;
   final String groupChatId;
   final String where;
 
@@ -26,73 +26,69 @@ class Chat extends StatefulWidget {
   State createState() => ChatState(myId: myId, peerIds: peerIds, groupChatId: groupChatId, where: where);
 }
 
-// 채팅방 내부
 class ChatState extends State<Chat> {
   final String myId;
-  final List<dynamic> peerIds; // chat에 참가한 유저의 email들
+  final List<dynamic> peerIds;
   final String groupChatId;
   final String where;
 
   ChatState({Key? key, required this.myId, required this.peerIds, required this.groupChatId, required this.where});
 
-  // 설정, 퇴장 버튼 생성(버튼이름, 아이콘)
   List<Choice> choices = const <Choice>[
     const Choice(title: '대화정보', icon: Icons.settings),
     const Choice(title: '퇴장', icon: Icons.exit_to_app),
   ];
 
-  // 로그아웃 버튼, 설정(프로필 수정) 버튼
   void onItemMenuPress(Choice choice) {
     if (choice.title == '퇴장') {
       exitChat();
-      print('채팅방 퇴장');
     } else {
-      print('대화 정보');
+      List<dynamic> allMemberIds = peerIds + [myId];
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => ChatInfo()
-        ),
+        MaterialPageRoute(builder: (context) => ChatInfo(allMemberIds: allMemberIds, groupChatId: groupChatId, where: where)),
       );
     }
   }
 
-  // 채팅방 나가기
   Future<Null> exitChat() async {
     Navigator.of(context).pop();
 
-    //본인
-    await FirebaseFirestore.instance.collection('users').doc(myId).update({
-      'joiningIn': FieldValue.arrayRemove([groupChatId])
+    String writer = await fs.collection(where).doc(groupChatId).get().then((value) => value.get('writer'));
+    String writerId = await fs.collection('users').where('nick', isEqualTo: writer).get().then((value) => value.docs[0].get('email'));
+    await fs.collection('users').doc(writerId).collection('applicants').doc(groupChatId).update({
+      'members': FieldValue.arrayRemove([myId])
     });
-    await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').get().then((value) {
+
+    //본인(방장일때, 아닐때)
+    if (writer == myId) {
+      print('방장일 땐 따로 글을 지워줘야 하나?');
+    } else {
+      await fs.collection('users').doc(myId).collection('myApplication').doc(groupChatId).update({'isJoined': false});
+      await fs.collection('users').doc(writerId).collection('applicants').doc(groupChatId).update({
+        'members': FieldValue.arrayRemove([myId])
+      });
+    }
+
+    //다른 멤버
+    for (String peerId in peerIds) {
+      await fs.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).update({
+        'chatMembers': FieldValue.arrayRemove([myId])
+      });
+    }
+
+    //채팅 기록 삭제
+    await fs.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').get().then((value) {
       if (value.docs.isNotEmpty) {
         for (DocumentSnapshot ds in value.docs) {
           ds.reference.delete();
         }
       }
     });
-    await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).delete();
-    //다른 멤버
-    for (String peerId in peerIds) {
-      await FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).update({
-        'chatMembers': FieldValue.arrayRemove([myId])
-      });
-    }
-    // post의 currentMember - 1, 방장의 applicants의 members에서 삭제
-    await FirebaseFirestore.instance.collection(where).doc(groupChatId).update({'currentMember': FieldValue.increment(-1)});
+    await fs.collection('users').doc(myId).collection('messageWith').doc(groupChatId).delete();
 
-    String writer = '';
-    String writerId = '';
-    await fs.collection(where).doc(groupChatId).get().then((value) {
-      writer = value.get('writer');
-    });
-    await fs.collection('users').where('nick', isEqualTo: writer).get().then((snap) {
-      writerId = snap.docs[0].get('email');
-    });
-    await fs.collection('users').doc(writerId).collection('applicants').doc(groupChatId).update({
-      'members': FieldValue.arrayRemove([myId])
-    });
+    // post의 currentMember - 1, 방장의 applicants의 members에서 삭제
+    await fs.collection(where).doc(groupChatId).update({'currentMember': FieldValue.increment(-1)});
   }
 
   // 참가한 유저들의 프로필 사진 정보를 얻어옴
@@ -117,13 +113,13 @@ class ChatState extends State<Chat> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             IconButton(
-              padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
+              padding: EdgeInsets.fromLTRB(width * 0.07, 0, 0, 0),
               icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
-            cSizedBox(0, width*0.07),
+            cSizedBox(0, width * 0.07),
             headerText("채팅"),
           ],
         ),
@@ -232,28 +228,27 @@ class ChatScreenState extends State<ChatScreen> {
   }
 
   void readLocal() async {
-    // 본인 email is chattingWith 상대방 email
-    FirebaseFirestore.instance.collection('users').doc(myId).update({'chattingWith': FieldValue.arrayUnion(peerIds)});
+    fs.collection('users').doc(myId).update({'chattingWith': FieldValue.arrayUnion(peerIds)});
 
     // 상대방 정보를 나의 messageWith에 저장
     // 1. 상대방 정보 local에 저장
     List<String> peerPhotoUrls = [];
     List<String> peerNicknames = [];
     for (var peerId in peerIds) {
-      await FirebaseFirestore.instance.collection('users').doc(peerId).get().then((value) {
+      await fs.collection('users').doc(peerId).get().then((value) {
         peerPhotoUrls.add(value['photoUrl'].toString());
         peerNicknames.add(value['nick'].toString());
       });
     }
 
     // 2. 내 messageWith에 추가
-    await FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).set({'chatMembers': peerIds, 'lastTimeSeen': DateTime.now().millisecondsSinceEpoch.toString(), 'where': where});
+    await fs.collection('users').doc(myId).collection('messageWith').doc(groupChatId).set({'chatMembers': peerIds, 'lastTimeSeen': DateTime.now().millisecondsSinceEpoch.toString(), 'where': where});
 
     // 내 정보를 상대방 messageWith에 저장
     // 1. local에 내 정보 저장
     var myPhotoUrl;
     var myNickname;
-    await FirebaseFirestore.instance.collection('users').doc(myId).get().then((value) async {
+    await fs.collection('users').doc(myId).get().then((value) async {
       myPhotoUrl = value['photoUrl'].toString();
       myNickname = value['nick'].toString();
     });
@@ -267,7 +262,7 @@ class ChatScreenState extends State<ChatScreen> {
         }
       }
       _peerIds.add(myId);
-      await FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).set({'chatMembers': _peerIds, 'lastTimeSeen': DateTime.now().millisecondsSinceEpoch.toString(), 'where': where});
+      await fs.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).set({'chatMembers': _peerIds, 'lastTimeSeen': DateTime.now().millisecondsSinceEpoch.toString(), 'where': where});
     }
 
     setState(() {});
@@ -315,12 +310,12 @@ class ChatScreenState extends State<ChatScreen> {
     if (content.trim() != '') {
       textEditingController.clear();
 
-      DocumentReference myDocumentReference = FirebaseFirestore.instance.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString());
+      DocumentReference myDocumentReference = fs.collection('users').doc(myId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString());
       List<DocumentReference> peersDocumentReference = [];
       for (var peerId in peerIds) {
-        peersDocumentReference.add(FirebaseFirestore.instance.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString()));
+        peersDocumentReference.add(fs.collection('users').doc(peerId).collection('messageWith').doc(groupChatId).collection('messages').doc(DateTime.now().millisecondsSinceEpoch.toString()));
       }
-      FirebaseFirestore.instance.runTransaction((transaction) async {
+      fs.runTransaction((transaction) async {
         transaction.set(
           myDocumentReference,
           {'idFrom': myId, 'idTo': peerIds, 'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), 'content': content, 'type': type},
@@ -410,7 +405,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   //바로 전이 다른 유저 채팅?
   bool isDiffUser(int index) {
-    if (listMessage[index + 1].get('idFrom') == listMessage[index].get('idFrom')) return false;
+    if (index < listMessage.length - 1 && listMessage[index + 1].get('idFrom') == listMessage[index].get('idFrom')) return false;
     return true;
   }
 
@@ -446,7 +441,7 @@ class ChatScreenState extends State<ChatScreen> {
       if (document.get('idFrom') == myId) {
         // 내가 보낸 메세지는 오른쪽에 (텍스트, 사진 순서)
         return Container(
-          child: Column(
+            child: Column(
           children: <Widget>[
             Row(
               children: [
@@ -524,14 +519,14 @@ class ChatScreenState extends State<ChatScreen> {
             ),
             // 메세지 보낸 시간 표시
             isLastMessageRight(index)
-              ? Container(
-                  child: Text(
-                    whatTime(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
-                    style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
-                  ),
-                  margin: EdgeInsets.only(right: 10.0),
-                )
-              : Container()
+                ? Container(
+                    child: Text(
+                      whatTime(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
+                      style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
+                    ),
+                    margin: EdgeInsets.only(right: 10.0),
+                  )
+                : Container()
           ],
           crossAxisAlignment: CrossAxisAlignment.end,
         ));
@@ -707,12 +702,12 @@ class ChatScreenState extends State<ChatScreen> {
                   listMessage.addAll(snapshot.data!.docs);
                   return ListView.builder(
                     padding: EdgeInsets.all(10.0),
+                    itemCount: snapshot.data?.docs.length,
                     itemBuilder: (context, index) {
                       return Column(
                         children: [isDiffDay(index) ? whatDay(DateTime.fromMillisecondsSinceEpoch(int.parse(snapshot.data?.docs[index].get('timestamp')))) : Text(''), buildItem(index, snapshot.data?.docs[index])],
                       );
                     },
-                    itemCount: snapshot.data?.docs.length,
                     reverse: true,
                     controller: listScrollController,
                   );
