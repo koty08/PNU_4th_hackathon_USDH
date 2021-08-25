@@ -87,7 +87,7 @@ Widget topbar3 (BuildContext context, String text, Function()? function) {
           ),
           cSizedBox(0, width*0.07),
           headerText(text),
-          cSizedBox(0, width*0.5),
+          cSizedBox(0, width*0.45),
           IconButton(
             icon: Icon(
               Icons.check,
@@ -122,9 +122,9 @@ Widget topbar5 (BuildContext context, String text, Function()? function, Widget 
           ),
           cSizedBox(0, width*0.07),
           headerText(text),
-          cSizedBox(0, width*0.34),
+          cSizedBox(0, width*0.3),
           Wrap(
-            spacing: -5,
+            spacing: -7,
             children: [
               IconButton(
                 icon: Image.asset('assets/images/icon/icongoboard.png', width: 22, height: 22),
@@ -176,9 +176,9 @@ Widget topbar4_nomap (BuildContext context, String text, Function()? function, K
           ),
           cSizedBox(0, width*0.07),
           headerText(text),
-          cSizedBox(0, width*0.35),
+          cSizedBox(0, width*0.3),
           Wrap(
-            spacing: -5,
+            spacing: -7,
             children: [
               //새로고침 기능
               IconButton(
@@ -252,9 +252,9 @@ Widget topbar6_map (BuildContext context, String text, Widget route, Function()?
           ),
           cSizedBox(0, width*0.07),
           headerText(text),
-          cSizedBox(0, width*0.23),
+          cSizedBox(0, width*0.21),
           Wrap(
-            spacing: -5,
+            spacing: -9,
             children: [
               IconButton(
                 icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),

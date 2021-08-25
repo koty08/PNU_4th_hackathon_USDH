@@ -363,15 +363,8 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                               int limitedMember = 0;
                               String title = widget.id;
                               String board = snapshot.data!.get('where');
-                              Map _isFineForMember = {};
-                              Map _isFineForMembers = {};
-                              
-                              await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).get().then((value) {
-                                _isFineForMembers = value['isFineForMembers'];
-                                _isFineForMember = value['isFineForMembers'][index];
-                              });
-                              
-                              String peerNick = _isFineForMember.keys.toList()[0];
+                              String peerNick = await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).get().then((value) => value.get('isFineForMembers')[index]);
+                              String peerMsg = await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).get().then((value) => value.get('messages')[index]);
                               String peerId = await fs.collection('users').where('nick', isEqualTo: peerNick).get().then((value) => value.docs[0].get('email'));
 
                               await fs.collection(board).doc(title).get().then((value) {
@@ -385,8 +378,9 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                 });
                                 // 내 정보 수정(대기에서 제거, 멤버에 추가)
                                 await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(title).update({
-                                  'isFineForMembers': _isFineForMembers.remove(peerNick),
-                                  'members.${peerNick}': _isFineForMember.values.toList()[0],
+                                  'isFineForMembers': FieldValue.arrayRemove([peerNick]),
+                                  'members': FieldValue.arrayUnion([peerNick]),
+                                  'messages': FieldValue.arrayRemove([peerMsg]),
                                 });
                                 // peer의 정보 수정(참가 신청 제거)
                                 await fs.collection('users').doc(peerId).collection('myApplication').doc(title).update({'isJoined': true});
@@ -408,11 +402,11 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => Chat(
-                                              myId: myInfo['email'],
-                                              peerIds: peerIds,
-                                              groupChatId: title,
-                                              where: where,
-                                            )));
+                                          myId: myInfo['email'],
+                                          peerIds: peerIds,
+                                          groupChatId: title,
+                                          where: where,
+                                        )));
 
                                 print(peerNick + '(' + peerId + ')를 ' + title + '에 추가합니다.');
                               } else {
@@ -427,21 +421,13 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                             onPressed: () async {
                               var myId = fp.getInfo()['email'];
                               String title = widget.id;
-                              Map _isFineForMember = {};
-                              Map _isFineForMembers = {};
-                              
-                              await fs.collection('users').doc(myId).collection('applicants').doc(title).get().then((value) {
-                                _isFineForMembers = value['isFineForMembers'];
-                                _isFineForMember = value['isFineForMembers'][index];
-                              });
-                              
-                              String peerNick = _isFineForMember.keys.toList()[0];
-                              String peerId = await fs.collection('users').where('nick', isEqualTo: peerNick).get().then((value) => value.docs[0].get('email'));
+                              String peerNick = await fs.collection('users').doc(myId).collection('applicants').doc(title).get().then((snapshot) => snapshot['isFineForMembers'][index]);
+                              String peerId = await fs.collection('users').where('nick', isEqualTo: peerNick).get().then((snapshot) => snapshot.docs[0].get('email'));
 
                               //내 정보 수정(대기자 제거, 거절한 사람 추가)
                               await fs.collection('users').doc(myId).collection('applicants').doc(title).update({
-                                'isFineForMembers': _isFineForMembers.remove(peerNick),
-                                'rejectedMembers.${peerNick}': _isFineForMember.values.toList()[0],
+                                'isFineForMembers': FieldValue.arrayRemove([peerNick]),
+                                'rejectedMembers': FieldValue.arrayUnion([peerNick]),
                               });
                               //신청자 정보 수정(신청 목록 제거)
                               await fs.collection('users').doc(peerId).collection('myApplication').doc(title).update({'isRejected': true});
@@ -679,7 +665,7 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                                           height: 30,
                                           width: 30,
                                         ),
-                                      cSizedBox(0, 20),
+                                      cSizedBox(0, width*0.05),
                                       FutureBuilder(
                                           future: getApplicantInfo(where, doc.id),
                                           builder: (BuildContext context, AsyncSnapshot snapshot) {
