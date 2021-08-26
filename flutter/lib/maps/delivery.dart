@@ -137,7 +137,8 @@ class DeliveryMapState extends State<DeliveryMap> {
                                           IconButton(
                                             icon: Image.asset('assets/images/icon/icongoboard.png', width: 20, height: 20),
                                             onPressed: () {
-                                              // TO DO : 게시글로 이동
+                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(id : datum[i][0])));
                                             },
                                           ),
                                         ],
@@ -175,6 +176,7 @@ class DeliveryMapState extends State<DeliveryMap> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     return Scaffold(
       body: RefreshIndicator(

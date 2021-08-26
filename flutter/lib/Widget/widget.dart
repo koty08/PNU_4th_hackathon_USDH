@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:usdh/login/firebase_provider.dart';
+import 'package:validators/validators.dart';
 
 Widget cSizedBox(double h, double w) {
   return SizedBox(
@@ -117,6 +118,7 @@ Widget topbar5 (BuildContext context, String text, Function()? function, Widget 
             padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
             icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
             onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
               Navigator.pop(context);
             },
           ),
@@ -595,7 +597,15 @@ Widget ccondWrap(String ctext, TextEditingController controller, String hint, St
             controller: controller,
             style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
             decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none),
-            validator: function
+            validator: function,
+            // autovalidateMode: AutovalidateMode.always,
+            keyboardType: TextInputType.number,
+            onChanged: (value){
+              if(value.length == 2){
+                controller.text += ":";
+                controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length));
+              }
+            },
           )
       )
     ],

@@ -960,6 +960,8 @@ class DeliveryModifyState extends State<DeliveryModify> {
       foodInput = TextEditingController(text: widget.datas['food']);
       locationInput = TextEditingController(text: widget.datas['location']);
       tagInput = TextEditingController();
+      lat = widget.datas['latlng'][0];
+      lng = widget.datas['latlng'][1];
     });
     super.initState();
   }
