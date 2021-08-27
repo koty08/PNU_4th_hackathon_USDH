@@ -11,11 +11,15 @@ class FullPhoto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(
-          'FULL PHOTO',
-          style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+          '사진',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+
+        elevation: 0.0,
+        backgroundColor: Color(0xFFB4C56C).withOpacity(0.0),
         centerTitle: true,
       ),
       body: FullPhotoScreen(url: url),
