@@ -63,12 +63,13 @@ class ChatInfoState extends State<ChatInfo> {
               future: getHostAvatar(),
               builder: (context, AsyncSnapshot snapshot) {
                 if (snapshot.hasData) {
-                  return Stack(children: [Padding(padding: EdgeInsets.fromLTRB(30, 100, 0, 10)), CircleAvatar(radius: 40.0, backgroundImage: NetworkImage(snapshot.data.toString()))]);
+                  return Stack(children: [Padding(padding: EdgeInsets.fromLTRB(30, 100, 0, 0)), CircleAvatar(radius: 40.0, backgroundImage: NetworkImage(snapshot.data.toString()))]);
                 } else {
                   return CircularProgressIndicator();
                 }
               }),
 
+         //게시물제목
           FutureBuilder(
               future: getRoomName(),
               builder: (context, AsyncSnapshot snapshot) {
@@ -86,6 +87,7 @@ class ChatInfoState extends State<ChatInfo> {
             padding: EdgeInsets.fromLTRB(0, 0, 0, 5),
           ),
 
+          //방장이름
           FutureBuilder(
               future: getHostNick(),
               builder: (context, AsyncSnapshot snapshot) {
@@ -109,13 +111,19 @@ class ChatInfoState extends State<ChatInfo> {
           ),
 
           Padding(
-            padding: EdgeInsets.fromLTRB(30, 5, 0, 10),
+            padding: EdgeInsets.fromLTRB(60, 5, 0, 20),
           ),
 
           Text(
             '참가자 명단',
-            style: TextStyle(fontFamily: "SCDream", color: Color(0xff000000), fontWeight: FontWeight.w500, fontSize: 15),
+            style: TextStyle(fontFamily: "SCDream", color: Color(0xff4E94EC), fontWeight: FontWeight.w500, fontSize: 17),
           ),
+
+          Padding(
+            padding: EdgeInsets.fromLTRB(30, 5, 0, 10),
+          ),
+
+          middleDivider(),
 
           Padding(
             padding: EdgeInsets.fromLTRB(30, 5, 0, 10),
@@ -125,16 +133,24 @@ class ChatInfoState extends State<ChatInfo> {
               future: getHostNick(),
               builder: (context, AsyncSnapshot snapshot) {
                 if (snapshot.hasData) {
-                  return Row(children: [
+
+
+
+                return Column
+                  (children: [
+
+
                     Text(
                       snapshot.data,
-                      style: TextStyle(fontFamily: "SCDream", color: Color(0xff4E94EC), fontWeight: FontWeight.w500, fontSize: 13),
+                      style: TextStyle(fontFamily: "SCDream", color: Color(0xff000000), fontWeight: FontWeight.w500, fontSize: 15),
                       textAlign: TextAlign.left,
                     ),
-                    cSizedBox(0, 30),
+
+
+
                     Text(
                       '방장',
-                      style: TextStyle(fontFamily: "SCDream", color: Color(0xff4E94EC), fontWeight: FontWeight.w500, fontSize: 13),
+                      style: TextStyle(fontFamily: "SCDream", color: Color(0xff000000), fontWeight: FontWeight.w500, fontSize: 15),
                       textAlign: TextAlign.left,
                     ),
                   ]);
@@ -142,6 +158,7 @@ class ChatInfoState extends State<ChatInfo> {
                   return CircularProgressIndicator();
                 }
               }),
+
 
           FutureBuilder(
               future: getOtherNicks(),
@@ -151,7 +168,7 @@ class ChatInfoState extends State<ChatInfo> {
                   for (String oneNick in snapshot.data) {
                     otherNicksList.add(Text(
                       oneNick,
-                      style: TextStyle(fontFamily: "SCDream", color: Color(0xff4E94EC), fontWeight: FontWeight.w500, fontSize: 13),
+                      style: TextStyle(fontFamily: "SCDream", color: Color(0xff000000), fontWeight: FontWeight.w500, fontSize: 15),
                       textAlign: TextAlign.left,
                     ));
                   }
