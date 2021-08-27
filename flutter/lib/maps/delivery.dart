@@ -73,27 +73,31 @@ class DeliveryMapState extends State<DeliveryMap> {
     _markers.clear();
     markerLat.clear();
     markerLng.clear();
+    var infoText = "";
 
     for (int i = 0; i < datum.length; i++) {
-      // datum의 한 원소의 구성: [게시물 ID, 첫번째 태그, 위도, 경도]
-      if (datum[i].length == 4) { // 모든 요소가 있어야 표시되게
-        if (markerLat.contains(datum[i][2]) && markerLng.contains(datum[i][3])) {
+      // datum의 한 원소의 구성: [게시물 ID, 위도, 경도, 첫번째 태그]
+      if (datum[i].length >= 3) { // (태그는 없어도 됨) 나머지 세개 다 있어야 표시되게
+        if (datum[i].length == 4) {
+          // 태그 있으면 infoText로 tag값 띄우기
+          infoText = datum[i][3];
+        }
+        if (markerLat.contains(datum[i][1]) && markerLng.contains(datum[i][2])) {
+          datum[i][1] = datum[i][1] + 0.00002;
           datum[i][2] = datum[i][2] + 0.00002;
-          print("실행되나?");
-          datum[i][3] = datum[i][3] + 0.00002;
         }
         else {
-          markerLat.add(datum[i][2]);
-          markerLng.add(datum[i][3]);
+          markerLat.add(datum[i][1]);
+          markerLng.add(datum[i][2]);
         }
         _markers.add(
           Marker(
             markerId: MarkerId(datum[i][0]),
             position: LatLng(
-                datum[i][2], datum[i][3]
+                datum[i][1], datum[i][2]
             ),
             infoWindow: InfoWindow(
-                title: datum[i][1]
+                title: infoText
             ),
             onTap: () {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -213,17 +217,11 @@ class DeliveryMapState extends State<DeliveryMap> {
                   if(isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])){
                     List tmp = [];
                     tmp.add(doc.id);
+                    tmp.add(doc.get("latlng")[0]);
+                    tmp.add(doc.get("latlng")[1]);
                     try{
                       tmp.add(doc.get("tagList")[0].trim());
                     } catch(e) {}
-
-                    //현재 경도위도 없는 게시물때문에 만든 오류처리 -> 이후 게시판 다 갈아엎으면 지우기
-                    try{
-                      tmp.add(doc.get("latlng")[0]);
-                      tmp.add(doc.get("latlng")[1]);
-                    } catch(e) {
-                      // print("경도 위도 없음");
-                    }
                     datum.add(tmp);
                   }
                 });
