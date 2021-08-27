@@ -48,12 +48,14 @@ class DeliveryMapState extends State<DeliveryMap> {
   var _lock = true;
 
   List datum = [];
+  List markerLat = [];
+  List markerLng = [];
   Set<Marker> _markers = Set();
 
   // 초기 위치 : 부산대학교 정문
-  static final CameraPosition _pusanUniversity = CameraPosition(
+  final CameraPosition _pusanUniversity = CameraPosition(
     target: LatLng(35.23159301295487, 129.08395882267462),
-    zoom: 16
+    zoom: 16.2
   );
 
   @override
@@ -69,10 +71,21 @@ class DeliveryMapState extends State<DeliveryMap> {
 
   void _setMarker() {
     _markers.clear();
+    markerLat.clear();
+    markerLng.clear();
 
     for (int i = 0; i < datum.length; i++) {
       // datum의 한 원소의 구성: [게시물 ID, 첫번째 태그, 위도, 경도]
       if (datum[i].length == 4) { // 모든 요소가 있어야 표시되게
+        if (markerLat.contains(datum[i][2]) && markerLng.contains(datum[i][3])) {
+          datum[i][2] = datum[i][2] + 0.00002;
+          print("실행되나?");
+          datum[i][3] = datum[i][3] + 0.00002;
+        }
+        else {
+          markerLat.add(datum[i][2]);
+          markerLng.add(datum[i][3]);
+        }
         _markers.add(
           Marker(
             markerId: MarkerId(datum[i][0]),
@@ -170,6 +183,8 @@ class DeliveryMapState extends State<DeliveryMap> {
         );
       }
     }
+    print("markers");
+    print(_markers);
   }
 
   @override
@@ -292,7 +307,7 @@ class DeliveryMapState extends State<DeliveryMap> {
     controller.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(
           target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-          zoom: 16),
+          zoom: 16.2),
     ));
     _lock = true;
   }
