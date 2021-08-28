@@ -130,81 +130,157 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
+      appBar: CustomAppBar("위치", []),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 3.0, vertical: 2.0),
         child: SingleChildScrollView(
           child: Column(
-            children: <Widget> [
-              topbar2(context, "위치"),
+            children: [
               cSizedBox(height*0.02, 0),
-              Container(
-                width: width*0.8,
-                padding: EdgeInsets.fromLTRB(width*0.04, 0, width*0.02, 0),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.grey,
-                    width: 1
-                  )
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(right: 5.0),
-                      child:Image.asset('assets/images/icon/iconsearch.png', scale: 1.3),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: width*0.7,
+                    padding: EdgeInsets.fromLTRB(width*0.04, 0, width*0.02, 0),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.grey,
+                        width: 1
+                      )
                     ),
-                    Flexible(
-                      child: Container(
-                        width: width*0.8,
-                        child: TypeAheadField(
-                          debounceDuration: Duration(milliseconds: 500),
-                          textFieldConfiguration: TextFieldConfiguration(
-                            scrollPadding: EdgeInsets.all(0),
-                            controller: _searchController,
-                            autofocus: true,
-                            decoration: InputDecoration(
-                              border: InputBorder.none, focusedBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.all(10),
-                              isDense: true,
-                              hintText: '위치 찾아보기',
-                              hintStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 14),
-                            ),
-                            style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14),
-                            cursorColor: Colors.grey,
-                          ),
-
-                          suggestionsCallback: (pattern) async {
-                            if (sessionToken == null) {
-                              sessionToken = uuid.v4();
-                            }
-                            googleMapServices = GoogleMapServices(sessionToken: sessionToken);
-                            return await googleMapServices.getSuggestions(pattern);
-                          },
-                          itemBuilder: (context, suggestion) {
-                            return ListTile(
-                              title: condText(suggestion.main_text),
-                            );
-                          },
-                          onSuggestionSelected: (suggestion) async {
-                            placeDetail = await googleMapServices.getPlaceDetail(
-                              suggestion.placeId,
-                              sessionToken,
-                            );
-                            sessionToken = null;
-                            _moveCamera();
-                          },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(right: 5.0),
+                          child:Image.asset('assets/images/icon/iconsearch.png', scale: 18),
                         ),
-                      ),
+                        Flexible(
+                          child: Container(
+                            width: width*0.8,
+                            child: TypeAheadField(
+                              debounceDuration: Duration(milliseconds: 500),
+                              textFieldConfiguration: TextFieldConfiguration(
+                                scrollPadding: EdgeInsets.all(0),
+                                controller: _searchController,
+                                autofocus: true,
+                                decoration: InputDecoration(
+                                  border: InputBorder.none, focusedBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.all(10),
+                                  isDense: true,
+                                  hintText: '위치 찾아보기',
+                                  hintStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 14),
+                                ),
+                                style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14),
+                                cursorColor: Colors.grey,
+                              ),
+
+                              suggestionsCallback: (pattern) async {
+                                if (sessionToken == null) {
+                                  sessionToken = uuid.v4();
+                                }
+                                googleMapServices = GoogleMapServices(sessionToken: sessionToken);
+                                return await googleMapServices.getSuggestions(pattern);
+                              },
+                              itemBuilder: (context, suggestion) {
+                                return ListTile(
+                                  title: condText(suggestion.main_text),
+                                );
+                              },
+                              onSuggestionSelected: (suggestion) async {
+                                placeDetail = await googleMapServices.getPlaceDetail(
+                                  suggestion.placeId,
+                                  sessionToken,
+                                );
+                                sessionToken = null;
+                                _moveCamera();
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(left: width*0.04),
+                    child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(width: 1.8, color: Color(0xff639ee1))
+                          ),
+                          elevation: 0
+                        ),
+                        onPressed: () {
+                          if (state == "_moveCamera") {
+                            Navigator.pop(context, [placeDetail.name, placeDetail.lat, placeDetail.lng]);
+                          }
+                          else if (state == "_moveCameraByButton") {
+                            Navigator.pop(context, [name, lat, lng]);
+                          }
+                        },
+                        child: smallText('결정 !', 12.5, Color(0xff639ee1))
+                    ),
+                  )
+                ]
+              ),
+              cSizedBox(height*0.02, 0),
+              Text("옆으로 스크롤해서 부산대 빠른 위치를 선택해보세요!", style: TextStyle(fontFamily: "SCDream", color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13)),
+              Container(
+                width: width*0.9,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Wrap(
+                    spacing: 10,
+                    children: [
+                      goButton(smallText("학교 앞 부산은행", 12.5, Colors.white,),
+                          () => {
+                        _searchController.text = "부산은행 장전점",
+                        _setPlaceToBank(),
+                        _moveCameraByButton(),
+                      }),
+                      goButton(smallText("NC백화점", 12.5, Colors.white,),
+                          () => {
+                        _searchController.text = "부산대 NC백화점",
+                        _setPlaceToNC(),
+                        _moveCameraByButton()
+                      }),
+                      goButton(smallText("정문 원룸촌 GS", 12.5, Colors.white,),
+                          () => {
+                        _searchController.text = "GS25 장전효원점",
+                        _setPlaceToGS25(),
+                        _moveCameraByButton(),
+                      }),
+                      goButton(smallText("자유관", 12.5, Colors.white,),
+                          () => {
+                        _searchController.text = "부산대학교 자유관",
+                        _setPlaceToJayu(),
+                        _moveCameraByButton(),
+                      }),
+                      goButton(smallText("웅비관", 12.5, Colors.white,),
+                          () => {
+                        _searchController.text = "부산대학교 웅비관",
+                        _setPlaceToWoongbi(),
+                        _moveCameraByButton(),
+                      }),
+                      goButton(smallText("진리관", 12.5, Colors.white,),
+                          () => {
+                        _searchController.text = "부산대학교 진리관",
+                        _setPlaceToJinri(),
+                        _moveCameraByButton(),
+                      }),
+                    ],
+                  ),
+                )
               ),
               cSizedBox(height*0.02, 0),
               Container(
                   width: double.infinity,
-                  height: 400,
+                  height: height*0.65,
                   child: GoogleMap(
                     mapType: MapType.normal,
                     initialCameraPosition: CameraPosition(
@@ -220,74 +296,6 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                     zoomControlsEnabled: false,
                   )
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                      onPressed: () => {
-                        _searchController.text = "부산은행 장전점",
-                        _setPlaceToBank(),
-                        _moveCameraByButton(),
-                      },
-                      child: Text("학교 앞 부산은행")),
-                  ElevatedButton(
-                      onPressed: () => {
-                        _searchController.text = "부산대 NC백화점",
-                        _setPlaceToNC(),
-                        _moveCameraByButton()
-                      },
-                      child: Text("NC백화점")),
-                  ElevatedButton(
-                      onPressed: () => {
-                        _searchController.text = "GS25 장전효원점",
-                        _setPlaceToGS25(),
-                        _moveCameraByButton(),
-                      },
-                      child: Text("정문 원룸촌 GS")),
-                ],
-              ),
-              Row(
-                children: [
-                  ElevatedButton(
-                      onPressed: () => {
-                        _searchController.text = "부산대학교 자유관",
-                        _setPlaceToJayu(),
-                        _moveCameraByButton(),
-                      },
-                      child: Text("자유관")),
-                  ElevatedButton(
-                      onPressed: () => {
-                        _searchController.text = "부산대학교 웅비관",
-                        _setPlaceToWoongbi(),
-                        _moveCameraByButton(),
-                      },
-                      child: Text("웅비관")),
-                  ElevatedButton(
-                      onPressed: () => {
-                        _searchController.text = "부산대학교 진리관",
-                        _setPlaceToJinri(),
-                        _moveCameraByButton(),
-                      },
-                      child: Text("진리관")),
-                ],
-              ),
-              Container(
-                width: double.infinity,
-                child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.white,
-                      onPrimary: Colors.blue,
-                    ),
-                    onPressed: () {
-                      if (state == "_moveCamera") {
-                        Navigator.pop(context, [placeDetail.name, placeDetail.lat, placeDetail.lng]);
-                      }
-                      else if (state == "_moveCameraByButton") {
-                        Navigator.pop(context, [name, lat, lng]);
-                      }
-                    },
-                    child: Text('여기로 결정 !')),
-              )
             ],
           ),
         ),

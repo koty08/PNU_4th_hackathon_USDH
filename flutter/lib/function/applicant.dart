@@ -45,6 +45,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
+        appBar: CustomAppBar('내가 쓴 글', []),
         body: RefreshIndicator(
             onRefresh: () async {
               setState(() {
@@ -58,7 +59,6 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                     return CircularProgressIndicator();
                   } else if (snapshot.hasData) {
                     return Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                      topbar2(context, "내가 쓴 글"),
                       Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 10)),
                       Text('아이콘을 클릭하면 게시물로 이동합니다.', style: TextStyle(fontFamily: "SCDream", color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13.5)),
                       Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 10)),
@@ -93,7 +93,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                                     Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                                     InkWell(
                                         onTap: () {
-                                          if (doc['isFineForMembers'].length != 0 || rejectedMembers.length != 0 || members.length != 0) Navigator.push(context, MaterialPageRoute(builder: (context) => ShowApplicantList(doc.id)));
+                                          if (doc['isFineForMembers'].length != 0 || rejectedMembers.length != 0 || members.length != 0) Navigator.push(context, MaterialPageRoute(builder: (context) => ShowApplicantList(doc.id, doc['title'])));
                                         },
                                         child: Card(
                                             margin: EdgeInsets.fromLTRB(30, 10, 30, 10),
@@ -142,24 +142,25 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
 
   Widget showBoard(String text, Widget route) {
     return IconButton(
-        padding: EdgeInsets.zero,
-        constraints: BoxConstraints(),
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => route));
-        },
-        icon: Image.asset(
-          text,
-          height: 30,
-          width: 30,
-        ));
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints(),
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => route));
+      },
+      icon: Image.asset(
+        text,
+        height: 30,
+        width: 30,
+      ));
   }
 }
 
 /* ------------------ Show Applicant Board ------------------ */
 
 class ShowApplicantList extends StatefulWidget {
-  ShowApplicantList(this.id);
+  ShowApplicantList(this.id, this.title);
   final String id;
+  final String title;
 
   @override
   ShowApplicantListState createState() {
@@ -185,119 +186,125 @@ class ShowApplicantListState extends State<ShowApplicantList> {
     final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-        body: StreamBuilder(
-            stream: fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(widget.id).snapshots(),
-            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-              fp.setInfo();
-              if (snapshot.hasData && !snapshot.data!.exists) {
-                return CircularProgressIndicator();
-              } else if (snapshot.hasData) {
-                fp.setInfo();
-                Map<String, dynamic> dataMap = snapshot.data!.data() as Map<String, dynamic>;
+      appBar: CustomAppBar(widget.title, []),
+      body: StreamBuilder(
+        stream: fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(widget.id).snapshots(),
+        builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+          fp.setInfo();
+          if (snapshot.hasData && !snapshot.data!.exists) {
+            return CircularProgressIndicator();
+          } else if (snapshot.hasData) {
+            fp.setInfo();
+            Map<String, dynamic> dataMap = snapshot.data!.data() as Map<String, dynamic>;
 
-                final List<dynamic> isFineForMembers = snapshot.data!.get('isFineForMembers');
-                final List<dynamic> members = snapshot.data!.get('members');
-                String where = snapshot.data!.get('where');
-                List<dynamic> rejectedMembers = [];
-                List<dynamic> allMembers = isFineForMembers;
-                bool hasrejected = false;
+            final List<dynamic> isFineForMembers = snapshot.data!.get('isFineForMembers');
+            final List<dynamic> members = snapshot.data!.get('members');
+            String where = snapshot.data!.get('where');
+            List<dynamic> rejectedMembers = [];
+            List<dynamic> allMembers = isFineForMembers;
+            bool hasrejected = false;
 
-                if (dataMap.containsKey('rejectedMembers')) {
-                  hasrejected = true;
-                  rejectedMembers = snapshot.data!.get('rejectedMembers');
-                  allMembers += rejectedMembers;
-                }
-                if (members.length != 0) {
-                  allMembers += members;
-                }
-                return Column(
-                  children: [
-                    topbar2(context, snapshot.data!.get('title')),
-                    Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 10)),
-                    if (where == 'teambuild_board' || where == 'sgroup_board') ...[
-                      Text('아이콘을 누르면 프로필을 확인할 수 있습니다.', style: TextStyle(fontFamily: "SCDream", color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13.5)),
-                      Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
-                    ],
-                    Text('[요청중] 을 누르면 승인/거절할 수 있습니다.', style: TextStyle(fontFamily: "SCDream", color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13.5)),
-                    Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 10)),
-                    Expanded(
-                        child: MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: allMembers.length,
-                          itemBuilder: (context, index) {
-                            bool wasrejected = false;
-                            bool ismember = false;
-                            if (hasrejected && rejectedMembers.contains(allMembers[index])) wasrejected = true;
-                            if (members.length != 0 && members.contains(allMembers[index])) ismember = true;
-                            return Column(children: [
-                              Container(
-                                  height: height * 0.12,
-                                  width: width * 0.85,
-                                  child: Card(
-                                    margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        if (!wasrejected) ...[
-                                          cSizedBox(0, width * 0.05),
-                                          // 팀빌딩, 소모임 -> 프로필 보기
-                                          if (where == "teambuild_board") showProfile(allMembers[index], "portfolio", "portfolio_tag", "포트폴리오"),
-                                          if (where == "sgroup_board") showProfile(allMembers[index], "coverletter", "coverletter_tag", "자기소개서"),
-                                          if (where != 'teambuild_board' && where != 'sgroup_board') Image(image: AssetImage('assets/images/icon/profile.png'), width: 18, height: 18),
-                                          cSizedBox(0, width * 0.05),
-                                          if (!ismember) ...[
-                                            Wrap(
-                                              direction: Axis.vertical,
-                                              spacing: height * 0.005,
-                                              children: [
-                                                Container(
-                                                  width: width * 0.45,
-                                                  child: smallText(allMembers[index], 15, Colors.black87),
-                                                ),
-                                                Container(
-                                                    width: width * 0.55,
-                                                    child: (snapshot.data!['messages'].length != 0) ? smallText("> " + snapshot.data!['messages'][index], 12, Colors.black45) : smallText("[요청 메세지가 없어요!]", 12, Colors.black45)),
-                                              ],
-                                            ),
-                                            GestureDetector(
-                                                onTap: () {
-                                                  select(snapshot, index, where, members);
-                                                },
-                                                child: smallText('요청중', 13, Color(0xff548ee0))),
-                                          ] else ...[
+            if (dataMap.containsKey('rejectedMembers')) {
+              hasrejected = true;
+              rejectedMembers = snapshot.data!.get('rejectedMembers');
+              allMembers += rejectedMembers;
+            }
+            if (members.length != 0) {
+              allMembers += members;
+            }
+            return Column(
+              children: [
+                Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 10)),
+                if (where == 'teambuild_board' || where == 'sgroup_board') ...[
+                  Text('아이콘을 누르면 프로필을 확인할 수 있습니다.', style: TextStyle(fontFamily: "SCDream", color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13.5)),
+                  Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
+                ],
+                Text('[요청중] 을 누르면 승인/거절할 수 있습니다.', style: TextStyle(fontFamily: "SCDream", color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13.5)),
+                Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 10)),
+                Expanded(
+                  child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: allMembers.length,
+                      itemBuilder: (context, index) {
+                        bool wasrejected = false;
+                        bool ismember = false;
+                        if (hasrejected && rejectedMembers.contains(allMembers[index])) wasrejected = true;
+                        if (members.length != 0 && members.contains(allMembers[index])) ismember = true;
+                        return Column(children: [
+                          Container(
+                              height: height * 0.12,
+                              width: width * 0.85,
+                              child: Card(
+                                margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    if (!wasrejected) ...[
+                                      cSizedBox(0, width * 0.05),
+                                      // 팀빌딩, 소모임 -> 프로필 보기
+                                      if (where == "teambuild_board") showProfile(allMembers[index], "portfolio", "portfolio_tag", "포트폴리오"),
+                                      if (where == "sgroup_board") showProfile(allMembers[index], "coverletter", "coverletter_tag", "자기소개서"),
+                                      if (where != 'teambuild_board' && where != 'sgroup_board') Image(image: AssetImage('assets/images/icon/profile.png'), width: 18, height: 18),
+                                      cSizedBox(0, width * 0.05),
+                                      if (!ismember) ...[
+                                        Wrap(
+                                          direction: Axis.vertical,
+                                          spacing: height * 0.005,
+                                          children: [
                                             Container(
-                                              width: width * 0.52,
+                                              width: width * 0.45,
                                               child: smallText(allMembers[index], 15, Colors.black87),
                                             ),
-                                            smallText(' 승인', 13, Color(0xff548ee0))
-                                          ]
-                                        ] else if (wasrejected) ...[
-                                          cSizedBox(0, width * 0.05),
-                                          // 팀빌딩, 소모임 -> 프로필 보기
-                                          if (where == "teambuild_board") showProfile(allMembers[index], "portfolio", "portfolio_tag", "포트폴리오"),
-                                          if (where == "sgroup_board") showProfile(allMembers[index], "coverletter", "coverletter_tag", "자기소개서"),
-                                          if (where != 'teambuild_board' && where != 'sgroup_board') Image(image: AssetImage('assets/images/icon/profile.png'), width: 18, height: 18),
-                                          cSizedBox(0, width * 0.05),
-                                          Container(
-                                            width: width * 0.52,
-                                            child: smallText(allMembers[index], 15, Colors.black87),
-                                          ),
-                                          smallText(' 거절', 13, Colors.grey),
-                                        ]
-                                      ],
-                                    ),
-                                  ))
-                            ]);
-                          }),
-                    )),
-                  ],
-                );
-              }
-              return CircularProgressIndicator();
-            }));
+                                            Container(
+                                              width: width * 0.5,
+                                              child: (snapshot.data!['messages'].length != 0)
+                                                ? SingleChildScrollView(
+                                                  scrollDirection: Axis.horizontal,
+                                                  child: smallText("> " + snapshot.data!['messages'][index], 12, Colors.black45)
+                                                )
+                                                : smallText("[요청 메세지가 없어요!]", 12, Colors.black45)),
+                                          ],
+                                        ),
+                                        cSizedBox(0, width * 0.03),
+                                        GestureDetector(
+                                            onTap: () {
+                                              select(snapshot, index, where, members);
+                                            },
+                                            child: smallText('요청중', 13, Color(0xff548ee0))),
+                                      ] else ...[
+                                        Container(
+                                          width: width * 0.52,
+                                          child: smallText(allMembers[index], 15, Colors.black87),
+                                        ),
+                                        smallText(' 승인', 13, Color(0xff548ee0))
+                                      ]
+                                    ] else if (wasrejected) ...[
+                                      cSizedBox(0, width * 0.05),
+                                      // 팀빌딩, 소모임 -> 프로필 보기
+                                      if (where == "teambuild_board") showProfile(allMembers[index], "portfolio", "portfolio_tag", "포트폴리오"),
+                                      if (where == "sgroup_board") showProfile(allMembers[index], "coverletter", "coverletter_tag", "자기소개서"),
+                                      if (where != 'teambuild_board' && where != 'sgroup_board') Image(image: AssetImage('assets/images/icon/profile.png'), width: 18, height: 18),
+                                      cSizedBox(0, width * 0.05),
+                                      Container(
+                                        width: width * 0.52,
+                                        child: smallText(allMembers[index], 15, Colors.black87),
+                                      ),
+                                      smallText(' 거절', 13, Colors.grey),
+                                    ]
+                                  ],
+                                ),
+                              ))
+                        ]);
+                      }),
+                )),
+              ],
+            );
+          }
+          return CircularProgressIndicator();
+        }));
   }
 
   // 방 초기화 메세지
@@ -335,7 +342,6 @@ class ShowApplicantListState extends State<ShowApplicantList> {
 
     showDialog(
         context: context,
-        barrierDismissible: false,
         builder: (BuildContext context) {
           FirebaseProvider fp = Provider.of<FirebaseProvider>(context);
           return AlertDialog(
@@ -417,7 +423,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                           ),
                           // 거절
                           IconButton(
-                            icon: Image.asset('assets/images/icon/iconx.png', width: 18, height: 18),
+                            icon: Image.asset('assets/images/icon/iconx.png', width: 15, height: 15),
                             onPressed: () async {
                               var myId = fp.getInfo()['email'];
                               String title = widget.id;
@@ -520,7 +526,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                           ),
                                           borderRadius: BorderRadius.circular(10)),
                                       child: SingleChildScrollView(
-                                        child: (doc[info].length == 0) ? Text("작성 X") : condText(doc[info][0]),
+                                        child: (doc[info].length == 0) ? condText("작성 X") : condText(doc[info][0]),
                                       ),
                                     ),
                                     cSizedBox(height * 0.04, 0),
@@ -536,7 +542,7 @@ class ShowApplicantListState extends State<ShowApplicantList> {
                                           ),
                                           borderRadius: BorderRadius.circular(10)),
                                       child: SingleChildScrollView(
-                                        child: (doc[info].length == 0) ? Text("작성 X") : condText(doc[info][1]),
+                                        child: (doc[info].length == 0) ? condText("작성 X") : condText(doc[info][1]),
                                       ),
                                     ),
                                     cSizedBox(height * 0.04, 0),
@@ -590,31 +596,31 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
 
     colstream = fs.collection('users').doc(myId).collection('myApplication').snapshots();
     return Scaffold(
-        body: RefreshIndicator(
-      //당겨서 새로고침
-      onRefresh: () async {
-        setState(() {
-          colstream = fs.collection('users').doc(myId).collection('myApplication').snapshots();
-        });
-      },
-      child: StreamBuilder<QuerySnapshot>(
+      appBar: CustomAppBar('신청한 글', []),
+      body: RefreshIndicator(
+        //당겨서 새로고침
+        onRefresh: () async {
+          setState(() {
+            colstream = fs.collection('users').doc(myId).collection('myApplication').snapshots();
+          });
+        },
+        child: StreamBuilder<QuerySnapshot>(
           stream: colstream,
           builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (!snapshot.hasData) {
               return CircularProgressIndicator();
             }
             return Column(children: [
-              topbar2(context, "신청한 글"),
               Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 15)),
               Text('클릭하면 해당 게시물로 이동합니다.', style: TextStyle(fontFamily: "SCDream", color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13.5)),
               Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
               Expanded(
-                  // 아래 간격 두고 싶으면 Container, height 사용
-                  //height: MediaQuery.of(context).size.height * 0.8,
-                  child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: ListView.builder(
+                // 아래 간격 두고 싶으면 Container, height 사용
+                //height: MediaQuery.of(context).size.height * 0.8,
+                child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: ListView.builder(
                     shrinkWrap: true,
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
@@ -625,46 +631,23 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                         Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                         InkWell(
                             onTap: () {
-                              if (where == 'delivery_board') navigate2Board(where, DeliveryShow(id: doc.id), doc);
-                              if (where == 'teambuild_board') navigate2Board(where, TeambuildShow(doc.id), doc);
-                              if (where == 'sgroup_board') navigate2Board(where, SgroupShow(doc.id), doc);
-                              if (where == 'roommate_board') navigate2Board(where, RoommateShow(doc.id), doc);
+                              if (where != 'deleted'){
+                                if (where == 'delivery_board') navigate2Board(where, DeliveryShow(id: doc.id), doc);
+                                if (where == 'teambuild_board') navigate2Board(where, TeambuildShow(doc.id), doc);
+                                if (where == 'sgroup_board') navigate2Board(where, SgroupShow(doc.id), doc);
+                                if (where == 'roommate_board') navigate2Board(where, RoommateShow(doc.id), doc);
+                              }
                             },
                             child: Card(
                                 margin: EdgeInsets.fromLTRB(width * 0.07, 20, width * 0.07, 0),
                                 child: Padding(
                                     padding: EdgeInsets.fromLTRB(width * 0.05, 15, width * 0.05, 15),
                                     child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                                      if (where == 'deleted')
-                                        Image(
-                                          image: AssetImage('assets/images/icon/iconx.png'),
-                                          height: 30,
-                                          width: 30,
-                                        ),
-                                      if (where == 'delivery_board')
-                                        Image(
-                                          image: AssetImage('assets/images/icon/iconmotorcycle.png'),
-                                          height: 30,
-                                          width: 30,
-                                        ),
-                                      if (where == 'teambuild_board')
-                                        Image(
-                                          image: AssetImage('assets/images/icon/iconteam.png'),
-                                          height: 30,
-                                          width: 30,
-                                        ),
-                                      if (where == 'sgroup_board')
-                                        Image(
-                                          image: AssetImage('assets/images/icon/iconplay.png'),
-                                          height: 30,
-                                          width: 30,
-                                        ),
-                                      if (where == 'roommate_board')
-                                        Image(
-                                          image: AssetImage('assets/images/icon/iconroom.png'),
-                                          height: 30,
-                                          width: 30,
-                                        ),
+                                      if (where == 'deleted') Image(image: AssetImage('assets/images/icon/iconx.png'), height: 22, width: 22,),
+                                      if (where == 'delivery_board') Image(image: AssetImage('assets/images/icon/iconmotorcycle.png'), height: 22, width: 22,),
+                                      if (where == 'teambuild_board') Image(image: AssetImage('assets/images/icon/iconteam.png'), height: 22, width: 22,),
+                                      if (where == 'sgroup_board') Image(image: AssetImage('assets/images/icon/iconplay.png'), height: 22, width: 22,),
+                                      if (where == 'roommate_board') Image(image: AssetImage('assets/images/icon/iconroom.png'), height: 22, width: 22,),
                                       cSizedBox(0, width*0.05),
                                       FutureBuilder(
                                           future: getApplicantInfo(where, doc.id),
@@ -683,6 +666,7 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                                                       smallText(snapshot.data[1] + snapshot.data[2] + snapshot.data[3], 10, Color(0xffa9aaaf)),
                                                     ],
                                                   ),
+                                                  cSizedBox(0, width*0.03),
                                                   if (!doc['isJoined'] && !doc['isRejected']) smallText('요청중', 13, Color(0xff548ee0)),
                                                   if (doc['isJoined']) smallText('승인됨', 13, Color(0xff548ee0)),
                                                   if (doc['isRejected']) smallText('거절됨', 13, Colors.grey),
@@ -723,4 +707,5 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
     });
     await fs.collection(where).doc(doc.id).update({"views": views + 1});
   }
+
 }

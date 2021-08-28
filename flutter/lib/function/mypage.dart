@@ -50,10 +50,12 @@ class MyPageState extends State<MyPage> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
 
-    // double propertyWith = 130;
     return Scaffold(
-        body: StreamBuilder(
+      appBar: CustomAppBar('마이페이지', []),
+      body: StreamBuilder(
         stream: fs.collection('users').doc(fp.getInfo()['email']).snapshots(),
         builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
           final width = MediaQuery.of(context).size.width;
@@ -63,7 +65,6 @@ class MyPageState extends State<MyPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    topbar2(context, "마이페이지"),
                     Row(
                       children: [
                         Padding(padding: EdgeInsets.fromLTRB(30, 100, 0, 10)),
@@ -324,7 +325,7 @@ class MyPageState extends State<MyPage> {
             return CircularProgressIndicator();
           }
         }
-        )
+      )
     );
   }
     void uploadImage() async {

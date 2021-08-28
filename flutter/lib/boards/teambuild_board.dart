@@ -64,10 +64,10 @@ class TeambuildWriteState extends State<TeambuildWrite> {
   TextEditingController stuidInput = TextEditingController();
   TextEditingController subjectInput = TextEditingController();
   TextEditingController tagInput = TextEditingController();
-  TextEditingController myintroInput = TextEditingController();
   FirebaseStorage storage = FirebaseStorage.instance;
   FirebaseFirestore fs = FirebaseFirestore.instance;
   List tagList = [];
+  TimeOfDay _time = TimeOfDay.now();
 
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
@@ -93,7 +93,6 @@ class TeambuildWriteState extends State<TeambuildWrite> {
     stuidInput.dispose();
     subjectInput.dispose();
     tagInput.dispose();
-    myintroInput.dispose();
     super.dispose();
   }
 
@@ -102,113 +101,122 @@ class TeambuildWriteState extends State<TeambuildWrite> {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
 
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
+    void onTimeChanged(TimeOfDay newTime) {
+      setState(() {
+        _time = newTime;
+        timeInput.text = _time.format(context);
+      });
+    }
+
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: SingleChildScrollView(
-            child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              topbar3(context, "글 작성", () {
+        appBar: CustomAppBar("글 작성", [
+          IconButton(
+              icon: Icon(
+                Icons.check,
+                color: Color(0xff639ee1),
+              ),
+              onPressed: () {
                 FocusScope.of(context).requestFocus(new FocusNode());
                 if (_formKey.currentState!.validate()) {
                   uploadOnFS();
                   Navigator.pop(context);
                 }
-              }),
-              Padding(
-                  padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                  child: Wrap(
-                    direction: Axis.vertical,
-                    spacing: 15,
-                    children: [
-                      Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
-                      Wrap(spacing: 15, children: [
-                        cond2Text("날짜 선택 ->"),
-                        IconButton(
-                          onPressed: () {
-                            Future<DateTime?> future = showDatePicker(
-                              context: context,
-                              initialDate: selectedDate,
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime(2025),
-                              builder: (BuildContext context, Widget? child) {
-                                return Theme(
-                                  data: ThemeData.light(),
-                                  child: child!,
-                                );
-                              },
-                            );
-
-                            future.then((date) {
-                              if (date == null) {
-                                print("날짜를 선택해주십시오.");
-                              } else {
-                                setState(() {
-                                  selectedDate = date;
-                                });
-                              }
-                            });
-                          },
-                          icon: Icon(Icons.calendar_today),
-                        ),
-                        Text("마감 날짜 : " +
-                            formatDate(selectedDate, [
-                              yyyy,
-                              '-',
-                              mm,
-                              '-',
-                              dd,
-                            ]))
-                      ]),
-                      Padding(
-                          padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
-                          child: Wrap(
-                            direction: Axis.vertical,
-                            spacing: 15,
-                            children: [
-                              // 시간은 validator 처리때문에 따로 파겠습니다.
-                              // condWrap("모집기간", timeInput, "마감 시간 입력 : xx:xx (ex 21:32 형태)", "마감 시간은 필수 입력 사항입니다."),
+              }
+          )]),
+        resizeToAvoidBottomInset: false,
+        body: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.03, width * 0.1, 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            cSizedBox(height*0.01, 0),
+                            Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                            cSizedBox(height*0.02, 0),
+                            Wrap(
+                              direction: Axis.vertical,
+                              spacing: -8,
+                              children: [
                               Wrap(
                                 spacing: 15,
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  cond2Text("마감시간"),
                                   Container(
-                                    width: 250,
-                                    height: 20,
-                                    margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
-                                    child: TextFormField(
-                                        controller: timeInput,
-                                        style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
-                                        decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)", border: InputBorder.none, focusedBorder: InputBorder.none),
-                                        validator: (text) {
-                                          if (text == null || text.isEmpty) {
-                                            return "마감 시간은 필수 입력 사항입니다.";
-                                          } else if (isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])) {
-                                            return null;
-                                          } else {
-                                            return "올바른 형식으로 입력해주세요. (ex 09:10)";
-                                          }
-                                        }),
+                                    width: 60,
+                                    alignment: Alignment(0.0, 0.0),
+                                    child: cond2Text("마감 날짜"),
+                                  ),
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    onPressed: () {
+                                      Future<DateTime?> future = showDatePicker(
+                                        context: context,
+                                        initialDate: selectedDate,
+                                        firstDate: DateTime.now(),
+                                        lastDate: DateTime(2025),
+                                        builder: (BuildContext context, Widget? child) {
+                                          return Theme(
+                                            data: ThemeData.light(),
+                                            child: child!,
+                                          );
+                                        },
+                                      );
+                                      future.then((date) {
+                                        if (date == null) {
+                                          print("날짜를 선택해주십시오.");
+                                        } else {
+                                          setState(() {
+                                            selectedDate = date;
+                                          });
+                                        }
+                                      });
+                                    },
+                                    child: condText(formatDate(selectedDate, [yyyy, '-', mm, '-', dd,]).toString()),
+                                  ),
+                                ]
+                              ),
+                              Wrap(
+                                spacing: 15,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 60,
+                                    alignment: Alignment(0.0, 0.0),
+                                    child: cond2Text("마감 시간"),
+                                  ),
+                                  GestureDetector(
+                                      child: Container(width: width * 0.4,
+                                          child: ccondField(timeInput, "마감 시간을 선택하세요.", "마감 시간은 필수 입력 사항입니다.")
+                                      ),
+                                      onTap: (){TimePicker(context, _time, onTimeChanged);}
                                   )
                                 ],
                               ),
                               condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
-                              condWrap("학번", stuidInput, "요구학번을 입력하세요. (ex 18~21 or 상관없음)", "필수 입력 사항입니다."),
-                              condWrap("모집분야", subjectInput, "모집분야를 입력하세요.", "모집분야는 필수 입력 사항입니다."),
-                            ],
-                          )),
-                    ],
+                              condWrap("학번", stuidInput, "요구 학번 (ex 18~21, 상관없음)", "필수 입력 사항입니다."),
+                              condWrap("주제", subjectInput, "주제를 입력하세요.", "주제는 필수 입력 사항입니다."),
+                        ],
+                      )
+                      ],
                   )),
-              Divider(
-                color: Color(0xffe9e9e9),
-                thickness: 17,
-              ),
-              Padding(
-                  padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
-                  child: Wrap(direction: Axis.vertical, spacing: -10, children: [
-                    Container(
+                    Divider(
+                      color: Color(0xffe9e9e9),
+                      thickness: 17,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
+                      child: Wrap(direction: Axis.vertical, spacing: -10, children: [
+                        Container(
                         width: MediaQuery.of(context).size.width * 0.8,
                         child: TagEditor(
                           key: key,
@@ -238,11 +246,11 @@ class TeambuildWriteState extends State<TeambuildWrite> {
                         )),
                     Container(width: MediaQuery.of(context).size.width * 0.8, child: titleField(titleInput)),
                   ])),
-              Divider(
-                color: Color(0xffe9e9e9),
-                thickness: 2.5,
-              ),
-              Container(
+                  Divider(
+                    color: Color(0xffe9e9e9),
+                    thickness: 2.5,
+                  ),
+                  Container(
                   padding: EdgeInsets.fromLTRB(40, 10, 40, 0),
                   child: TextFormField(
                       controller: contentInput,
@@ -259,7 +267,6 @@ class TeambuildWriteState extends State<TeambuildWrite> {
                         }
                         return null;
                       })),
-              condWrap("자기소개", myintroInput, "자기소개 혹은 어필을 할 수 있는 칸", "자기소개는 필수 입력 사항입니다."),
               cSizedBox(350, 0)
             ],
           ),
@@ -273,13 +280,12 @@ class TeambuildWriteState extends State<TeambuildWrite> {
       'write_time': formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
       'writer': myInfo['nick'],
       'contents': contentInput.text,
-      'time': formatDate(selectedDate, [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
+      'time': formatDate(selectedDate, [yyyy, '-', mm, '-', dd]) + " " + _time.toString().substring(10, 15) + ":00",
       'currentMember': 1,
       'limitedMember': int.parse(memberInput.text),
       'stuid': stuidInput.text,
       'subject': subjectInput.text,
       'tagList': tagList,
-      'myintro': myintroInput.text,
       'views': 0,
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(myInfo['nick'] + myInfo['postcount'].toString()).set({
@@ -367,8 +373,120 @@ class TeambuildListState extends State<TeambuildList> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      appBar: CustomAppBar("팀빌딩", [
+        //새로고침 기능
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconrefresh.png', width: 18, height: 18),
+          onPressed: () {
+            setState(() {
+              colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy("write_time", descending: true).snapshots();
+            });
+          },
+        ),
+        //검색 기능 팝업
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconsearch.png', width: 20, height: 20),
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (BuildContext con) {
+                  return StatefulBuilder(builder: (con, setS) {
+                    return Form(
+                        key: _formKey,
+                        child: AlertDialog(
+                          title: Row(
+                            children: [
+                              Theme(
+                                data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                child: Radio(
+                                    value: "제목",
+                                    activeColor: Colors.black38,
+                                    groupValue: search,
+                                    onChanged: (String? value) {
+                                      setS(() {
+                                        search = value!;
+                                      });
+                                    }),
+                              ),
+                              Text(
+                                "제목 검색",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                ),
+                              ),
+                              Theme(
+                                data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                child: Radio(
+                                    value: "태그",
+                                    activeColor: Colors.black38,
+                                    groupValue: search,
+                                    onChanged: (String? value) {
+                                      setS(() {
+                                        search = value!;
+                                      });
+                                    }),
+                              ),
+                              Text(
+                                "태그 검색",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                          content: TextFormField(
+                              controller: searchInput,
+                              decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
+                              validator: (text) {
+                                if (text == null || text.isEmpty) {
+                                  return "검색어를 입력하지 않으셨습니다.";
+                                }
+                                return null;
+                              }),
+                          actions: <Widget>[
+                            TextButton(
+                                onPressed: () {
+                                  if (_formKey.currentState!.validate()) {
+                                    if (search == "제목") {
+                                      setState(() {
+                                        colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                                      });
+                                      searchInput.clear();
+                                      Navigator.pop(con);
+                                    } else {
+                                      setState(() {
+                                        colstream = FirebaseFirestore.instance.collection('teambuild_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
+                                      });
+                                      searchInput.clear();
+                                      Navigator.pop(con);
+                                    }
+                                  }
+                                },
+                                child: Text("검색")),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.pop(con);
+                                  searchInput.clear();
+                                },
+                                child: Text("취소")),
+                          ],
+                        ));
+                  });
+                });
+          },
+        ),
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconmessage.png', width: 19, height: 19),
+          onPressed: () {
+            var myInfo = fp.getInfo();
+            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
+          },
+        ),
+      ]),
       body: RefreshIndicator(
         //당겨서 새로고침
         onRefresh: () async {
@@ -383,137 +501,6 @@ class TeambuildListState extends State<TeambuildList> {
                 return CircularProgressIndicator();
               }
               return Column(children: [
-                cSizedBox(35, 0),
-                Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      headerText("팀빌딩"),
-                      cSizedBox(0, 50),
-                      Wrap(
-                        spacing: -5,
-                        children: [
-                          //새로고침 기능
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
-                            onPressed: () {
-                              setState(() {
-                                colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy("write_time", descending: true).snapshots();
-                              });
-                            },
-                          ),
-                          //검색 기능 팝업
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
-                            onPressed: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (BuildContext con) {
-                                    return StatefulBuilder(builder: (con, setS) {
-                                      return Form(
-                                          key: _formKey,
-                                          child: AlertDialog(
-                                            title: Row(
-                                              children: [
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "제목",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setS(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
-                                                ),
-                                                Text(
-                                                  "제목 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "태그",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setS(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
-                                                ),
-                                                Text(
-                                                  "태그 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            content: TextFormField(
-                                                controller: searchInput,
-                                                decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
-                                                validator: (text) {
-                                                  if (text == null || text.isEmpty) {
-                                                    return "검색어를 입력하지 않으셨습니다.";
-                                                  }
-                                                  return null;
-                                                }),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                  onPressed: () {
-                                                    if (_formKey.currentState!.validate()) {
-                                                      if (search == "제목") {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('teambuild_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      } else {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('teambuild_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      }
-                                                    }
-                                                  },
-                                                  child: Text("검색")),
-                                              TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(con);
-                                                    searchInput.clear();
-                                                  },
-                                                  child: Text("취소")),
-                                            ],
-                                          ));
-                                    });
-                                  });
-                            },
-                          ),
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                            onPressed: () {
-                              var myInfo = fp.getInfo();
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                            },
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                headerDivider(),
                 Container(
                     padding: EdgeInsets.fromLTRB(0, 10, 25, 5),
                     child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -549,9 +536,9 @@ class TeambuildListState extends State<TeambuildList> {
                     ])),
                 // Container or Expanded or Flexible 사용
                 Expanded(
-                    // 아래 간격 두고 싶으면 Container, height 사용
-                    //height: MediaQuery.of(context).size.height * 0.8,
-                    child: MediaQuery.removePadding(
+                  // 아래 간격 두고 싶으면 Container, height 사용
+                  //height: MediaQuery.of(context).size.height * 0.8,
+                  child: MediaQuery.removePadding(
                   context: context,
                   removeTop: true,
                   child: ListView.separated(
@@ -565,19 +552,18 @@ class TeambuildListState extends State<TeambuildList> {
                         String time = ' | ' + '마감 ' + doc['time'].substring(5, 7) + "/" + doc['time'].substring(8, 10) + doc['time'].substring(10, 16) + ' | ';
                         String writer = doc['writer'];
                         return Column(children: [
-                          Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
                           InkWell(
                               onTap: () {
                                 Navigator.push(context, MaterialPageRoute(builder: (context) => TeambuildShow(doc.id)));
                                 FirebaseFirestore.instance.collection('teambuild_board').doc(doc.id).update({"views": doc["views"] + 1});
                               },
                               child: Container(
-                                  margin: EdgeInsets.fromLTRB(25, 17, 10, 0),
+                                  margin: EdgeInsets.fromLTRB(width*0.07, height*0.018, 0, 0),
                                   child: Column(children: [
                                     Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                                      cSizedBox(0, 10),
+                                      cSizedBox(0, width*0.01),
                                       Container(
-                                          width: MediaQuery.of(context).size.width * 0.7,
+                                          width: width * 0.63,
                                           height: 13,
                                           child: ListView.builder(
                                               scrollDirection: Axis.horizontal,
@@ -592,27 +578,25 @@ class TeambuildListState extends State<TeambuildList> {
                                                     },
                                                     child: smallText(tag, 12, Color(0xffa9aaaf)));
                                               })),
-                                      cSizedBox(0, 10),
+                                      cSizedBox(0, width*0.08),
                                       Container(
-                                          width: 50,
+                                          width: width*0.2,
                                           child: Row(
                                             crossAxisAlignment: CrossAxisAlignment.end,
                                             children: [
                                               isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])
                                                   ? Image(
-                                                      image: AssetImage('assets/images/icon/iconminiperson.png'),
-                                                      height: 15,
-                                                      width: 15,
-                                                    )
+                                                image: AssetImage('assets/images/icon/iconminiperson.png'),
+                                                height: 15,
+                                                width: 15,
+                                              )
                                                   : Image(
-                                                      image: AssetImage('assets/images/icon/iconminiperson2.png'),
-                                                      height: 15,
-                                                      width: 15,
-                                                    ),
-
-                                              //overflow돼서 좀 줄였습니다.
-                                              cSizedBox(20, 4),
-                                              smallText(member, 13, Color(0xffa9aaaf))
+                                                image: AssetImage('assets/images/icon/iconminiperson2.png'),
+                                                height: 15,
+                                                width: 15,
+                                              ),
+                                              cSizedBox(20, width*0.02),
+                                              Container(width: width*0.13, child: smallText(member, 13, Color(0xffa9aaaf)))
                                             ],
                                           ))
                                     ]),
@@ -620,8 +604,8 @@ class TeambuildListState extends State<TeambuildList> {
                                       isAvailable(doc['time'], doc['currentMember'], doc['limitedMember']) ? statusText("모집중") : statusText("모집완료"),
                                       cSizedBox(0, 10),
                                       Container(
-                                        width: MediaQuery.of(context).size.width * 0.6,
-                                        child: Text(doc['title'].toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w700, fontSize: 15)),
+                                        width: width * 0.6,
+                                        child: cond2Text(doc['title'].toString()),
                                       ),
                                       cSizedBox(35, 0),
                                     ]),
@@ -700,10 +684,13 @@ class TeambuildShowState extends State<TeambuildShow> {
     fp.setInfo();
 
     return Scaffold(
+        appBar: CustomAppBar("팀빌딩", []),
         body: StreamBuilder(
             stream: fs.collection('teambuild_board').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               fp.setInfo();
+              final width = MediaQuery.of(context).size.width;
+              final height = MediaQuery.of(context).size.height;
 
               if (snapshot.hasData && !snapshot.data!.exists) {
                 return CircularProgressIndicator();
@@ -716,7 +703,6 @@ class TeambuildShowState extends State<TeambuildShow> {
                   child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    topbar2(context, "팀빌딩"),
                     Padding(
                         padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                         child: Wrap(direction: Axis.vertical, spacing: 15, children: [
@@ -737,7 +723,7 @@ class TeambuildShowState extends State<TeambuildShow> {
                           direction: Axis.vertical,
                           spacing: 15,
                           children: [
-                            Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                            infoText("모집조건"),
                             Padding(
                                 padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
                                 child: Wrap(
@@ -760,76 +746,110 @@ class TeambuildShowState extends State<TeambuildShow> {
                       padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
                       child: Text(snapshot.data!['contents'], style: TextStyle(fontSize: 14)),
                     ),
-                    Padding(
-                        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                        child: Wrap(
-                          direction: Axis.vertical,
-                          spacing: 15,
-                          children: [
-                            Text("팀장 정보", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
-                            FutureBuilder<QuerySnapshot>(
-                                future: fs.collection('users').where('nick', isEqualTo: writer).get(),
-                                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
-                                  if (snap.hasData) {
-                                    DocumentSnapshot doc = snap.data!.docs[0];
-                                    return Column(
-                                      children: [
-                                        Row(
-                                          children: [
-                                            ClipRRect(
-                                              borderRadius: BorderRadius.circular(60),
-                                              child: Image.network(
-                                                doc['photoUrl'],
-                                                width: 60,
-                                                height: 60,
-                                              ),
+                    TextButton(
+                      onPressed: () {
+                        if (status == false) {
+                          setState(() {
+                            status = true;
+                          });
+                        } else {
+                          setState(() {
+                            status = false;
+                          });
+                        }
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(width*0.1, 20, 0, 20),
+                        child: infoText("팀장 정보 V"),
+                      ),
+                    ),
+                      FutureBuilder<QuerySnapshot>(
+                        future: fs.collection('users').where('nick', isEqualTo: writer).get(),
+                        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
+                          if (snap.hasData) {
+                            DocumentSnapshot doc = snap.data!.docs[0];
+                            return Visibility(
+                              visible: status,
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      cSizedBox(0, width*0.12),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(60),
+                                        child: Image.network(
+                                          doc['photoUrl'],
+                                          width: 50,
+                                          height: 50,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      cSizedBox(10, 20),
+                                      cond2Text(doc['nick'] + "(" + doc['num'].toString() + ")"),
+                                    ],
+                                  ),
+                                  //포트폴리오 onoff표시
+                                  (doc['portfolio'].length == 0)
+                                  ? Container(
+                                    margin: EdgeInsets.fromLTRB(0, 20, 0, 40),
+                                    child: smallText("포트폴리오를 작성하지 않으셨습니다.", 12, Colors.grey),
+                                  )
+                                  : Column(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.fromLTRB(width * 0.1, height*0.04, width * 0.03, 0),
+                                        child: inputNav2('assets/images/icon/iconme.png', "  자기소개"),
+                                      ),
+                                      Container(
+                                        width: width * 0.67,
+                                        height: height * 0.12,
+                                        padding: EdgeInsets.fromLTRB(width * 0.05, height * 0.02, width * 0.05, height * 0.02),
+                                        decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: Colors.grey,
+                                              width: 0.5,
                                             ),
-                                            cSizedBox(10, 20),
-                                            cond2Text(doc['nick'] + "(" + doc['num'].toString() + ")"),
-                                          ],
+                                            borderRadius: BorderRadius.circular(10)),
+                                        child: SingleChildScrollView(
+                                          child: (doc['portfolio'].length == 0) ? condText("작성 X") : info2Text(doc['portfolio'][0]),
                                         ),
-                                        TextButton(
-                                          onPressed: () {
-                                            if (status == false) {
-                                              setState(() {
-                                                status = true;
-                                              });
-                                            } else {
-                                              setState(() {
-                                                status = false;
-                                              });
-                                            }
-                                          },
-                                          child: Text("팀장 포트폴리오 V"),
+                                      ),
+                                      Container(
+                                        padding: EdgeInsets.fromLTRB(width * 0.1, height*0.04, width * 0.03, 0),
+                                        child: inputNav2('assets/images/icon/iconwin.png', "  경력"),
+                                      ),
+                                      Container(
+                                        width: width * 0.67,
+                                        height: height * 0.12,
+                                        padding: EdgeInsets.fromLTRB(width * 0.05, height * 0.02, width * 0.05, height * 0.02),
+                                        decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: Colors.grey,
+                                              width: 0.5,
+                                            ),
+                                            borderRadius: BorderRadius.circular(10)),
+                                        child: SingleChildScrollView(
+                                          child: (doc['portfolio'].length == 0) ? condText("작성 X") : info2Text(doc['portfolio'][1]),
                                         ),
-                                        //포트폴리오 onoff표시
-                                        (doc['portfolio'].length == 0)
-                                            ? Visibility(
-                                                visible: status,
-                                                child: Column(
-                                                  children: [
-                                                    Text("포트폴리오를 작성하지 않으셨습니다."),
-                                                  ],
-                                                ))
-                                            : Visibility(
-                                                visible: status,
-                                                child: Column(
-                                                  children: [
-                                                    (doc['portfolio_tag'].length == 0) ? Text("태그없음") : tagText(doc['portfolio_tag'].join('')),
-                                                    (doc['portfolio'].length == 0) ? Text("작성 X") : Text("자기소개", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                                    cond2Text(doc['portfolio'][0]),
-                                                    (doc['portfolio'].length == 0) ? Text("작성 X") : Text("경력", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 12)),
-                                                    cond2Text(doc['portfolio'][1]),
-                                                  ],
-                                                ))
-                                      ],
-                                    );
-                                  } else {
-                                    return CircularProgressIndicator();
-                                  }
-                                }),
-                          ],
-                        )),
+                                      ),
+                                      Container(
+                                        padding: EdgeInsets.fromLTRB(width * 0.1, height*0.04, width * 0.03, 0),
+                                        child: inputNav2('assets/images/icon/icontag.png', "  태그"),
+                                      ),
+                                      SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: (doc['portfolio_tag'].length == 0) ? tagText("태그없음") : tagText(doc['portfolio_tag'].join(', ')),
+                                      ),
+                                      cSizedBox(height*0.05, 0)
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          } else {
+                            return CircularProgressIndicator();
+                          }
+                        }),
                   ],
                 ));
               } else {
@@ -846,10 +866,12 @@ class TeambuildShowState extends State<TeambuildShow> {
               } else if (snapshot.hasData) {
                 fp.setInfo();
                 if (fp.getInfo()['nick'] == snapshot.data!['writer']) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
+                  if (isAvailable(snapshot.data!['time'], snapshot.data!['currentMember'], snapshot.data!['limitedMember']))
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // 삭제
+                        Container(
                         width: MediaQuery.of(context).size.width * 0.5,
                         height: 50,
                         decoration: BoxDecoration(
@@ -890,210 +912,246 @@ class TeambuildShowState extends State<TeambuildShow> {
                           },
                         ),
                       ),
-                      (isAvailable(snapshot.data!['time'], snapshot.data!['currentMember'], snapshot.data!['limitedMember']))
-                          ? Container(
-                              width: MediaQuery.of(context).size.width * 0.5,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: Color(0xff639ee1),
-                              ),
-                              child: GestureDetector(
-                                child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
-                                onTap: () async {
-                                  var tmp;
-                                  await fs.collection('teambuild_board').doc(widget.id).get().then((snap) {
-                                    tmp = snap.data() as Map<String, dynamic>;
-                                  });
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => TeambuildModify(widget.id, tmp)));
-                                  setState(() {});
-                                },
-                              ),
-                            )
-                          : Container(
-                              width: MediaQuery.of(context).size.width * 0.5,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: Color(0xff639ee1),
-                              ),
-                              child: Align(alignment: Alignment.center, child: smallText("수정 불가", 14, Colors.white)),
-                            ),
-                    ],
-                  );
-                } else {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Color(0xffcacaca),
-                        ),
-                        child: GestureDetector(
-                          child: Align(alignment: Alignment.center, child: smallText("신청취소", 14, Colors.white)),
-                          onTap: () async {
-                            var myInfo = fp.getInfo();
-                            String title = widget.id;
-                            String hostId = '';
-                            List<String> _myApplication = [];
-
-                            await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
-                              DocumentSnapshot tmp = snap.docs[0];
-                              hostId = tmp['email'];
-                            });
-                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
-                              if (snap.docs.length != 0) {
-                                for (DocumentSnapshot doc in snap.docs) {
-                                  _myApplication.add(doc.id);
-                                }
-                              } else {
-                                print('참가 신청 내역이 비어있습니다.');
+                        // 수정
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(0xff639ee1),
+                          ),
+                          child: GestureDetector(
+                            child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
+                            onTap: () async {
+                              var tmp;
+                              await fs.collection('teambuild_board').doc(widget.id).get().then((snap) {
+                                tmp = snap.data() as Map<String, dynamic>;
+                              });
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => TeambuildModify(widget.id, tmp)));
+                              setState(() {});
+                            },
+                          ),
+                        )
+                      ]
+                    );
+                    // 삭제
+                    else return Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Color(0xffcacaca),
+                      ),
+                      child: GestureDetector(
+                        child: Align(alignment: Alignment.center, child: smallText("삭제", 14, Colors.white)),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          List<String> isFineForMemberNicks = [];
+                          List<String> isFineForMemberIds = [];
+                          await fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(snapshot.data!.id).get().then((DocumentSnapshot snap) {
+                            if (snap.get('isFineForMembers').length != 0) {
+                              for (String iFFMember in snap.get('isFineForMembers')) {
+                                isFineForMemberNicks.add(iFFMember);
                               }
-                            });
-
-                            if (!_myApplication.contains(title)) {
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              showMessage("참가 신청하지 않은 방입니다.");
                             } else {
-                              List<dynamic> _messages = [];
-                              List<dynamic> _isFineForMember = [];
-                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
-                                _messages = value['messages'];
-                              });
-                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
-                                _isFineForMember = value['isFineForMembers'];
-                              });
-                              int _msgIndex = _isFineForMember.indexWhere((element) => element == myInfo['nick']);
-                              if (_msgIndex >= 0) {
-                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                  'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
-                                  'messages': FieldValue.arrayRemove([_messages[_msgIndex]])
-                                });
-                              }
-                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              showMessage("참가 신청을 취소했습니다.");
+                              print(snapshot.data!['title'] + '에는 참가자가 없었습니다.');
                             }
-                          },
-                        ),
+                          });
+
+                          if (isFineForMemberNicks.length != 0) {
+                            for (String iFFmember in isFineForMemberNicks) {
+                              await fs.collection('users').where('nick', isEqualTo: iFFmember).get().then((QuerySnapshot snap) {
+                                isFineForMemberIds.add(snap.docs[0].get('email'));
+                              });
+                            }
+                          }
+                          if (isFineForMemberIds.length != 0) {
+                            for (String iFFMember in isFineForMemberIds) {
+                              await fs.collection('users').doc(iFFMember).collection('myApplication').doc(snapshot.data!.id).update({'where': 'deleted'});
+                            }
+                          }
+
+                          await fs.collection('teambuild_board').doc(widget.id).delete();
+                          await fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(snapshot.data!.id).delete();
+                          fp.updateIntInfo('postcount', -1);
+                        },
                       ),
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Color(0xff639ee1),
-                        ),
-                        child: GestureDetector(
-                          child: Align(alignment: Alignment.center, child: smallText("참가신청", 14, Colors.white)),
-                          onTap: () async {
-                            var myInfo = fp.getInfo();
-                            int _currentMember = snapshot.data!['currentMember'];
-                            int _limitedMember = snapshot.data!['limitedMember'];
-                            String title = widget.id;
-                            String hostId = await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
-                              DocumentSnapshot tmp = snap.docs[0];
-                              return tmp['email'];
-                            });
-                            List<String> _myApplication = [];
+                    );
+                } else {
+                  if (isAvailable(snapshot.data!['time'], snapshot.data!['currentMember'], snapshot.data!['limitedMember'])){
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(0xffcacaca),
+                          ),
+                          child: GestureDetector(
+                            child: Align(alignment: Alignment.center, child: smallText("신청취소", 14, Colors.white)),
+                            onTap: () async {
+                              var myInfo = fp.getInfo();
+                              String title = widget.id;
+                              String hostId = '';
+                              List<String> _myApplication = [];
 
-                            showDialog(
-                              context: context,
-                              barrierColor: null,
-                              builder: (BuildContext con) {
-                                return Form(
-                                    key: _formKey,
-                                    child: AlertDialog(
-                                        elevation: 0.3,
-                                        contentPadding: EdgeInsets.zero,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-                                        backgroundColor: Colors.grey[200],
-                                        content: Container(
-                                            height: height * 0.32,
-                                            width: width*0.8,
-                                            padding: EdgeInsets.fromLTRB(0, height*0.05, 0, 0),
-                                            child: Column(
-                                              children: [
-                                                Container(width: width*0.65, child: smallText("팀장한테 보낼 메세지를 입력하세요\n(20자 이내)", 16, Color(0xB2000000))),
-                                                Container(width: width*0.65,
-                                                  padding: EdgeInsets.fromLTRB(0, height*0.02, 0, 0),
-                                                  child: TextFormField(
-                                                      controller: msgInput,
-                                                      keyboardType: TextInputType.multiline,
-                                                      inputFormatters: [
-                                                        LengthLimitingTextInputFormatter(20),
-                                                      ],
-                                                      style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14),
-                                                      decoration: InputDecoration(
-                                                          focusedBorder: UnderlineInputBorder(
-                                                            borderSide: BorderSide(color: Colors.black87, width: 1.5),
-                                                          ),
-                                                          hintText: "메세지를 입력하세요.", hintStyle: TextStyle(fontFamily: "SCDream", color: Colors.black45, fontWeight: FontWeight.w500, fontSize: 14)
-                                                      ),
-                                                      validator: (text) {
-                                                        if (text == null || text.isEmpty) {
-                                                          return "메세지를 입력하지 않으셨습니다.";
-                                                        }
-                                                        return null;
-                                                      }
-                                                  ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.end,
-                                                  children: [
-                                                    TextButton(
-                                                      onPressed: () async {
-                                                        if (_formKey.currentState!.validate()) {
-                                                          await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
-                                                            if (snap.docs.length != 0) {
-                                                              for (DocumentSnapshot doc in snap.docs) {
-                                                                _myApplication.add(doc.id);
-                                                              }
-                                                            } else {
-                                                              print('myApplication 콜렉션이 비어있읍니다.');
-                                                            }
-                                                          });
+                              await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
+                                DocumentSnapshot tmp = snap.docs[0];
+                                hostId = tmp['email'];
+                              });
+                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                                if (snap.docs.length != 0) {
+                                  for (DocumentSnapshot doc in snap.docs) {
+                                    _myApplication.add(doc.id);
+                                  }
+                                } else {
+                                  print('참가 신청 내역이 비어있습니다.');
+                                }
+                              });
 
-                                                          if (_myApplication.contains(title)) {
-                                                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                            showMessage("이미 신청한 방입니다.");
-                                                            // print('이미 신청(가입)한 방입니다!!');
-                                                          } else if (_currentMember >= _limitedMember) {
-                                                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                            showMessage("방이 모두 차있습니다.");
-                                                          } else {
-                                                            // 방장에게 날리는 메세지
-                                                            await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                                              'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
-                                                              'messages': FieldValue.arrayUnion([msgInput.text]),
-                                                            });
-                                                            // 내 정보에 신청 정보를 기록
-                                                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({'where': "teambuild_board", 'isRejected': false, 'isJoined': false});
-                                                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                            showMessage("참가 신청을 보냈습니다.");
-                                                          }
-                                                          Navigator.pop(con);
-                                                        }
-                                                      },
-                                                      child: info2Text("확인")
-                                                    ),
-                                                    TextButton(onPressed: (){
-                                                      Navigator.pop(con);
-                                                    },
-                                                        child: info2Text("취소")
-                                                    ),
-                                                    cSizedBox(0, width*0.05)
-                                                  ],
-                                                )
-                                              ],
-                                            )
-                                        )
-                                    ));
+                              if (!_myApplication.contains(title)) {
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                showMessage("참가 신청하지 않은 방입니다.");
+                              } else {
+                                List<dynamic> _messages = [];
+                                List<dynamic> _isFineForMember = [];
+                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
+                                  _messages = value['messages'];
                                 });
-                          },
+                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
+                                  _isFineForMember = value['isFineForMembers'];
+                                });
+                                int _msgIndex = _isFineForMember.indexWhere((element) => element == myInfo['nick']);
+                                if (_msgIndex >= 0) {
+                                  await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                    'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
+                                    'messages': FieldValue.arrayRemove([_messages[_msgIndex]])
+                                  });
+                                }
+                                await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                showMessage("참가 신청을 취소했습니다.");
+                              }
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  );
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(0xff639ee1),
+                          ),
+                          child: GestureDetector(
+                            child: Align(alignment: Alignment.center, child: smallText("참가신청", 14, Colors.white)),
+                            onTap: () async {
+                              var myInfo = fp.getInfo();
+                              int _currentMember = snapshot.data!['currentMember'];
+                              int _limitedMember = snapshot.data!['limitedMember'];
+                              String title = widget.id;
+                              String hostId = await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
+                                DocumentSnapshot tmp = snap.docs[0];
+                                return tmp['email'];
+                              });
+                              List<String> _myApplication = [];
+
+                              showDialog(
+                                context: context,
+                                barrierColor: null,
+                                builder: (BuildContext con) {
+                                  return Form(
+                                      key: _formKey,
+                                      child: AlertDialog(
+                                          elevation: 0.3,
+                                          contentPadding: EdgeInsets.zero,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+                                          backgroundColor: Colors.grey[200],
+                                          content: Container(
+                                              height: height * 0.32,
+                                              width: width*0.8,
+                                              padding: EdgeInsets.fromLTRB(0, height*0.05, 0, 0),
+                                              child: Column(
+                                                children: [
+                                                  Container(width: width*0.65, child: smallText("팀장한테 보낼 메세지를 입력하세요\n(20자 이내)", 16, Color(0xB2000000))),
+                                                  Container(width: width*0.65,
+                                                    padding: EdgeInsets.fromLTRB(0, height*0.02, 0, 0),
+                                                    child: TextFormField(
+                                                        controller: msgInput,
+                                                        keyboardType: TextInputType.multiline,
+                                                        inputFormatters: [
+                                                          LengthLimitingTextInputFormatter(20),
+                                                        ],
+                                                        style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14),
+                                                        decoration: InputDecoration(
+                                                            focusedBorder: UnderlineInputBorder(
+                                                              borderSide: BorderSide(color: Colors.black87, width: 1.5),
+                                                            ),
+                                                            hintText: "메세지를 입력하세요.", hintStyle: TextStyle(fontFamily: "SCDream", color: Colors.black45, fontWeight: FontWeight.w500, fontSize: 14)
+                                                        ),
+                                                        validator: (text) {
+                                                          if (text == null || text.isEmpty) {
+                                                            return "메세지를 입력하지 않으셨습니다.";
+                                                          }
+                                                          return null;
+                                                        }
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.end,
+                                                    children: [
+                                                      TextButton(
+                                                        onPressed: () async {
+                                                          if (_formKey.currentState!.validate()) {
+                                                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                                                              if (snap.docs.length != 0) {
+                                                                for (DocumentSnapshot doc in snap.docs) {
+                                                                  _myApplication.add(doc.id);
+                                                                }
+                                                              } else {
+                                                                print('myApplication 콜렉션이 비어있읍니다.');
+                                                              }
+                                                            });
+
+                                                            if (_myApplication.contains(title)) {
+                                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                              showMessage("이미 신청한 방입니다.");
+                                                              // print('이미 신청(가입)한 방입니다!!');
+                                                            } else if (_currentMember >= _limitedMember) {
+                                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                              showMessage("방이 모두 차있습니다.");
+                                                            } else {
+                                                              // 방장에게 날리는 메세지
+                                                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                                                'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
+                                                                'messages': FieldValue.arrayUnion([msgInput.text]),
+                                                              });
+                                                              // 내 정보에 신청 정보를 기록
+                                                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({'where': "teambuild_board", 'isRejected': false, 'isJoined': false});
+                                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                              showMessage("참가 신청을 보냈습니다.");
+                                                            }
+                                                            Navigator.pop(con);
+                                                          }
+                                                        },
+                                                        child: info2Text("확인")
+                                                      ),
+                                                      TextButton(onPressed: (){
+                                                        Navigator.pop(con);
+                                                      },
+                                                          child: info2Text("취소")
+                                                      ),
+                                                      cSizedBox(0, width*0.05)
+                                                    ],
+                                                  )
+                                                ],
+                                              )
+                                          )
+                                      ));
+                                  });
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  else return SizedBox.shrink();
                 }
               } else
                 return CircularProgressIndicator();
@@ -1138,9 +1196,9 @@ class TeambuildModifyState extends State<TeambuildModify> {
   late TextEditingController stuidInput;
   late TextEditingController subjectInput;
   late TextEditingController tagInput;
-  late TextEditingController myintroInput;
   List<dynamic> tagList = [];
   late DateTime selectedDate;
+  TimeOfDay _time = TimeOfDay.now();
 
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
@@ -1163,7 +1221,6 @@ class TeambuildModifyState extends State<TeambuildModify> {
       stuidInput = TextEditingController(text: widget.datas['stuid']);
       subjectInput = TextEditingController(text: widget.datas['subject']);
       tagInput = TextEditingController();
-      myintroInput = TextEditingController(text: widget.datas['myintro']);
     });
     super.initState();
   }
@@ -1184,7 +1241,32 @@ class TeambuildModifyState extends State<TeambuildModify> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
+    void onTimeChanged(TimeOfDay newTime) {
+      setState(() {
+        _time = newTime;
+        timeInput.text = _time.format(context);
+      });
+    }
+
     return Scaffold(
+        appBar: CustomAppBar("글 수정", [
+          IconButton(
+              icon: Icon(
+                Icons.check,
+                color: Color(0xff639ee1),
+              ),
+              onPressed: () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+                if (_formKey.currentState!.validate()) {
+                  updateOnFS();
+                  Navigator.pop(context);
+                }
+              }
+          )]),
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
             child: StreamBuilder(
@@ -1197,95 +1279,83 @@ class TeambuildModifyState extends State<TeambuildModify> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            topbar3(context, "글 수정", () {
-                              FocusScope.of(context).requestFocus(new FocusNode());
-                              if (_formKey.currentState!.validate()) {
-                                updateOnFS();
-                                Navigator.pop(context);
-                              }
-                            }),
                             Padding(
-                                padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                                child: Wrap(
-                                  direction: Axis.vertical,
-                                  spacing: 15,
-                                  children: [
-                                    Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
-                                    Wrap(spacing: 15, children: [
-                                      cond2Text("날짜 선택 ->"),
-                                      IconButton(
-                                        onPressed: () {
-                                          Future<DateTime?> future = showDatePicker(
-                                            context: context,
-                                            initialDate: selectedDate,
-                                            firstDate: DateTime.now(),
-                                            lastDate: DateTime(2025),
-                                            builder: (BuildContext context, Widget? child) {
-                                              return Theme(
-                                                data: ThemeData.light(),
-                                                child: child!,
-                                              );
-                                            },
-                                          );
-
-                                          future.then((date) {
-                                            if (date == null) {
-                                              print("날짜를 선택해주십시오.");
-                                            } else {
-                                              setState(() {
-                                                selectedDate = date;
-                                              });
-                                            }
-                                          });
-                                        },
-                                        icon: Icon(Icons.calendar_today),
-                                      ),
-                                      Text("마감 날짜 : " +
-                                          formatDate(selectedDate, [
-                                            yyyy,
-                                            '-',
-                                            mm,
-                                            '-',
-                                            dd,
-                                          ]))
-                                    ]),
-                                    Padding(
-                                        padding: EdgeInsets.fromLTRB(7, 5, 20, 0),
-                                        child: Wrap(
-                                          direction: Axis.vertical,
-                                          spacing: 15,
-                                          children: [
-                                            Wrap(
-                                              spacing: 15,
-                                              children: [
-                                                cond2Text("마감시간"),
-                                                Container(
-                                                  width: 250,
-                                                  height: 20,
-                                                  margin: EdgeInsets.fromLTRB(0, 3, 0, 0),
-                                                  child: TextFormField(
-                                                      controller: timeInput,
-                                                      style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
-                                                      decoration: InputDecoration(hintText: "마감 시간 입력 : xx:xx (ex 21:32 형태)", border: InputBorder.none, focusedBorder: InputBorder.none),
-                                                      validator: (text) {
-                                                        if (text == null || text.isEmpty) {
-                                                          return "마감 시간은 필수 입력 사항입니다.";
-                                                        } else if (isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])) {
-                                                          return null;
-                                                        } else {
-                                                          return "올바른 형식으로 입력해주세요. (ex 09:10)";
-                                                        }
-                                                      }),
-                                                )
-                                              ],
+                              padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.03, width * 0.1, 20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  cSizedBox(height*0.01, 0),
+                                  Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                                  cSizedBox(height*0.02, 0),
+                                  Wrap(
+                                    direction: Axis.vertical,
+                                    spacing: -8,
+                                    children: [
+                                      Wrap(
+                                        spacing: 15,
+                                        crossAxisAlignment: WrapCrossAlignment.center,
+                                        children: [
+                                          Container(
+                                            width: 60,
+                                            alignment: Alignment(0.0, 0.0),
+                                            child: cond2Text("마감 날짜"),
+                                          ),
+                                          TextButton(
+                                            style: TextButton.styleFrom(
+                                              padding: EdgeInsets.zero,
                                             ),
-                                            condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
-                                            condWrap("학번", stuidInput, "요구학번을 입력하세요. (ex 18~21 or 상관없음)", "필수 입력 사항입니다."),
-                                            condWrap("모집분야", subjectInput, "모집분야를 입력하세요.", "모집분야는 필수 입력 사항입니다."),
-                                          ],
-                                        )),
-                                  ],
-                                )),
+                                            onPressed: () {
+                                              Future<DateTime?> future = showDatePicker(
+                                                context: context,
+                                                initialDate: selectedDate,
+                                                firstDate: DateTime.now(),
+                                                lastDate: DateTime(2025),
+                                                builder: (BuildContext context, Widget? child) {
+                                                  return Theme(
+                                                    data: ThemeData.light(),
+                                                    child: child!,
+                                                  );
+                                                },
+                                              );
+                                              future.then((date) {
+                                                if (date == null) {
+                                                  print("날짜를 선택해주십시오.");
+                                                } else {
+                                                  setState(() {
+                                                    selectedDate = date;
+                                                  });
+                                                }
+                                              });
+                                            },
+                                            child: condText(formatDate(selectedDate, [yyyy, '-', mm, '-', dd,]).toString()),
+                                          ),
+                                        ]
+                                      ),
+                                      Wrap(
+                                        spacing: 15,
+                                        crossAxisAlignment: WrapCrossAlignment.center,
+                                        children: [
+                                          Container(
+                                            width: 60,
+                                            alignment: Alignment(0.0, 0.0),
+                                            child: cond2Text("마감 시간"),
+                                          ),
+                                          GestureDetector(
+                                              child: Container(width: width * 0.4,
+                                                  child: ccondField(timeInput, "마감 시간을 선택하세요.", "마감 시간은 필수 입력 사항입니다.")
+                                              ),
+                                              onTap: (){TimePicker(context, _time, onTimeChanged);}
+                                          )
+                                        ],
+                                      ),
+                                      condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
+                                      condWrap("학번", stuidInput, "요구학번을 입력하세요. (ex 18~21 or 상관없음)", "필수 입력 사항입니다."),
+                                      condWrap("모집분야", subjectInput, "모집분야를 입력하세요.", "모집분야는 필수 입력 사항입니다."),
+                                    ],
+                                  )
+                                ],
+                              )
+                            ),
                             Divider(
                               color: Color(0xffe9e9e9),
                               thickness: 17,
@@ -1345,7 +1415,6 @@ class TeambuildModifyState extends State<TeambuildModify> {
                                       }
                                       return null;
                                     })),
-                            condWrap("자기소개", myintroInput, "자기소개 혹은 어필을 할 수 있는 칸", "자기소개는 필수 입력 사항입니다."),
                             cSizedBox(350, 0)
                           ],
                         ));
@@ -1359,12 +1428,11 @@ class TeambuildModifyState extends State<TeambuildModify> {
     await fs.collection('teambuild_board').doc(widget.id).update({
       'title': titleInput.text,
       'contents': contentInput.text,
-      'time': formatDate(selectedDate, [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
+      'time': formatDate(selectedDate, [yyyy, '-', mm, '-', dd]) + " " + _time.toString().substring(10, 15) + ":00",
       'limitedMember': int.parse(memberInput.text),
       'stuid': stuidInput.text,
       'subject': subjectInput.text,
       'tagList': tagList,
-      'myintro': myintroInput.text,
       'members': [],
     });
     await fs.collection('users').doc(myInfo['email']).collection('applicants').doc(widget.id).update({

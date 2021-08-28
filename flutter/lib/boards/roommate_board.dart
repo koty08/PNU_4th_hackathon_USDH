@@ -102,41 +102,27 @@ class RoommateWriteState extends State<RoommateWrite> {
     fp.setInfo();
 
     return Scaffold(
+        appBar: CustomAppBar("글 작성", [
+          IconButton(
+              icon: Icon(
+                Icons.check,
+                color: Color(0xff639ee1),
+              ),
+              onPressed: () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+                if (_formKey.currentState!.validate()) {
+                  uploadOnFS();
+                  Navigator.pop(context);
+                }
+              }
+          )]),
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
-            child: Form(
+          child: Form(
           key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              cSizedBox(35, 0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  headerText("글 작성"),
-                  cSizedBox(0, 160),
-                  IconButton(
-                      icon: Icon(
-                        Icons.check,
-                        color: Color(0xff639ee1),
-                      ),
-                      onPressed: () {
-                        FocusScope.of(context).requestFocus(new FocusNode());
-                        if (_formKey.currentState!.validate()) {
-                          uploadOnFS();
-                          Navigator.pop(context);
-                        }
-                      }),
-                ],
-              ),
-              headerDivider(),
               Padding(
                   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                   child: Wrap(
@@ -387,8 +373,121 @@ class RoommateListState extends State<RoommateList> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      appBar: CustomAppBar("룸메이트", [
+        //새로고침 기능
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconrefresh.png', width: 18, height: 18),
+          onPressed: () {
+            setState(() {
+              colstream = FirebaseFirestore.instance.collection('roommate_board').orderBy("write_time", descending: true).snapshots();
+            });
+          },
+        ),
+        //검색 기능 팝업
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconsearch.png', width: 20, height: 20),
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (BuildContext con) {
+                  return StatefulBuilder(builder: (con, setS) {
+                    return Form(
+                        key: _formKey,
+                        child: AlertDialog(
+                          title: Row(
+                            children: [
+                              Theme(
+                                data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                child: Radio(
+                                    value: "제목",
+                                    activeColor: Colors.black38,
+                                    groupValue: search,
+                                    onChanged: (String? value) {
+                                      setS(() {
+                                        search = value!;
+                                      });
+                                    }),
+                              ),
+                              Text(
+                                "제목 검색",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                ),
+                              ),
+                              Theme(
+                                data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                child: Radio(
+                                    value: "태그",
+                                    activeColor: Colors.black38,
+                                    groupValue: search,
+                                    onChanged: (String? value) {
+                                      setS(() {
+                                        search = value!;
+                                      });
+                                    }),
+                              ),
+                              Text(
+                                "태그 검색",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                          content: TextFormField(
+                              controller: searchInput,
+                              decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
+                              validator: (text) {
+                                if (text == null || text.isEmpty) {
+                                  return "검색어를 입력하지 않으셨습니다.";
+                                }
+                                return null;
+                              }),
+                          actions: <Widget>[
+                            TextButton(
+                                onPressed: () {
+                                  if (_formKey.currentState!.validate()) {
+                                    if (search == "제목") {
+                                      setState(() {
+                                        colstream = FirebaseFirestore.instance.collection('roommate_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                                      });
+                                      searchInput.clear();
+                                      Navigator.pop(con);
+                                    } else {
+                                      setState(() {
+                                        colstream = FirebaseFirestore.instance.collection('roommate_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
+                                      });
+                                      searchInput.clear();
+                                      Navigator.pop(con);
+                                    }
+                                  }
+                                },
+                                child: Text("검색")),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.pop(con);
+                                  searchInput.clear();
+                                },
+                                child: Text("취소")),
+                          ],
+                        ));
+                  });
+                });
+          },
+        ),
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconmessage.png', width: 19, height: 19),
+          onPressed: () {
+            var myInfo = fp.getInfo();
+            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
+          },
+        ),
+      ],
+      ),
       body: RefreshIndicator(
         //당겨서 새로고침
         onRefresh: () async {
@@ -403,137 +502,6 @@ class RoommateListState extends State<RoommateList> {
                 return CircularProgressIndicator();
               }
               return Column(children: [
-                cSizedBox(35, 0),
-                Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      headerText("룸메이트"),
-                      cSizedBox(0, 50),
-                      Wrap(
-                        spacing: -5,
-                        children: [
-                          //새로고침 기능
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
-                            onPressed: () {
-                              setState(() {
-                                colstream = FirebaseFirestore.instance.collection('roommate_board').orderBy("write_time", descending: true).snapshots();
-                              });
-                            },
-                          ),
-                          //검색 기능 팝업
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
-                            onPressed: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (BuildContext con) {
-                                    return StatefulBuilder(builder: (con, setS) {
-                                      return Form(
-                                          key: _formKey,
-                                          child: AlertDialog(
-                                            title: Row(
-                                              children: [
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "제목",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setS(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
-                                                ),
-                                                Text(
-                                                  "제목 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                                Theme(
-                                                  data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                                  child: Radio(
-                                                      value: "태그",
-                                                      activeColor: Colors.black38,
-                                                      groupValue: search,
-                                                      onChanged: (String? value) {
-                                                        setS(() {
-                                                          search = value!;
-                                                        });
-                                                      }),
-                                                ),
-                                                Text(
-                                                  "태그 검색",
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            content: TextFormField(
-                                                controller: searchInput,
-                                                decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
-                                                validator: (text) {
-                                                  if (text == null || text.isEmpty) {
-                                                    return "검색어를 입력하지 않으셨습니다.";
-                                                  }
-                                                  return null;
-                                                }),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                  onPressed: () {
-                                                    if (_formKey.currentState!.validate()) {
-                                                      if (search == "제목") {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('roommate_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      } else {
-                                                        setState(() {
-                                                          colstream = FirebaseFirestore.instance.collection('roommate_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
-                                                        });
-                                                        searchInput.clear();
-                                                        Navigator.pop(con);
-                                                      }
-                                                    }
-                                                  },
-                                                  child: Text("검색")),
-                                              TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(con);
-                                                    searchInput.clear();
-                                                  },
-                                                  child: Text("취소")),
-                                            ],
-                                          ));
-                                    });
-                                  });
-                            },
-                          ),
-                          IconButton(
-                            icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                            onPressed: () {
-                              var myInfo = fp.getInfo();
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                            },
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                headerDivider(),
                 Container(
                     padding: EdgeInsets.fromLTRB(0, 10, 25, 5),
                     child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -571,10 +539,10 @@ class RoommateListState extends State<RoommateList> {
                 Expanded(
                     // 아래 간격 두고 싶으면 Container, height 사용
                     //height: MediaQuery.of(context).size.height * 0.8,
-                    child: MediaQuery.removePadding(
-                  context: context,
-                  removeTop: true,
-                  child: ListView.separated(
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: ListView.separated(
                       separatorBuilder: (context, index) => middleDivider(),
                       shrinkWrap: true,
                       itemCount: snapshot.data!.docs.length,
@@ -640,8 +608,8 @@ class RoommateListState extends State<RoommateList> {
                                       isAvailable(doc['time'], doc['currentMember'], doc['limitedMember']) ? statusText("모집중") : statusText("모집완료"),
                                       cSizedBox(0, 10),
                                       Container(
-                                        width: MediaQuery.of(context).size.width * 0.6,
-                                        child: Text(doc['title'].toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w700, fontSize: 15)),
+                                        width: width * 0.6,
+                                        child: cond2Text(doc['title'].toString()),
                                       ),
                                       cSizedBox(35, 0),
                                     ]),
@@ -720,6 +688,7 @@ class RoommateShowState extends State<RoommateShow> {
     fp.setInfo();
 
     return Scaffold(
+      appBar: CustomAppBar("룸메이트", []),
         body: StreamBuilder(
             stream: fs.collection('roommate_board').doc(widget.id).snapshots(),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -736,7 +705,6 @@ class RoommateShowState extends State<RoommateShow> {
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    topbar2(context, "룸메이트"),
                     Padding(
                         padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                         child: Wrap(direction: Axis.vertical, spacing: 15, children: [
@@ -1155,6 +1123,20 @@ class RoommateModifyState extends State<RoommateModify> {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
     return Scaffold(
+        appBar: CustomAppBar("글 수정", [
+          IconButton(
+              icon: Icon(
+                Icons.check,
+                color: Color(0xff639ee1),
+              ),
+              onPressed: () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+                if (_formKey.currentState!.validate()) {
+                  updateOnFS();
+                  Navigator.pop(context);
+                }
+              }
+          )]),
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
             child: StreamBuilder(
@@ -1167,13 +1149,6 @@ class RoommateModifyState extends State<RoommateModify> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            topbar3(context, "글 수정", () {
-                              FocusScope.of(context).requestFocus(new FocusNode());
-                              if (_formKey.currentState!.validate()) {
-                                updateOnFS();
-                                Navigator.pop(context);
-                              }
-                            }),
                             Padding(
                                 padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                                 child: Wrap(

@@ -448,11 +448,10 @@ class ChatScreenState extends State<ChatScreen> {
                 document.get('type') == 0
                     ? Container(
                         // send 'message'
-                        child: info2Text(document.get('content')),
+                        child: small2Text(document.get('content'), 13, Colors.black54),
                         padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
                         width: 200.0,
-                        decoration: BoxDecoration(color: Color(0xffc7c7c7), borderRadius: BorderRadius.circular(8.0)),
-                        // 여기 margin 은 채팅~시간 간격인데 이건 큰 의미가 없어보임.. 차라리 시간 부분을 좌측으로 옮기는 게 나을듯함
+                        decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8.0)),
                         margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? height * 0.01 : 0, right: 10.0),
                       )
                     : Container(
@@ -577,10 +576,7 @@ class ChatScreenState extends State<ChatScreen> {
                       : Container(width: 35.0),
                   document.get('type') == 0
                       ? Container(
-                          child: Text(
-                            document.get('content'),
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          child: small2Text(document.get('content'), 13, Colors.white),
                           padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
                           width: 200.0,
                           decoration: BoxDecoration(color: Color(0xff4E94EC), borderRadius: BorderRadius.circular(8.0)),
@@ -641,14 +637,14 @@ class ChatScreenState extends State<ChatScreen> {
 
               // 메세지 보낸 시간 표시
               isLastMessageLeft(index)
-                  ? Container(
-                      child: Text(
-                        whatTime(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
-                        style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
-                      ),
-                      //margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
-                    )
-                  : SizedBox.shrink()
+              ? Container(
+                  child: Text(
+                    whatTime(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
+                    style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
+                  ),
+                  //margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
+                )
+              : SizedBox.shrink()
             ],
             crossAxisAlignment: CrossAxisAlignment.start,
           ),

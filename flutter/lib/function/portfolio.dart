@@ -68,11 +68,11 @@ class PortfolioState extends State<Portfolio> {
     fp.setInfo();
 
     return Scaffold(
+      appBar: CustomAppBar("내 포트폴리오", []),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            topbar2(context, "내 포트폴리오"),
             Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 40)),
             Form(
               key: _formKey,

@@ -9,6 +9,7 @@ import 'package:location/location.dart';
 import 'package:provider/provider.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/boards/delivery_board.dart';
+import 'package:usdh/chat/home.dart';
 // import 'package:usdh/chat/home.dart';
 import 'package:usdh/login/firebase_provider.dart';
 
@@ -90,6 +91,7 @@ class DeliveryMapState extends State<DeliveryMap> {
           markerLat.add(datum[i][1]);
           markerLng.add(datum[i][2]);
         }
+
         _markers.add(
           Marker(
             markerId: MarkerId(datum[i][0]),
@@ -101,13 +103,16 @@ class DeliveryMapState extends State<DeliveryMap> {
             ),
             onTap: () {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                backgroundColor: Colors.white,
-                duration: Duration(seconds: 20),
-                content: 
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.white.withOpacity(0.9),
+                  duration: Duration(seconds: 20),
+                  content:
                   StreamBuilder(
                     stream: FirebaseFirestore.instance.collection('delivery_board').doc(datum[i][0]).snapshots(),
                     builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot){
+                      final width = MediaQuery.of(context).size.width;
+                      final height = MediaQuery.of(context).size.height;
                       if(!snapshot.hasData){
                         return CircularProgressIndicator();
                       }
@@ -120,13 +125,13 @@ class DeliveryMapState extends State<DeliveryMap> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                                  padding: EdgeInsets.fromLTRB(width*0.05, height*0.02, width*0.05, height*0.02),
                                   child: Wrap(direction: Axis.vertical, spacing: 10, children: [
                                     Row(
                                       children: [
                                         Container(
                                           width: MediaQuery.of(context).size.width * 0.8,
-                                          child: tagText(snapshot.data!['tagList'].join('')),
+                                          child: tagText(snapshot.data!['tagList'].join(' ')),
                                         ),
 
                                       ],
@@ -134,21 +139,15 @@ class DeliveryMapState extends State<DeliveryMap> {
                                     Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
                                     smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
                                   ])),
-                              Container(
-                                width: double.infinity,
-                                child: Divider(
-                                  color: Color(0xffe9e9e9),
-                                  thickness: 1,
-                                )),
+                              Divider(color: Color(0xffe9e9e9), thickness: 1,),
                               Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                  padding: EdgeInsets.fromLTRB(width*0.05, height*0.01, width*0.05, height*0.03),
                                   child: Wrap(
                                     direction: Axis.vertical,
                                     spacing: 10,
                                     children: [
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        // spaceBetween 왜 적용이 안될까...? Why...
                                         children: [
                                           Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
                                           IconButton(
@@ -181,7 +180,8 @@ class DeliveryMapState extends State<DeliveryMap> {
                       }
                     }
                   ),
-              ));
+              )
+              );
             }
           ),
         );
@@ -198,6 +198,31 @@ class DeliveryMapState extends State<DeliveryMap> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     return Scaffold(
+      appBar: CustomAppBar("배달", [
+        IconButton(
+          icon: Image.asset('assets/images/icon/icongolist.png', width: 20, height: 20),
+          onPressed: () {
+            Navigator.pop(context);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryList()));
+          },
+        ),
+        //새로고침 기능
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconrefresh.png', width: 20, height: 20),
+          onPressed: () {
+            setState(() {
+              colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+            });
+          },
+        ),
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconmessage.png', width: 20, height: 20),
+          onPressed: () {
+            var myInfo = fp.getInfo();
+            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
+          },
+        ),
+      ]),
       body: RefreshIndicator(
         // 당겨서 새로고침
         onRefresh: () async {
@@ -229,11 +254,6 @@ class DeliveryMapState extends State<DeliveryMap> {
                 print(datum);
 
                 return Column(children: [
-                  topbar5(context, "배달", () {
-                    setState(() {
-                      colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
-                    });
-                  }, DeliveryList()),
                   // ------------------------------ 아래에 지도 추가 ------------------------------
                   Expanded(
                       child: Stack(

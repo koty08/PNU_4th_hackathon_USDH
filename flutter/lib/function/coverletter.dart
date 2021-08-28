@@ -69,11 +69,11 @@ class CoverletterState extends State<Coverletter> {
 
 
     return Scaffold(
+      appBar: CustomAppBar("내 자기소개서", []),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            topbar2(context, "내 자기소개서"),
             Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 40)),
             Form(
               key: _formKey,

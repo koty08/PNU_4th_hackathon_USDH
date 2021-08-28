@@ -43,7 +43,7 @@ class SignedInPageState extends State<SignedInPage> {
             children: [
               // 채팅방 버튼
               IconButton(
-                icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
+                icon: Image.asset('assets/images/icon/iconmessage.png', width: 20, height: 20),
                 onPressed: () {
                   var tmp = fp.getInfo();
                   Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: tmp['email'])));
@@ -51,7 +51,7 @@ class SignedInPageState extends State<SignedInPage> {
               ),
               Text("유소더하", style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w400, height: 2, fontSize: 23, color: Color(0xFF323232)),),
               IconButton(
-                icon: Image.asset('assets/images/icon/profile.png', width: 22, height: 22),
+                icon: Image.asset('assets/images/icon/profile.png', width: 20, height: 20),
                 onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));},
               ),
             ],
@@ -230,9 +230,9 @@ class SignedInPageState extends State<SignedInPage> {
               Row(
                 children: [
                   cSizedBox(0, 10),
-                  Image.asset(image, width: 35, height: 35),
+                  Image.asset(image, width: 17, height: 17),
                   cSizedBox(0, 10),
-                  Text(title, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w400, fontSize: 17, color: Color(0xffDD373C44)),),
+                  Text(title, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w400, fontSize: 16, color: Color(0xffDD373C44)),),
                 ],
               ),
               Padding(

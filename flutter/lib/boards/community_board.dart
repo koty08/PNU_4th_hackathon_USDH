@@ -91,6 +91,20 @@ class CommunityWriteState extends State<CommunityWrite> {
     final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      appBar: CustomAppBar("글 작성", [
+        IconButton(
+            icon: Icon(
+              Icons.check,
+              color: Color(0xff639ee1),
+            ),
+            onPressed: () {
+              FocusScope.of(context).requestFocus(new FocusNode());
+              if (_formKey.currentState!.validate()) {
+                uploadOnFS();
+                Navigator.pop(context);
+              }
+            }
+        )]),
       resizeToAvoidBottomInset: false,
       body: SingleChildScrollView(
         child: Form(
@@ -98,13 +112,6 @@ class CommunityWriteState extends State<CommunityWrite> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              topbar3(context, "글 작성", () {
-                FocusScope.of(context).requestFocus(new FocusNode());
-                if (_formKey.currentState!.validate()) {
-                  uploadOnFS();
-                  Navigator.pop(context);
-                }
-              }),
               Padding(
                 padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.01, width * 0.1, height * 0.01),
                 child: Column(
@@ -168,7 +175,7 @@ class CommunityWriteState extends State<CommunityWrite> {
                               onPressed: () {
                                 deleteImage(urlList[idx]);
                               },
-                              icon: Image.asset('assets/images/icon/iconx.png', width: 22, height: 22),
+                              icon: Image.asset('assets/images/icon/iconx.png', width: 15, height: 15),
                             ),
                           ],
                         ),
@@ -286,6 +293,62 @@ class CommunityListState extends State<CommunityList> {
     final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      appBar: CustomAppBar("커뮤니티", [
+        //새로고침 기능
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconrefresh.png', width: 18, height: 18),
+          onPressed: () {
+            setState(() {
+              colstream = FirebaseFirestore.instance.collection('community_board').orderBy("write_time", descending: true).snapshots();
+            });
+          },
+        ),
+        //검색 기능 팝업
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconsearch.png', width: 20, height: 20),
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (BuildContext con) {
+                  return StatefulBuilder(builder: (con, setS) {
+                    return Form(
+                        key: _formKey,
+                        child: AlertDialog(
+                          content: TextFormField(
+                              controller: searchInput,
+                              decoration: InputDecoration(hintText: "검색할 제목을 입력하세요."),
+                              validator: (text) {
+                                if (text == null || text.isEmpty) {
+                                  return "검색어를 입력하지 않으셨습니다.";
+                                }
+                                return null;
+                              }
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                                onPressed: () {
+                                  if (_formKey.currentState!.validate()) {
+                                    setState(() {
+                                      colstream = FirebaseFirestore.instance.collection('community_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                                    });
+                                    searchInput.clear();
+                                    Navigator.pop(context);
+                                  }
+                                },
+                                child: Text("검색")),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.pop(con);
+                                  searchInput.clear();
+                                },
+                                child: Text("취소")),
+                          ],
+                        ));
+                  });
+                });
+          },
+        ),
+      ]),
       body: RefreshIndicator(
         //당겨서 새로고침
         onRefresh: () async {
@@ -300,19 +363,6 @@ class CommunityListState extends State<CommunityList> {
                 return CircularProgressIndicator();
               }
               return Column(children: [
-                topbar4_nomap(context, "커뮤니티", () {
-                  setState(() {
-                    colstream = FirebaseFirestore.instance.collection('community_board').orderBy("write_time", descending: true).snapshots();
-                  });
-                }, _formKey, search, searchInput,() {
-                  if (_formKey.currentState!.validate()) {
-                    setState(() {
-                      colstream = FirebaseFirestore.instance.collection('community_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
-                    });
-                    searchInput.clear();
-                    Navigator.pop(context);
-                  }
-                }, ),
                 cSizedBox(height*0.02, 0),
                 Expanded(
                   // 아래 간격 두고 싶으면 Container, height 사용
@@ -391,17 +441,6 @@ class CommunityShowState extends State<CommunityShow> {
   final FirebaseStorage storage = FirebaseStorage.instance;
   final FirebaseFirestore fs = FirebaseFirestore.instance;
   TextEditingController commentInput = TextEditingController();
-  TextEditingController ccommentInput = TextEditingController();
-
-  // 댓글 수정, 삭제 버튼 생성(버튼이름, 아이콘)
-  List<Choice> myChoices = const <Choice>[
-    const Choice(title: '삭제', icon: Icons.delete),
-  ];
-
-  List<Choice> otherChoices = const <Choice>[
-    const Choice(title: '신고', icon: Icons.sports_bar),
-    const Choice(title: '뭔가', icon: Icons.sports_baseball),
-  ];
 
   SharedPreferences? prefs;
   bool alreadyLiked = false;
@@ -415,13 +454,12 @@ class CommunityShowState extends State<CommunityShow> {
   @override
   void dispose() {
     commentInput.dispose();
-    ccommentInput.dispose();
     super.dispose();
   }
 
   List<Choice> choices = const <Choice>[
-    const Choice(title: '수정', icon: Icons.settings),
-    const Choice(title: '삭제', icon: Icons.exit_to_app),
+    const Choice(title: '수정', icon: Icons.edit),
+    const Choice(title: '삭제', icon: Icons.delete_forever_rounded),
   ];
 
   void onItemMenuPress(Choice choice) {
@@ -450,15 +488,6 @@ class CommunityShowState extends State<CommunityShow> {
     }
   }
 
-  Future<Null> deleteComment(String commentId) async {
-    await fs.collection('community_board').doc(id).collection('comments').doc(commentId).delete();
-    print('댓글 삭제');
-  }
-
-  Future<Null> reportComment(String commentId) async {
-    print('댓글 신고');
-  }
-
   @override
   Widget build(BuildContext context) {
     Stream<DocumentSnapshot> boardStream = fs.collection('community_board').doc(widget.id).snapshots();
@@ -469,392 +498,105 @@ class CommunityShowState extends State<CommunityShow> {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
 
-    Future<String?> getPhotoUrl(dynamic nick) async {
-      String? photoUrl;
-      await fs.collection('users').where('nick', isEqualTo: nick).get().then((snapshot) {
-        photoUrl = snapshot.docs[0].get('photoUrl');
-      });
-      return photoUrl;
-    }
-
     Widget commentsSection(AsyncSnapshot<QuerySnapshot> commentsSnapshot, String myNick) {
       if (commentsSnapshot.data != null) {
-        return Container(
+        return SingleChildScrollView(
           child: ListView.builder(
             primary: false,
             shrinkWrap: true,
             itemCount: commentsSnapshot.data!.docs.length,
             itemBuilder: (context, index) {
-              void onItemMenuPress(Choice choice) {
-                if (choice.title == '삭제') {
-                  deleteComment(commentsSnapshot.data!.docs[index].id);
-                } else if (choice.title == '신고') {
-                  reportComment(commentsSnapshot.data!.docs[index].id);
-                } else if (choice.title == '뭔가') {
-                  print('댓글 뭔가');
-                }
-              }
-
               DateTime dateTime = Timestamp.fromMillisecondsSinceEpoch(int.parse(commentsSnapshot.data!.docs[index].get('timestamp'))).toDate();
-              bool doCcomment = false;
-              return Column(children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    //프사
-                    FutureBuilder(
-                        future: getPhotoUrl(commentsSnapshot.data!.docs[index].get('commentFrom')),
-                        builder: (context, AsyncSnapshot snapshot) {
-                          if (snapshot.hasData) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(60),
-                              child: Image.network(
-                                snapshot.data.toString(),
-                                width: 40,
-                                height: 40,
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          } else {
-                            return CircularProgressIndicator();
-                          }
-                        }),
-                    //1층: 닉넴, 댓글내용, 2층: 글쓴시간, 좋아요개수, 대댓글버튼(수정필요)
-                    Column(
-                      children: [
-                        Row(
-                          children: [
-                            Text(commentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
-                            cSizedBox(0, 35),
-                            Text(commentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
-                          ],
-                        ),
-                        Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
-                        Row(
-                          children: [
-                            Text(howLongAgo(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))),
-                            cSizedBox(0, 10),
-                            StreamBuilder(
-                                stream: fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).snapshots(),
-                                builder: (context, AsyncSnapshot snapshot) {
-                                  if (snapshot.hasData) {
-                                    int _likeCount = snapshot.data!['likeCount'];
-                                    if (_likeCount != 0) {
-                                      return Text("좋아요 " + snapshot.data!['likeCount'].toString() + "개", style: TextStyle(fontSize: 14));
-                                    }
-                                    return Text('');
-                                  } else {
-                                    return CircularProgressIndicator();
-                                  }
-                                }),
-                            cSizedBox(0, 10),
-                            IconButton(
-                              icon: Icon(Icons.chat),
-                              onPressed: () async {
-                                print('대댓글 추가...');
-                                doCcomment = true;
-                              },
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                    //좋아요
-                    StreamBuilder(
-                        stream: fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).snapshots(),
-                        builder: (context, AsyncSnapshot snapshot) {
-                          if (snapshot.hasData) {
-                            List<dynamic> whoLike = snapshot.data!['whoLike'];
-                            bool alreadyLiked = false;
-                            if (whoLike.contains(myNick)) {
-                              alreadyLiked = true;
-                            }
-                            return IconButton(
-                                icon: Icon(alreadyLiked ? Icons.favorite : Icons.favorite_border, color: Color(0xff548ee0)),
-                                onPressed: () async {
-                                  List<dynamic> whoLike = [];
-                                  await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).get().then((value) {
-                                    for (var who in value['whoLike']) {
-                                      whoLike.add(who);
-                                    }
-                                  });
-                                  if (!whoLike.contains(myNick)) {
-                                    await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({
-                                      'likeCount': FieldValue.increment(1),
-                                      'whoLike': FieldValue.arrayUnion([myNick])
-                                    });
-                                  } else {
-                                    await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({
-                                      'likeCount': FieldValue.increment(-1),
-                                      'whoLike': FieldValue.arrayRemove([myNick])
-                                    });
-                                  }
-                                });
-                          } else {
-                            return CircularProgressIndicator();
-                          }
-                        }),
-                    //댓글 팝업 버튼
-                    myNick == commentsSnapshot.data!.docs[index].get('commentFrom')
-                        ? PopupMenuButton<Choice>(
-                            onSelected: onItemMenuPress,
-                            itemBuilder: (context) {
-                              return myChoices.map((Choice choice) {
-                                return PopupMenuItem<Choice>(
-                                  value: choice,
-                                  child: Row(
-                                    children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
-                                  ),
-                                );
-                              }).toList();
-                            },
-                          )
-                        : PopupMenuButton<Choice>(
-                            onSelected: onItemMenuPress,
-                            itemBuilder: (context) {
-                              return otherChoices.map((Choice choice) {
-                                return PopupMenuItem<Choice>(
-                                  value: choice,
-                                  child: Row(
-                                    children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
-                                  ),
-                                );
-                              }).toList();
-                            },
-                          ),
-                  ],
-                ),
-                doCcomment
-                    ? Row(
+              int _likeCount = commentsSnapshot.data!.docs[index].get('likeCount');
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      cSizedBox(0, width*0.07),
+                      Container(
+                        width: width*0.5,
+                        margin: EdgeInsets.fromLTRB(0, 0, width*0.18, 0),
+                        child: small2Text(commentsSnapshot.data!.docs[index].get('commentFrom'), 12, Colors.black87),
+                      ),
+                      Row(
                         children: [
-                          TextField(
-                            controller: ccommentInput,
+                          Container(
+                            width: width*0.1,
+                            margin: EdgeInsets.fromLTRB(0, 0, width*0.0, 0),
+                            alignment: Alignment(1.0, 0.0),
+                            child: smallText(howLongAgo(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])), 11, Colors.black54),
                           ),
-                          IconButton(
-                              icon: Icon(Icons.send),
-                              onPressed: () async {
-                                FocusScope.of(context).requestFocus(new FocusNode());
-                                if (commentInput.text.isNotEmpty) {
-                                  ccommentUploadOnFS(commentsSnapshot.data!.docs[index].id);
+                          cSizedBox(0, 10),
+                          //좋아요
+                          StreamBuilder(
+                              stream: fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).snapshots(),
+                              builder: (context, AsyncSnapshot snapshot) {
+                                if (snapshot.hasData) {
+                                  List<dynamic> whoLike = snapshot.data!['whoLike'];
+                                  bool alreadyLiked = false;
+                                  if (whoLike.contains(myNick)) {
+                                    alreadyLiked = true;
+                                  }
+                                  return IconButton(
+                                      padding: EdgeInsets.zero,
+                                      constraints: BoxConstraints(),
+                                      icon: Icon(alreadyLiked ? Icons.favorite : Icons.favorite_border, color: Colors.blueGrey, size: 15,),
+                                      onPressed: () async {
+                                        List<dynamic> whoLike = [];
+                                        await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).get().then((value) {
+                                          for (var who in value['whoLike']) {
+                                            whoLike.add(who);
+                                          }
+                                        });
+                                        if (!whoLike.contains(myNick)) {
+                                          await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({
+                                            'likeCount': FieldValue.increment(1),
+                                            'whoLike': FieldValue.arrayUnion([myNick])
+                                          });
+                                        } else {
+                                          await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).update({
+                                            'likeCount': FieldValue.increment(-1),
+                                            'whoLike': FieldValue.arrayRemove([myNick])
+                                          });
+                                        }
+                                      });
+                                } else {
+                                  return CircularProgressIndicator();
                                 }
                               }),
+                          (_likeCount != 0)
+                              ? smallText(_likeCount.toString(), 11, Colors.grey)
+                              : SizedBox.shrink(),
                         ],
-                      )
-                    : Container(),
-
-                //대댓글
-                StreamBuilder(
-                    stream: fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).collection('comments').snapshots(),
-                    builder: (context, AsyncSnapshot<QuerySnapshot> ccommentsSnapshot) {
-                      if (ccommentsSnapshot.hasData) {
-                        return Container(
-                            child: ListView.builder(
-                                primary: false,
-                                shrinkWrap: true,
-                                itemCount: ccommentsSnapshot.data!.docs.length,
-                                itemBuilder: (context, index) {
-                                  void onItemMenuPress(Choice choice) {
-                                    if (choice.title == '삭제') {
-                                      deleteComment(ccommentsSnapshot.data!.docs[index].id);
-                                    } else if (choice.title == '신고') {
-                                      reportComment(ccommentsSnapshot.data!.docs[index].id);
-                                    } else if (choice.title == '뭔가') {
-                                      print('댓글 뭔가');
-                                    }
-                                  }
-
-                                  DateTime dateTime = Timestamp.fromMillisecondsSinceEpoch(int.parse(ccommentsSnapshot.data!.docs[index].get('timestamp'))).toDate();
-                                  return Column(children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Container(
-                                          padding: EdgeInsets.only(left: 10),
-                                          child: Icon(Icons.arrow_forward_rounded),
-                                        ),
-                                        //프사
-                                        FutureBuilder(
-                                            future: getPhotoUrl(ccommentsSnapshot.data!.docs[index].get('commentFrom')),
-                                            builder: (context, AsyncSnapshot snapshot) {
-                                              if (snapshot.hasData) {
-                                                return ClipRRect(
-                                                  borderRadius: BorderRadius.circular(60),
-                                                  child: Image.network(
-                                                    snapshot.data.toString(),
-                                                    width: 40,
-                                                    height: 40,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                );
-                                              } else {
-                                                return CircularProgressIndicator();
-                                              }
-                                            }),
-                                        //1층: 닉넴, 댓글내용, 2층: 글쓴시간, 좋아요개수
-                                        Column(
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Text(ccommentsSnapshot.data!.docs[index].get('commentFrom'), style: TextStyle(fontSize: 14)),
-                                                cSizedBox(0, 35),
-                                                Text(ccommentsSnapshot.data!.docs[index].get('comment'), style: TextStyle(fontSize: 14)),
-                                              ],
-                                            ),
-                                            Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 0)),
-                                            Row(
-                                              children: [
-                                                Text(howLongAgo(formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]))),
-                                                cSizedBox(0, 10),
-                                                StreamBuilder(
-                                                    stream: fs
-                                                        .collection('community_board')
-                                                        .doc(widget.id)
-                                                        .collection('comments')
-                                                        .doc(commentsSnapshot.data!.docs[index].id)
-                                                        .collection('comments')
-                                                        .doc(ccommentsSnapshot.data!.docs[index].id)
-                                                        .snapshots(),
-                                                    builder: (context, AsyncSnapshot snapshot) {
-                                                      if (snapshot.hasData) {
-                                                        int _likeCount = snapshot.data!['likeCount'];
-                                                        if (_likeCount != 0) {
-                                                          return Text("좋아요 " + snapshot.data!['likeCount'].toString() + "개", style: TextStyle(fontSize: 14));
-                                                        }
-                                                        return Text('');
-                                                      } else {
-                                                        return CircularProgressIndicator();
-                                                      }
-                                                    }),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                        //좋아요
-                                        StreamBuilder<DocumentSnapshot>(
-                                            stream: fs
-                                                .collection('community_board')
-                                                .doc(widget.id)
-                                                .collection('comments')
-                                                .doc(commentsSnapshot.data!.docs[index].id)
-                                                .collection('comments')
-                                                .doc(ccommentsSnapshot.data!.docs[index].id)
-                                                .snapshots(),
-                                            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                                              print('#########');
-                                              print(snapshot.toString());
-                                              print(snapshot.data.toString());
-                                              if (snapshot.hasData && snapshot.data.toString() == 'null') {
-                                                List<dynamic> whoLike = snapshot.data!['whoLike'];
-                                                bool alreadyLiked = false;
-                                                if (whoLike.contains(myNick)) {
-                                                  alreadyLiked = true;
-                                                }
-                                                return IconButton(
-                                                    icon: Icon(alreadyLiked ? Icons.favorite : Icons.favorite_border, color: Color(0xff548ee0)),
-                                                    onPressed: () async {
-                                                      List<dynamic> whoLike = [];
-                                                      await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentsSnapshot.data!.docs[index].id).get().then((value) {
-                                                        for (var who in value['whoLike']) {
-                                                          whoLike.add(who);
-                                                        }
-                                                      });
-                                                      if (!whoLike.contains(myNick)) {
-                                                        await fs
-                                                            .collection('community_board')
-                                                            .doc(widget.id)
-                                                            .collection('comments')
-                                                            .doc(commentsSnapshot.data!.docs[index].id)
-                                                            .collection('comments')
-                                                            .doc(ccommentsSnapshot.data!.docs[index].id)
-                                                            .update({
-                                                          'likeCount': FieldValue.increment(1),
-                                                          'whoLike': FieldValue.arrayUnion([myNick])
-                                                        });
-                                                      } else {
-                                                        await fs
-                                                            .collection('community_board')
-                                                            .doc(widget.id)
-                                                            .collection('comments')
-                                                            .doc(commentsSnapshot.data!.docs[index].id)
-                                                            .collection('comments')
-                                                            .doc(ccommentsSnapshot.data!.docs[index].id)
-                                                            .update({
-                                                          'likeCount': FieldValue.increment(-1),
-                                                          'whoLike': FieldValue.arrayRemove([myNick])
-                                                        });
-                                                      }
-                                                    });
-                                              } else {
-                                                return CircularProgressIndicator();
-                                              }
-                                            }),
-                                        //댓글 팝업 버튼
-                                        myNick == commentsSnapshot.data!.docs[index].get('commentFrom')
-                                            ? PopupMenuButton<Choice>(
-                                                onSelected: onItemMenuPress,
-                                                itemBuilder: (context) {
-                                                  return myChoices.map((Choice choice) {
-                                                    return PopupMenuItem<Choice>(
-                                                      value: choice,
-                                                      child: Row(
-                                                        children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
-                                                      ),
-                                                    );
-                                                  }).toList();
-                                                },
-                                              )
-                                            : PopupMenuButton<Choice>(
-                                                onSelected: onItemMenuPress,
-                                                itemBuilder: (context) {
-                                                  return otherChoices.map((Choice choice) {
-                                                    return PopupMenuItem<Choice>(
-                                                      value: choice,
-                                                      child: Row(
-                                                        children: [Icon(choice.icon), Container(width: 10.0), Text(choice.title)],
-                                                      ),
-                                                    );
-                                                  }).toList();
-                                                },
-                                              ),
-                                      ],
-                                    )
-                                  ]);
-                                }));
-                      } else {
-                        return CircularProgressIndicator();
-                      }
-                    }),
-                headerDivider(),
-              ]);
+                      ),
+                    ]
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      cSizedBox(0, width*0.07),
+                      Container(
+                        width: width*0.8,
+                        margin: EdgeInsets.fromLTRB(0, 0, width*0.02, 0),
+                        child: small2Text(commentsSnapshot.data!.docs[index].get('comment'), 12, Colors.black54),
+                      ),
+                  ],),
+                  Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, height*0.02))
+                ],
+                );
             },
           ),
         );
       }
-      return Container();
+      return SizedBox.shrink();
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            IconButton(
-              padding: EdgeInsets.fromLTRB(width * 0.07, 0, 0, 0),
-              icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            cSizedBox(0, width * 0.07),
-            headerText("커뮤니티"),
-          ],
-        ),
-        titleSpacing: 0.0,
-        automaticallyImplyLeading: false,
-
-        // 채팅방 내의 퇴장, 설정 버튼
-        actions: <Widget>[
+      resizeToAvoidBottomInset: true,
+      appBar: CustomAppBar("커뮤니티", [
           PopupMenuButton<Choice>(
             icon: Image.asset('assets/images/icon/iconthreedot.png', width: 22, height: 22),
             onSelected: onItemMenuPress,
@@ -879,7 +621,6 @@ class CommunityShowState extends State<CommunityShow> {
           ),
           Padding(padding: EdgeInsets.fromLTRB(10, 0, 0, 0)),
         ],
-        backgroundColor: Color(0xffffffff),
       ),
 
       body: StreamBuilder(
@@ -895,134 +636,163 @@ class CommunityShowState extends State<CommunityShow> {
                   var myInfo = fp.getInfo();
                   String writeTime = boardSnapshot.data!['write_time'].substring(10, 16) + ' | ';
                   String writer = boardSnapshot.data!['writer'];
-                  return SingleChildScrollView(
-                    child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  return Column(
                     children: [
-                      topbar2(context, "커뮤니티"),
-                      Padding(
-                          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-                          child: Wrap(direction: Axis.vertical, spacing: 15, children: [
-                            Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(boardSnapshot.data!['title'])),
-                            smallText("작성일 " + writeTime + "작성자 " + writer + " | 조회수 " + boardSnapshot.data!['views'].toString(), 11.5, Color(0xffa9aaaf))
-                          ])),
-                      Divider(
-                        color: Color(0xffe9e9e9),
-                        thickness: 15,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(50, 30, 50, 30),
-                        child: Text(boardSnapshot.data!['contents'], style: TextStyle(fontSize: 14)),
-                      ),
-                      boardSnapshot.data!['pic'].isEmpty
-                      ? SizedBox.shrink()
-                      : Container(
-                        margin: EdgeInsets.fromLTRB(width*0.03, 0, width*0.03, 0),
-                        height: 100,
-                        width: width,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (BuildContext context, int idx) {
-                            return GestureDetector(
-                              onTap: (){open(context, idx, boardSnapshot.data!['pic']);},
-                              child: Card(
-                                elevation: 0,
-                                child: Image.network(boardSnapshot.data!['pic'][idx], width: 100, height: 100, fit:BoxFit.contain),
-                              )
-                            );
-                          },
-                          itemCount: boardSnapshot.data!['pic'].length,
-                        )
-                      ),
+                      Flexible(
+                        flex: 10,
+                        fit: FlexFit.tight,
+                        child: SingleChildScrollView(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                    padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                                    child: Wrap(direction: Axis.vertical, spacing: 15, children: [
+                                      Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(boardSnapshot.data!['title'])),
+                                      smallText("작성일" + writeTime + "작성자 " + writer + " | 조회수 " + boardSnapshot.data!['views'].toString(), 11.5, Color(0xffa9aaaf))
+                                    ])),
+                                Divider(
+                                  color: Color(0xffe9e9e9),
+                                  thickness: 15,
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.fromLTRB(50, height*0.05, 50, height*0.07),
+                                  child: Text(boardSnapshot.data!['contents'], style: TextStyle(fontSize: 14)),
+                                ),
+                                boardSnapshot.data!['pic'].isEmpty
+                                    ? SizedBox.shrink()
+                                    : Container(
+                                    margin: EdgeInsets.fromLTRB(width*0.03, 0, width*0.03, height*0.03),
+                                    height: 100,
+                                    width: width,
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemBuilder: (BuildContext context, int idx) {
+                                        return GestureDetector(
+                                            onTap: (){open(context, idx, boardSnapshot.data!['pic']);},
+                                            child: Card(
+                                              elevation: 0,
+                                              child: Image.network(boardSnapshot.data!['pic'][idx], width: 100, height: 100, fit:BoxFit.contain),
+                                            )
+                                        );
+                                      },
+                                      itemCount: boardSnapshot.data!['pic'].length,
+                                    )
+                                ),
 
-                      // 좋아요
-                      headerDivider(),
-                      StreamBuilder(
-                          stream: fs.collection('community_board').doc(widget.id).snapshots(),
-                          builder: (context, AsyncSnapshot snapshot) {
-                            if (snapshot.hasData) {
-                              List<dynamic> whoLike = snapshot.data!['whoLike'];
-                              bool alreadyLiked = false;
-                              if (whoLike.contains(myInfo['nick'])) {
-                                alreadyLiked = true;
-                              }
-                              return Row(
-                                children: [
-                                  IconButton(
-                                      icon: Icon(alreadyLiked ? Icons.favorite : Icons.favorite_border, color: Color(0xff548ee0)),
-                                      onPressed: () async {
-                                        List<dynamic> whoLike = [];
-                                        await fs.collection('community_board').doc(widget.id).get().then((value) {
-                                          for (var who in value['whoLike']) {
-                                            whoLike.add(who);
-                                          }
-                                        });
-                                        if (!whoLike.contains(myInfo['nick'])) {
-                                          await fs.collection('community_board').doc(widget.id).update({
-                                            'likeCount': FieldValue.increment(1),
-                                            'whoLike': FieldValue.arrayUnion([myInfo['nick']])
-                                          });
-                                        } else {
-                                          await fs.collection('community_board').doc(widget.id).update({
-                                            'likeCount': FieldValue.increment(-1),
-                                            'whoLike': FieldValue.arrayRemove([myInfo['nick']])
-                                          });
+                                // 좋아요
+                                headerDivider(),
+                                StreamBuilder(
+                                    stream: fs.collection('community_board').doc(widget.id).snapshots(),
+                                    builder: (context, AsyncSnapshot snapshot) {
+                                      if (snapshot.hasData) {
+                                        List<dynamic> whoLike = snapshot.data!['whoLike'];
+                                        bool alreadyLiked = false;
+                                        if (whoLike.contains(myInfo['nick'])) {
+                                          alreadyLiked = true;
                                         }
-                                      }),
-                                  StreamBuilder(
-                                      stream: fs.collection('community_board').doc(widget.id).snapshots(),
-                                      builder: (context, AsyncSnapshot snapshot) {
-                                        if (snapshot.hasData) {
-                                          int _likeCount = snapshot.data!['likeCount'];
-                                          if (_likeCount != 0) {
-                                            return info2Text(snapshot.data!['likeCount'].toString());
-                                              //Text("좋아요 " +  + "개", style: TextStyle(fontSize: 14));
-                                          }
-                                          return SizedBox.shrink();
-                                        } else {
-                                          return CircularProgressIndicator();
-                                        }
-                                      }),
-                                ],
-                              );
-                            } else {
-                              return CircularProgressIndicator();
-                            }
-                          }),
-
-                      // 댓글쓰기
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 30,
-                              child: TextField(
-                                controller: commentInput,
-                                decoration: InputDecoration(hintText: "코멘트를 남기세요."),
+                                        return Row(
+                                          children: [
+                                            cSizedBox(0, width*0.02),
+                                            IconButton(
+                                                icon: Icon(alreadyLiked ? Icons.favorite : Icons.favorite_border, color: Color(0xff548ee0)),
+                                                onPressed: () async {
+                                                  List<dynamic> whoLike = [];
+                                                  await fs.collection('community_board').doc(widget.id).get().then((value) {
+                                                    for (var who in value['whoLike']) {
+                                                      whoLike.add(who);
+                                                    }
+                                                  });
+                                                  if (!whoLike.contains(myInfo['nick'])) {
+                                                    await fs.collection('community_board').doc(widget.id).update({
+                                                      'likeCount': FieldValue.increment(1),
+                                                      'whoLike': FieldValue.arrayUnion([myInfo['nick']])
+                                                    });
+                                                  } else {
+                                                    await fs.collection('community_board').doc(widget.id).update({
+                                                      'likeCount': FieldValue.increment(-1),
+                                                      'whoLike': FieldValue.arrayRemove([myInfo['nick']])
+                                                    });
+                                                  }
+                                                }),
+                                            StreamBuilder(
+                                                stream: fs.collection('community_board').doc(widget.id).snapshots(),
+                                                builder: (context, AsyncSnapshot snapshot) {
+                                                  if (snapshot.hasData) {
+                                                    int _likeCount = snapshot.data!['likeCount'];
+                                                    if (_likeCount != 0) {
+                                                      return info2Text(snapshot.data!['likeCount'].toString());
+                                                      //Text("좋아요 " +  + "개", style: TextStyle(fontSize: 14));
+                                                    }
+                                                    return SizedBox.shrink();
+                                                  } else {
+                                                    return CircularProgressIndicator();
+                                                  }
+                                                }),
+                                          ],
+                                        );
+                                      } else {
+                                        return CircularProgressIndicator();
+                                      }
+                                    }),
+                                // 댓글들
+                                commentsSection(commentsSnapshot, myInfo['nick']),
+                                Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, height*0.02))
+                              ],
+                            )
+                          ),
+                      ),
+                      Flexible(
+                        flex: 1,
+                        fit: FlexFit.tight,
+                        child: Container(
+                          padding: EdgeInsets.fromLTRB(width*0.05, 0, width*0.05, height*0.01),
+                          color: Colors.transparent,
+                          width: MediaQuery.of(context).size.width,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: width*0.75,
+                                child: TextField(
+                                  controller: commentInput,
+                                  decoration: InputDecoration(
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.indigo.shade200, width: 1.5),
+                                    ),
+                                    contentPadding: EdgeInsets.fromLTRB(width*0.05, 0, 0, 0),
+                                    hintText: "댓글을 남기세요.",
+                                    hintStyle: TextStyle(fontFamily: "SCDream", color: Colors.black54, fontWeight: FontWeight.w500, fontSize: 13),
+                                    errorStyle: TextStyle(color: Colors.indigo.shade200),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.grey.shade400, width: 1.5),
+                                    ),
+                                  ),
+                                  focusNode: FocusNode(),
+                                ),
                               ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.send),
-                            onPressed: () {
-                              FocusScope.of(context).requestFocus(new FocusNode());
-                              if (commentInput.text.isNotEmpty) {
-                                commentUploadOnFS();
-                              }
-                            },
-                          ),
-                        ],
+                              IconButton(
+                                icon: Icon(Icons.send, color: Colors.grey,),
+                                onPressed: () {
+                                  FocusScope.of(context).requestFocus(new FocusNode());
+                                  if (commentInput.text.isNotEmpty) {
+                                    commentUploadOnFS();
+                                  }
+                                },
+                              ),
+                            ],
+                          )
+                        ),
                       ),
-                      // 댓글들
-                      commentsSection(commentsSnapshot, myInfo['nick']),
                     ],
-                  ));
+                  );
                 } else {
                   return CircularProgressIndicator();
                 }
               },
             );
-          }),
+          }
+      ),
     );
   }
 
@@ -1051,21 +821,6 @@ class CommunityShowState extends State<CommunityShow> {
         .collection('comments')
         .doc(DateTime.now().millisecondsSinceEpoch.toString())
         .set({'comment': commentInput.text, 'commentCount': 0, 'commentFrom': myInfo['nick'], 'likeCount': 0, 'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), 'whoLike': []});
-
-    commentInput.clear();
-  }
-
-  void ccommentUploadOnFS(String commentId) async {
-    var myInfo = fp.getInfo();
-    await fs.collection('community_board').doc(widget.id).collection('comments').doc(commentId).update({'commentCount': FieldValue.increment(1)});
-    await fs
-        .collection('community_board')
-        .doc(widget.id)
-        .collection('comments')
-        .doc(commentId)
-        .collection('comments')
-        .doc(DateTime.now().millisecondsSinceEpoch.toString())
-        .set({'comment': ccommentInput.text, 'commentCount': 0, 'commentFrom': myInfo['nick'], 'likeCount': 0, 'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), 'whoLike': []});
 
     commentInput.clear();
   }
@@ -1122,6 +877,20 @@ class CommunityModifyState extends State<CommunityModify> {
     final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      appBar: CustomAppBar("글 수정", [
+        IconButton(
+            icon: Icon(
+              Icons.check,
+              color: Color(0xff639ee1),
+            ),
+            onPressed: () {
+              FocusScope.of(context).requestFocus(new FocusNode());
+              if (_formKey.currentState!.validate()) {
+                updateOnFS();
+                Navigator.pop(context);
+              }
+            }
+        )]),
       resizeToAvoidBottomInset: false,
       body: SingleChildScrollView(
           child: StreamBuilder(
@@ -1136,13 +905,6 @@ class CommunityModifyState extends State<CommunityModify> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      topbar3(context, "글 수정", () {
-                        FocusScope.of(context).requestFocus(new FocusNode());
-                        if (_formKey.currentState!.validate()) {
-                          updateOnFS();
-                          Navigator.pop(context);
-                        }
-                      }),
                       Padding(
                         padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.01, width * 0.1, height * 0.01),
                         child: Column(

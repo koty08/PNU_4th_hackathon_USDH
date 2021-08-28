@@ -1,3 +1,4 @@
+import 'package:day_night_time_picker/lib/daynight_timepicker.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:location/location.dart';
 import 'package:material_tag_editor/tag_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:usdh/Widget/widget.dart';
+import 'package:usdh/chat/const.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -72,6 +74,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
   FirebaseStorage storage = FirebaseStorage.instance;
   FirebaseFirestore fs = FirebaseFirestore.instance;
   List tagList = [];
+  TimeOfDay _time = TimeOfDay.now();
   double lat = 0.0, lng = 0.0;
 
   final _formKey = GlobalKey<FormState>();
@@ -108,21 +111,35 @@ class DeliveryWriteState extends State<DeliveryWrite> {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
 
+    void onTimeChanged(TimeOfDay newTime) {
+      setState(() {
+        _time = newTime;
+        timeInput.text = _time.format(context);
+      });
+    }
+
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: SingleChildScrollView(
-            child: Form(
+      appBar: CustomAppBar("글 작성", [
+        IconButton(
+          icon: Icon(
+            Icons.check,
+            color: Color(0xff639ee1),
+          ),
+          onPressed: () {
+            FocusScope.of(context).requestFocus(new FocusNode());
+            if (_formKey.currentState!.validate()) {
+              uploadOnFS();
+              Navigator.pop(context);
+            }
+          }
+      )]),
+      resizeToAvoidBottomInset: false,
+      body: SingleChildScrollView(
+          child: Form(
           key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              topbar3(context, "글 작성", () {
-                FocusScope.of(context).requestFocus(new FocusNode());
-                if (_formKey.currentState!.validate()) {
-                  uploadOnFS();
-                  Navigator.pop(context);
-                }
-              }),
               Padding(
                   padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.03, width * 0.1, 20),
                   child: Column(
@@ -137,36 +154,49 @@ class DeliveryWriteState extends State<DeliveryWrite> {
                             direction: Axis.vertical,
                             spacing: -8,
                             children: [
-                              ccondWrap("모집기간", timeInput, "마감 시간 입력 : xx:xx (ex 21:32 형태)", (text) {
-                                if (text == null || text.isEmpty) {
-                                  return "마감 시간은 필수 입력 사항입니다.";
-                                } else if (isNumeric(text[0]) && isNumeric(text[1]) && (text[2] == ':') && isNumeric(text[3]) && isNumeric(text[4])) {
-                                  return null;
-                                } else {
-                                  return "올바른 형식으로 입력해주세요. (ex 09:10)";
-                                }
-                              }),
+                              Wrap(
+                                spacing: 15,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 60,
+                                    alignment: Alignment(0.0, 0.0),
+                                    child: cond2Text("모집기간"),
+                                  ),
+                                  GestureDetector(
+                                    child: Container(width: width * 0.4,
+                                      child: ccondField(timeInput, "마감 시간을 선택하세요.", "마감 시간은 필수 입력 사항입니다.")
+                                    ),
+                                    onTap: (){TimePicker(context, _time, onTimeChanged);}
+                                  )
+                                ],
+                              ),
                               condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                               condWrap("음식종류", foodInput, "음식 종류를 입력하세요.", "음식 종류는 필수 입력 사항입니다."),
                               Wrap(
                                 spacing: 15,
                                 crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  cond2Text("배분위치"),
-                                  Container(width: width * 0.4,
-                                      child: ccondField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")),
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                    icon: Icon(Icons.search, size: 18,),
-                                    onPressed: () async {
+                                  Container(
+                                    width: 60,
+                                    alignment: Alignment(0.0, 0.0),
+                                    child: cond2Text("배분위치"),
+                                  ),
+                                  GestureDetector(
+                                    child: Row(
+                                      children: [
+                                        Container(width: width * 0.4,
+                                          child: ccondField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")),
+                                        Icon(Icons.search, size: 18,),
+                                      ],
+                                    ),
+                                    onTap: () async {
                                       final data = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
                                       setState(() {
                                         locationInput.text = data[0];
                                         lat = data[1];
                                         lng = data[2];
                                       });
-                                      
                                     },
                                   ),
                                 ],
@@ -247,7 +277,7 @@ class DeliveryWriteState extends State<DeliveryWrite> {
       'writer': myInfo['nick'],
       'contents': contentInput.text,
       'time':
-          isTomorrow(timeInput.text + ":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00" : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
+          isTomorrow(_time.toString().substring(10, 15) + ":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + _time.toString().substring(10, 15) + ":00" : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + _time.toString().substring(10, 15) + ":00",
       'currentMember': 1,
       'limitedMember': int.parse(memberInput.text),
       'food': foodInput.text,
@@ -344,6 +374,123 @@ class DeliveryListState extends State<DeliveryList> {
     final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      appBar: CustomAppBar("배달", [
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconmap.png', width: 20, height: 20),
+          onPressed: () {
+            Navigator.pop(context);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryMap()));
+          },
+        ),
+        //새로고침 기능
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconrefresh.png', width: 18, height: 18),
+          onPressed: () {
+            setState(() {
+              colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+            });
+          },
+        ),
+        //검색 기능 팝업
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconsearch.png', width: 20, height: 20),
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (BuildContext con) {
+                  return StatefulBuilder(builder: (con, setS) {
+                    return Form(
+                        key: _formKey,
+                        child: AlertDialog(
+                          title: Row(
+                            children: [
+                              Theme(
+                                data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                child: Radio(
+                                    value: "제목",
+                                    activeColor: Colors.black38,
+                                    groupValue: search,
+                                    onChanged: (String? value) {
+                                      setS(() {
+                                        search = value!;
+                                      });
+                                    }),
+                              ),
+                              Text(
+                                "제목 검색",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                ),
+                              ),
+                              Theme(
+                                data: ThemeData(unselectedWidgetColor: Colors.black38),
+                                child: Radio(
+                                    value: "태그",
+                                    activeColor: Colors.black38,
+                                    groupValue: search,
+                                    onChanged: (String? value) {
+                                      setS(() {
+                                        search = value!;
+                                      });
+                                    }),
+                              ),
+                              Text(
+                                "태그 검색",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                          content: TextFormField(
+                              controller: searchInput,
+                              decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
+                              validator: (text) {
+                                if (text == null || text.isEmpty) {
+                                  return "검색어를 입력하지 않으셨습니다.";
+                                }
+                                return null;
+                              }),
+                          actions: <Widget>[
+                            TextButton(
+                                onPressed: () {
+                                  if (_formKey.currentState!.validate()) {
+                                    if (search == "제목") {
+                                      setState(() {
+                                        colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
+                                      });
+                                      searchInput.clear();
+                                      Navigator.pop(context);
+                                    } else {
+                                      setState(() {
+                                        colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
+                                      });
+                                      searchInput.clear();
+                                      Navigator.pop(context);
+                                    }
+                                  }
+                                },
+                                child: Text("검색")),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.pop(con);
+                                  searchInput.clear();
+                                },
+                                child: Text("취소")),
+                          ],
+                        ));
+                  });
+                });
+          },
+        ),
+        IconButton(
+          icon: Image.asset('assets/images/icon/iconmessage.png', width: 20, height: 20),
+          onPressed: () {
+            var myInfo = fp.getInfo();
+            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
+          },
+        ),
+      ]),
       body: RefreshIndicator(
         //당겨서 새로고침
         onRefresh: () async {
@@ -358,27 +505,6 @@ class DeliveryListState extends State<DeliveryList> {
                 return CircularProgressIndicator();
               }
               return Column(children: [
-                topbar6_map(context, "배달", DeliveryMap(), () {
-                  setState(() {
-                    colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
-                  });
-                }, _formKey, search, searchInput,() {
-                  if (_formKey.currentState!.validate()) {
-                    if (search == "제목") {
-                      setState(() {
-                        colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy('title').startAt([searchInput.text]).endAt([searchInput.text + '\uf8ff']).snapshots();
-                      });
-                      searchInput.clear();
-                      Navigator.pop(context);
-                    } else {
-                      setState(() {
-                        colstream = FirebaseFirestore.instance.collection('delivery_board').where('tagList', arrayContains: "#" + searchInput.text + " ").snapshots();
-                      });
-                      searchInput.clear();
-                      Navigator.pop(context);
-                    }
-                  }
-                } ),
                 Container(
                     padding: EdgeInsets.fromLTRB(0, 10, 25, 5),
                     child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -414,9 +540,9 @@ class DeliveryListState extends State<DeliveryList> {
                     ])),
                 // Container or Expanded or Flexible 사용
                 Expanded(
-                    // 아래 간격 두고 싶으면 Container, height 사용
-                    //height: MediaQuery.of(context).size.height * 0.8,
-                    child: MediaQuery.removePadding(
+                  // 아래 간격 두고 싶으면 Container, height 사용
+                  //height: MediaQuery.of(context).size.height * 0.8,
+                  child: MediaQuery.removePadding(
                   context: context,
                   removeTop: true,
                   child: ListView.separated(
@@ -457,7 +583,7 @@ class DeliveryListState extends State<DeliveryList> {
                                                 child: smallText(tag, 12, Color(0xffa9aaaf)));
                                           })
                                       ),
-                                      cSizedBox(0, width*0.05),
+                                      cSizedBox(0, width*0.08),
                                       Container(
                                           width: width*0.2,
                                           child: Row(
@@ -483,8 +609,8 @@ class DeliveryListState extends State<DeliveryList> {
                                       isAvailable(doc['time'], doc['currentMember'], doc['limitedMember']) ? statusText("모집중") : statusText("모집완료"),
                                       cSizedBox(0, 10),
                                       Container(
-                                        width: MediaQuery.of(context).size.width * 0.6,
-                                        child: Text(doc['title'].toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "SCDream", fontWeight: FontWeight.w700, fontSize: 15)),
+                                        width: width * 0.6,
+                                        child: cond2Text(doc['title'].toString()),
                                       ),
                                       cSizedBox(35, 0),
                                     ]),
@@ -567,6 +693,7 @@ class DeliveryShowState extends State<DeliveryShow> {
     fp.setInfo();
 
     return Scaffold(
+        appBar: CustomAppBar("배달", []),
         body: StreamBuilder(
           stream: fs.collection('delivery_board').doc(widget.id).snapshots(),
           builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -582,13 +709,12 @@ class DeliveryShowState extends State<DeliveryShow> {
                   child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    topbar2(context, "배달"),
                     Padding(
                         padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
                         child: Wrap(direction: Axis.vertical, spacing: 15, children: [
                           Container(
                             width: MediaQuery.of(context).size.width * 0.8,
-                            child: tagText(snapshot.data!['tagList'].join('')),
+                            child: tagText(snapshot.data!['tagList'].join(' ')),
                           ),
                           Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
                           smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
@@ -642,255 +768,292 @@ class DeliveryShowState extends State<DeliveryShow> {
               } else if (snapshot.hasData) {
                 fp.setInfo();
                 if (fp.getInfo()['nick'] == snapshot.data!['writer']) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Color(0xffcacaca),
-                        ),
-                        child: GestureDetector(
-                          child: Align(alignment: Alignment.center, child: smallText("삭제", 14, Colors.white)),
-                          onTap: () async {
-                            Navigator.pop(context);
-                            List<String> isFineForMemberNicks = [];
-                            List<String> isFineForMemberIds = [];
-                            await fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(snapshot.data!.id).get().then((DocumentSnapshot snap) {
-                              if (snap.get('isFineForMembers').length != 0) {
-                                for (String iFFMember in snap.get('isFineForMembers')) {
-                                  isFineForMemberNicks.add(iFFMember);
+                  if (isAvailable(snapshot.data!['time'], snapshot.data!['currentMember'], snapshot.data!['limitedMember']))
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // 삭제
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(0xffcacaca),
+                          ),
+                          child: GestureDetector(
+                            child: Align(alignment: Alignment.center, child: smallText("삭제", 14, Colors.white)),
+                            onTap: () async {
+                              Navigator.pop(context);
+                              List<String> isFineForMemberNicks = [];
+                              List<String> isFineForMemberIds = [];
+                              await fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(snapshot.data!.id).get().then((DocumentSnapshot snap) {
+                                if (snap.get('isFineForMembers').length != 0) {
+                                  for (String iFFMember in snap.get('isFineForMembers')) {
+                                    isFineForMemberNicks.add(iFFMember);
+                                  }
+                                } else {
+                                  print(snapshot.data!['title'] + '에는 참가자가 없었습니다.');
                                 }
-                              } else {
-                                print(snapshot.data!['title'] + '에는 참가자가 없었습니다.');
-                              }
-                            });
-                            if (isFineForMemberNicks.length != 0) {
-                              for (String iFFmember in isFineForMemberNicks) {
-                                await fs.collection('users').where('nick', isEqualTo: iFFmember).get().then((QuerySnapshot snap) {
-                                  isFineForMemberIds.add(snap.docs[0].get('email'));
-                                });
-                              }
-                            }
-                            if (isFineForMemberIds.length != 0) {
-                              for (String iFFMemberId in isFineForMemberIds) {
-                                await fs.collection('users').doc(iFFMemberId).collection('myApplication').doc(snapshot.data!.id).update({'where': 'deleted'});
-                              }
-                            }
-
-                            await fs.collection('delivery_board').doc(widget.id).delete();
-                            await fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(snapshot.data!.id).delete();
-                            fp.updateIntInfo('postcount', -1);
-                          },
-                        ),
-                      ),
-                      (isAvailable(snapshot.data!['time'], snapshot.data!['currentMember'], snapshot.data!['limitedMember']))
-                          ? Container(
-                              width: MediaQuery.of(context).size.width * 0.5,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: Color(0xff639ee1),
-                              ),
-                              child: GestureDetector(
-                                child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
-                                onTap: () async {
-                                  var tmp;
-                                  await fs.collection('delivery_board').doc(widget.id).get().then((snap) {
-                                    tmp = snap.data() as Map<String, dynamic>;
+                              });
+                              if (isFineForMemberNicks.length != 0) {
+                                for (String iFFmember in isFineForMemberNicks) {
+                                  await fs.collection('users').where('nick', isEqualTo: iFFmember).get().then((QuerySnapshot snap) {
+                                    isFineForMemberIds.add(snap.docs[0].get('email'));
                                   });
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryModify(widget.id, tmp)));
-                                  setState(() {});
-                                },
-                              ),
-                            )
-                          : Container(
-                              width: MediaQuery.of(context).size.width * 0.5,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: Color(0xff639ee1),
-                              ),
-                              child: Align(alignment: Alignment.center, child: smallText("수정 불가", 14, Colors.white)),
-                            ),
-                    ],
-                  );
-                } else {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Color(0xffcacaca),
-                        ),
-                        child: GestureDetector(
-                          child: Align(alignment: Alignment.center, child: smallText("신청취소", 14, Colors.white)),
-                          onTap: () async {
-                            var myInfo = fp.getInfo();
-                            String title = widget.id;
-                            String hostId = await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((snap) {
-                              DocumentSnapshot tmp = snap.docs[0];
-                              return tmp['email'];
-                            });
-                            List<String> _myApplication = [];
-
-                            await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
-                              if (snap.docs.length != 0) {
-                                for (DocumentSnapshot doc in snap.docs) {
-                                  _myApplication.add(doc.id);
                                 }
-                              } else {
-                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                showMessage('참가 신청 내역이 비어있습니다.');
                               }
-                            });
+                              if (isFineForMemberIds.length != 0) {
+                                for (String iFFMemberId in isFineForMemberIds) {
+                                  await fs.collection('users').doc(iFFMemberId).collection('myApplication').doc(snapshot.data!.id).update({'where': 'deleted'});
+                                }
+                              }
 
-                            if (!_myApplication.contains(title)) {
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              showMessage("참가 신청하지 않은 방입니다.");
-                            } 
-                            else {
-                              List<dynamic> _messages = [];
-                              List<dynamic> _isFineForMember = [];
-                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
-                                _messages = value['messages'];
+                              await fs.collection('delivery_board').doc(widget.id).delete();
+                              await fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(snapshot.data!.id).delete();
+                              fp.updateIntInfo('postcount', -1);
+                            },
+                          ),
+                        ),
+                        // 수정
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(0xff639ee1),
+                          ),
+                          child: GestureDetector(
+                            child: Align(alignment: Alignment.center, child: smallText("수정", 14, Colors.white)),
+                            onTap: () async {
+                              var tmp;
+                              await fs.collection('delivery_board').doc(widget.id).get().then((snap) {
+                                tmp = snap.data() as Map<String, dynamic>;
                               });
-                              await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
-                                _isFineForMember = value['isFineForMembers'];
-                              });
-                              int _msgIndex = _isFineForMember.indexWhere((element) => element == myInfo['nick']);
-                              if (_msgIndex >= 0) {
-                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                  'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
-                                  'messages': FieldValue.arrayRemove([_messages[_msgIndex]])
-                                });
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryModify(widget.id, tmp)));
+                              setState(() {});
+                            },
+                          ),
+                        )
+                      ]
+                    );
+                  // 삭제
+                  else return Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Color(0xffcacaca),
+                      ),
+                      child: GestureDetector(
+                        child: Align(alignment: Alignment.center, child: smallText("삭제", 14, Colors.white)),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          List<String> isFineForMemberNicks = [];
+                          List<String> isFineForMemberIds = [];
+                          await fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(snapshot.data!.id).get().then((DocumentSnapshot snap) {
+                            if (snap.get('isFineForMembers').length != 0) {
+                              for (String iFFMember in snap.get('isFineForMembers')) {
+                                isFineForMemberNicks.add(iFFMember);
                               }
-                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              showMessage("참가 신청을 취소했습니다.");
+                            } else {
+                              print(snapshot.data!['title'] + '에는 참가자가 없었습니다.');
                             }
-                          },
-                        ),
+                          });
+                          if (isFineForMemberNicks.length != 0) {
+                            for (String iFFmember in isFineForMemberNicks) {
+                              await fs.collection('users').where('nick', isEqualTo: iFFmember).get().then((QuerySnapshot snap) {
+                                isFineForMemberIds.add(snap.docs[0].get('email'));
+                              });
+                            }
+                          }
+                          if (isFineForMemberIds.length != 0) {
+                            for (String iFFMemberId in isFineForMemberIds) {
+                              await fs.collection('users').doc(iFFMemberId).collection('myApplication').doc(snapshot.data!.id).update({'where': 'deleted'});
+                            }
+                          }
+
+                          await fs.collection('delivery_board').doc(widget.id).delete();
+                          await fs.collection('users').doc(fp.getInfo()['email']).collection('applicants').doc(snapshot.data!.id).delete();
+                          fp.updateIntInfo('postcount', -1);
+                        },
                       ),
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Color(0xff639ee1),
-                        ),
-                        child: GestureDetector(
-                          child: Align(alignment: Alignment.center, child: smallText("참가신청", 14, Colors.white)),
-                          onTap: () async {
-                            var myInfo = fp.getInfo();
-                            int _currentMember = snapshot.data!['currentMember'];
-                            int _limitedMember = snapshot.data!['limitedMember'];
-                            String title = widget.id;
-                            String hostId = await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
-                              DocumentSnapshot tmp = snap.docs[0];
-                              return tmp['email'];
-                            });
-                            List<String> _myApplication = [];
+                    );
+                } else {
+                  if (isAvailable(snapshot.data!['time'], snapshot.data!['currentMember'], snapshot.data!['limitedMember'])){
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(0xffcacaca),
+                          ),
+                          child: GestureDetector(
+                            child: Align(alignment: Alignment.center, child: smallText("신청취소", 14, Colors.white)),
+                            onTap: () async {
+                              var myInfo = fp.getInfo();
+                              String title = widget.id;
+                              String hostId = await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((snap) {
+                                DocumentSnapshot tmp = snap.docs[0];
+                                return tmp['email'];
+                              });
+                              List<String> _myApplication = [];
 
-                            showDialog(
-                              context: context,
-                              barrierColor: null,
-                              builder: (BuildContext con) {
-                                  return Form(
-                                    key: _formKey,
-                                    child: AlertDialog(
-                                      elevation: 0.3,
-                                      contentPadding: EdgeInsets.zero,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-                                      backgroundColor: Colors.grey[200],
-                                      content: Container(
-                                        height: height * 0.32,
-                                        width: width*0.8,
-                                        padding: EdgeInsets.fromLTRB(0, height*0.05, 0, 0),
-                                        child: Column(
-                                          children: [
-                                            Container(width: width*0.65, child: smallText("방장한테 보낼 메세지를 입력하세요\n(20자 이내)", 16, Color(0xB2000000))),
-                                            Container(width: width*0.65,
-                                              padding: EdgeInsets.fromLTRB(0, height*0.02, 0, 0),
-                                              child: TextFormField(
-                                                controller: msgInput,
-                                                keyboardType: TextInputType.multiline,
-                                                inputFormatters: [
-                                                  LengthLimitingTextInputFormatter(20),
-                                                ],
-                                                style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14),
-                                                decoration: InputDecoration(
-                                                  focusedBorder: UnderlineInputBorder(
-                                                    borderSide: BorderSide(color: Colors.black87, width: 1.5),
-                                                  ),
-                                                  hintText: "메세지를 입력하세요.", hintStyle: TextStyle(fontFamily: "SCDream", color: Colors.black45, fontWeight: FontWeight.w500, fontSize: 14)
-                                                ),
-                                                validator: (text) {
-                                                  if (text == null || text.isEmpty) {
-                                                    return "메세지를 입력하지 않으셨습니다.";
-                                                  }
-                                                  return null;
-                                                }
-                                              ),
-                                            ),
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.end,
-                                              children: [
-                                                TextButton(
-                                                  onPressed: () async {
-                                                    if (_formKey.currentState!.validate()) {
-                                                      await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
-                                                        if (snap.docs.length != 0) {
-                                                          for (DocumentSnapshot doc in snap.docs) {
-                                                            _myApplication.add(doc.id);
-                                                          }
-                                                        } else {
-                                                          print('myApplication 콜렉션이 비어있읍니다.');
-                                                        }
-                                                      });
+                              await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                                if (snap.docs.length != 0) {
+                                  for (DocumentSnapshot doc in snap.docs) {
+                                    _myApplication.add(doc.id);
+                                  }
+                                } else {
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  showMessage('참가 신청 내역이 비어있습니다.');
+                                }
+                              });
 
-                                                      if (_myApplication.contains(title)) {
-                                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                        showMessage("이미 신청한 방입니다.");
-                                                      } else if (_currentMember >= _limitedMember) {
-                                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                        showMessage("방이 모두 차있습니다.");
-                                                      } else {
-                                                        // 방장에게 날리는 메세지
-                                                        await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
-                                                          'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
-                                                          'messages': FieldValue.arrayUnion([msgInput.text]),
-                                                        });
-                                                        // 내 정보에 신청 정보를 기록
-                                                        await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({'where': "delivery_board", 'isRejected': false, 'isJoined': false});
-                                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                        showMessage("참가 신청을 보냈습니다.");
-                                                      }
-                                                      msgInput.clear();
-                                                      Navigator.pop(con);
-                                                    }
-                                                  },
-                                                  child: info2Text("확인")
-                                                ),
-                                                TextButton(onPressed: (){
-                                                  msgInput.clear();
-                                                  Navigator.pop(con);
-                                                },
-                                                    child: info2Text("취소")
-                                                ),
-                                                cSizedBox(0, width*0.05)
-                                              ],
-                                            )
-                                          ],
-                                        )
-                                      )
-                                    ));
+                              if (!_myApplication.contains(title)) {
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                showMessage("참가 신청하지 않은 방입니다.");
+                              }
+                              else {
+                                List<dynamic> _messages = [];
+                                List<dynamic> _isFineForMember = [];
+                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
+                                  _messages = value['messages'];
                                 });
-                          },
+                                await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).get().then((value) {
+                                  _isFineForMember = value['isFineForMembers'];
+                                });
+                                int _msgIndex = _isFineForMember.indexWhere((element) => element == myInfo['nick']);
+                                if (_msgIndex >= 0) {
+                                  await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                    'isFineForMembers': FieldValue.arrayRemove([myInfo['nick']]),
+                                    'messages': FieldValue.arrayRemove([_messages[_msgIndex]])
+                                  });
+                                }
+                                await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).delete();
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                showMessage("참가 신청을 취소했습니다.");
+                              }
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  );
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(0xff639ee1),
+                          ),
+                          child: GestureDetector(
+                            child: Align(alignment: Alignment.center, child: smallText("참가신청", 14, Colors.white)),
+                            onTap: () async {
+                              var myInfo = fp.getInfo();
+                              int _currentMember = snapshot.data!['currentMember'];
+                              int _limitedMember = snapshot.data!['limitedMember'];
+                              String title = widget.id;
+                              String hostId = await fs.collection('users').where('nick', isEqualTo: snapshot.data!['writer']).get().then((QuerySnapshot snap) {
+                                DocumentSnapshot tmp = snap.docs[0];
+                                return tmp['email'];
+                              });
+                              List<String> _myApplication = [];
+
+                              showDialog(
+                                  context: context,
+                                  barrierColor: null,
+                                  builder: (BuildContext con) {
+                                    return Form(
+                                        key: _formKey,
+                                        child: AlertDialog(
+                                            elevation: 0.3,
+                                            contentPadding: EdgeInsets.zero,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+                                            backgroundColor: Colors.grey[200],
+                                            content: Container(
+                                                height: height * 0.32,
+                                                width: width*0.8,
+                                                padding: EdgeInsets.fromLTRB(0, height*0.05, 0, 0),
+                                                child: Column(
+                                                  children: [
+                                                    Container(width: width*0.65, child: smallText("방장한테 보낼 메세지를 입력하세요\n(20자 이내)", 16, Color(0xB2000000))),
+                                                    Container(width: width*0.65,
+                                                      padding: EdgeInsets.fromLTRB(0, height*0.02, 0, 0),
+                                                      child: TextFormField(
+                                                          controller: msgInput,
+                                                          keyboardType: TextInputType.multiline,
+                                                          inputFormatters: [
+                                                            LengthLimitingTextInputFormatter(20),
+                                                          ],
+                                                          style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14),
+                                                          decoration: InputDecoration(
+                                                              focusedBorder: UnderlineInputBorder(
+                                                                borderSide: BorderSide(color: Colors.black87, width: 1.5),
+                                                              ),
+                                                              hintText: "메세지를 입력하세요.", hintStyle: TextStyle(fontFamily: "SCDream", color: Colors.black45, fontWeight: FontWeight.w500, fontSize: 14)
+                                                          ),
+                                                          validator: (text) {
+                                                            if (text == null || text.isEmpty) {
+                                                              return "메세지를 입력하지 않으셨습니다.";
+                                                            }
+                                                            return null;
+                                                          }
+                                                      ),
+                                                    ),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.end,
+                                                      children: [
+                                                        TextButton(
+                                                            onPressed: () async {
+                                                              if (_formKey.currentState!.validate()) {
+                                                                await fs.collection('users').doc(myInfo['email']).collection('myApplication').get().then((QuerySnapshot snap) {
+                                                                  if (snap.docs.length != 0) {
+                                                                    for (DocumentSnapshot doc in snap.docs) {
+                                                                      _myApplication.add(doc.id);
+                                                                    }
+                                                                  } else {
+                                                                    print('myApplication 콜렉션이 비어있읍니다.');
+                                                                  }
+                                                                });
+
+                                                                if (_myApplication.contains(title)) {
+                                                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                                  showMessage("이미 신청한 방입니다.");
+                                                                } else if (_currentMember >= _limitedMember) {
+                                                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                                  showMessage("방이 모두 차있습니다.");
+                                                                } else {
+                                                                  // 방장에게 날리는 메세지
+                                                                  await fs.collection('users').doc(hostId).collection('applicants').doc(widget.id).update({
+                                                                    'isFineForMembers': FieldValue.arrayUnion([myInfo['nick']]),
+                                                                    'messages': FieldValue.arrayUnion([msgInput.text]),
+                                                                  });
+                                                                  // 내 정보에 신청 정보를 기록
+                                                                  await fs.collection('users').doc(myInfo['email']).collection('myApplication').doc(title).set({'where': "delivery_board", 'isRejected': false, 'isJoined': false});
+                                                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                                  showMessage("참가 신청을 보냈습니다.");
+                                                                }
+                                                                msgInput.clear();
+                                                                Navigator.pop(con);
+                                                              }
+                                                            },
+                                                            child: info2Text("확인")
+                                                        ),
+                                                        TextButton(onPressed: (){
+                                                          msgInput.clear();
+                                                          Navigator.pop(con);
+                                                        },
+                                                            child: info2Text("취소")
+                                                        ),
+                                                        cSizedBox(0, width*0.05)
+                                                      ],
+                                                    )
+                                                  ],
+                                                )
+                                            )
+                                        ));
+                                  });
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  else return SizedBox.shrink();
                 }
               } else
                 return CircularProgressIndicator();
@@ -901,13 +1064,8 @@ class DeliveryShowState extends State<DeliveryShow> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       backgroundColor: Colors.blue[200],
-      duration: Duration(seconds: 10),
-      content: Text(msg),
-      action: SnackBarAction(
-        label: "확인",
-        textColor: Colors.black,
-        onPressed: () {},
-      ),
+      duration: Duration(seconds: 7),
+      content: smallText(msg, 13, Colors.white),
     ));
   }
 }
@@ -937,6 +1095,7 @@ class DeliveryModifyState extends State<DeliveryModify> {
   late TextEditingController tagInput;
   List<dynamic> tagList = [];
   late DateTime d;
+  TimeOfDay _time = TimeOfDay.now();
   double lat = 0.0, lng = 0.0;
 
   final _formKey = GlobalKey<FormState>();
@@ -985,7 +1144,28 @@ class DeliveryModifyState extends State<DeliveryModify> {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
 
+    void onTimeChanged(TimeOfDay newTime) {
+      setState(() {
+        _time = newTime;
+        timeInput.text = _time.format(context);
+      });
+    }
+
     return Scaffold(
+        appBar: CustomAppBar("글 수정", [
+          IconButton(
+              icon: Icon(
+                Icons.check,
+                color: Color(0xff639ee1),
+              ),
+              onPressed: () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+                if (_formKey.currentState!.validate()) {
+                  updateOnFS();
+                  Navigator.pop(context);
+                }
+              }
+          )]),
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
             child: StreamBuilder(
@@ -998,15 +1178,8 @@ class DeliveryModifyState extends State<DeliveryModify> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            topbar3(context, "글 수정", () {
-                              FocusScope.of(context).requestFocus(new FocusNode());
-                              if (_formKey.currentState!.validate()) {
-                                updateOnFS();
-                                Navigator.pop(context);
-                              }
-                            }),
                             Padding(
-                                padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+                                padding: EdgeInsets.fromLTRB(width * 0.1, height * 0.03, width * 0.1, 20),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -1019,21 +1192,43 @@ class DeliveryModifyState extends State<DeliveryModify> {
                                           direction: Axis.vertical,
                                           spacing: -8,
                                           children: [
-                                            condWrap("모집기간", timeInput, "마감 시간 입력 : xx:xx (ex 21:32 형태)", "마감 시간은 필수 입력 사항입니다."),
+                                            Wrap(
+                                              spacing: 15,
+                                              crossAxisAlignment: WrapCrossAlignment.center,
+                                              children: [
+                                                Container(
+                                                  width: 60,
+                                                  alignment: Alignment(0.0, 0.0),
+                                                  child: cond2Text("모집기간"),
+                                                ),
+                                                GestureDetector(
+                                                    child: Container(width: width * 0.4,
+                                                        child: ccondField(timeInput, "마감 시간을 선택하세요.", "마감 시간은 필수 입력 사항입니다.")
+                                                    ),
+                                                    onTap: (){TimePicker(context, _time, onTimeChanged);}
+                                                )
+                                              ],
+                                            ),
                                             condWrap("모집인원", memberInput, "인원을 입력하세요. (숫자 형태)", "인원은 필수 입력 사항입니다."),
                                             condWrap("음식종류", foodInput, "음식 종류를 입력하세요.", "음식 종류는 필수 입력 사항입니다."),
                                             Wrap(
                                               spacing: 15,
                                               crossAxisAlignment: WrapCrossAlignment.center,
                                               children: [
-                                                cond2Text("배분위치"),
-                                                Container(width: width * 0.3,
-                                                    child: ccondField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")),
-                                                IconButton(
-                                                  padding: EdgeInsets.zero,
-                                                  constraints: BoxConstraints(),
-                                                  icon: Icon(Icons.search, size: 18,),
-                                                  onPressed: () async {
+                                                Container(
+                                                  width: 60,
+                                                  alignment: Alignment(0.0, 0.0),
+                                                  child: cond2Text("배분위치"),
+                                                ),
+                                                GestureDetector(
+                                                  child: Row(
+                                                    children: [
+                                                      Container(width: width * 0.4,
+                                                          child: ccondField(locationInput, "위치를 선택하세요.", "위치는 필수 입력 사항입니다.")),
+                                                      Icon(Icons.search, size: 18,),
+                                                    ],
+                                                  ),
+                                                  onTap: () async {
                                                     final data = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceAutocomplete()));
                                                     setState(() {
                                                       locationInput.text = data[0];
@@ -1122,7 +1317,7 @@ class DeliveryModifyState extends State<DeliveryModify> {
       'contents': contentInput.text,
       //원래 이전 날짜 기억하려 d 사용했다가 현재 잠시 바꿈 (오늘, 내일 테스트용)
       'time':
-          isTomorrow(timeInput.text + ":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00" : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + timeInput.text + ":00",
+        isTomorrow(_time.toString().substring(10, 15) + ":00") ? formatDate(DateTime.now().add(Duration(days: 1)), [yyyy, '-', mm, '-', dd]) + " " + _time.toString().substring(10, 15) + ":00" : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + _time.toString().substring(10, 15) + ":00",
       'limitedMember': int.parse(memberInput.text),
       'food': foodInput.text,
       'location': locationInput.text,

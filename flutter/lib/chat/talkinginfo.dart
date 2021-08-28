@@ -49,134 +49,94 @@ class ChatInfoState extends State<ChatInfo> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+    String host = '';
+
     return Scaffold(
-        body: Container(
+      appBar: CustomAppBar('채팅', []),
+      body: Container(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          topbar2(context, "채팅"),
-          Padding(
-            padding: EdgeInsets.fromLTRB(30, 20, 0, 10),
-          ),
-
-          //imageProfile(), //TODO: 게시글제목 가져오기, 방장 프로필 불러오기(?) -> 이거 그냥 이 페이지에서 처리해도 되나요. .
-          FutureBuilder(
-              future: getHostAvatar(),
-              builder: (context, AsyncSnapshot snapshot) {
-                if (snapshot.hasData) {
-                  return Stack(children: [Padding(padding: EdgeInsets.fromLTRB(30, 100, 0, 0)), CircleAvatar(radius: 40.0, backgroundImage: NetworkImage(snapshot.data.toString()))]);
-                } else {
-                  return CircularProgressIndicator();
-                }
-              }),
-
-         //게시물제목
-          FutureBuilder(
-              future: getRoomName(),
-              builder: (context, AsyncSnapshot snapshot) {
-                if (snapshot.hasData) {
-                  return Text(
-                    snapshot.data,
-                    style: TextStyle(fontFamily: "SCDream", color: Color(0xff000000), fontWeight: FontWeight.w500, fontSize: 20),
-                  );
-                } else {
-                  return CircularProgressIndicator();
-                }
-              }),
-
-          Padding(
-            padding: EdgeInsets.fromLTRB(0, 0, 0, 5),
-          ),
-
-          //방장이름
-          FutureBuilder(
-              future: getHostNick(),
-              builder: (context, AsyncSnapshot snapshot) {
-                if (snapshot.hasData) {
-                  return Text(
-                    snapshot.data,
-                    style: TextStyle(fontFamily: "SCDream", color: Color(0xff000000), fontWeight: FontWeight.w500, fontSize: 15),
-                  );
-                } else {
-                  return CircularProgressIndicator();
-                }
-              }),
-
-          Padding(
-            padding: EdgeInsets.fromLTRB(0, 5, 0, 10),
-          ),
-
-          Divider(
-            color: Color(0xffe9e9e9),
-            thickness: 17,
-          ),
-
-          Padding(
-            padding: EdgeInsets.fromLTRB(60, 5, 0, 20),
-          ),
-
-          Text(
-            '참가자 명단',
-            style: TextStyle(fontFamily: "SCDream", color: Color(0xff4E94EC), fontWeight: FontWeight.w500, fontSize: 17),
-          ),
-
-          Padding(
-            padding: EdgeInsets.fromLTRB(30, 5, 0, 10),
-          ),
-
-          middleDivider(),
-
-          Padding(
-            padding: EdgeInsets.fromLTRB(30, 5, 0, 10),
-          ),
-
-          FutureBuilder(
-              future: getHostNick(),
-              builder: (context, AsyncSnapshot snapshot) {
-                if (snapshot.hasData) {
-
-
-
-                return Column
-                  (children: [
-
-
-                    Text(
-                      snapshot.data,
-                      style: TextStyle(fontFamily: "SCDream", color: Color(0xff000000), fontWeight: FontWeight.w500, fontSize: 15),
-                      textAlign: TextAlign.left,
-                    ),
-
-
-
-                    Text(
-                      '방장',
-                      style: TextStyle(fontFamily: "SCDream", color: Color(0xff000000), fontWeight: FontWeight.w500, fontSize: 15),
-                      textAlign: TextAlign.left,
-                    ),
-                  ]);
-                } else {
-                  return CircularProgressIndicator();
-                }
-              }),
-
-
-          FutureBuilder(
-              future: getOtherNicks(),
-              builder: (context, AsyncSnapshot snapshot) {
-                if (snapshot.hasData) {
-                  List<Widget> otherNicksList = [];
-                  for (String oneNick in snapshot.data) {
-                    otherNicksList.add(Text(
-                      oneNick,
-                      style: TextStyle(fontFamily: "SCDream", color: Color(0xff000000), fontWeight: FontWeight.w500, fontSize: 15),
-                      textAlign: TextAlign.left,
-                    ));
+          Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(30, 20, 0, 10),
+              ),
+              FutureBuilder(
+                future: getHostAvatar(),
+                builder: (context, AsyncSnapshot snapshot) {
+                  if (snapshot.hasData) {
+                    return Stack(children: [Padding(padding: EdgeInsets.fromLTRB(30, 100, 0, 0)), CircleAvatar(radius: 40.0, backgroundImage: NetworkImage(snapshot.data.toString()))]);
+                  } else {
+                    return CircularProgressIndicator();
                   }
-                  return Column(children: otherNicksList);
-                } else {
-                  return CircularProgressIndicator();
                 }
-              }),
+              ),
+              // 게시물제목
+              FutureBuilder(
+                future: getRoomName(),
+                builder: (context, AsyncSnapshot snapshot) {
+                  if (snapshot.hasData) {
+                    return Text(
+                      snapshot.data,
+                      style: TextStyle(fontFamily: "SCDream", color: Color(0xff000000), fontWeight: FontWeight.w500, fontSize: 20),
+                    );
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                }
+              ),
+              Padding(padding: EdgeInsets.fromLTRB(0, 0, 0, 5),),
+              // host 저장
+              FutureBuilder(
+                future: getHostNick(),
+                builder: (context, AsyncSnapshot snapshot) {
+                  if (snapshot.hasData) {
+                    host = snapshot.data;
+                    return smallText(host, 15, Colors.black87);
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                }
+              ),
+              Padding(padding: EdgeInsets.fromLTRB(0, 5, 0, 10),),
+              Divider(color: Color(0xffe9e9e9), thickness: 17,),
+            ]
+          ),
+
+          Container(
+            margin: EdgeInsets.fromLTRB(30, height*0.03, 0, height*0.03),
+            child: infoText("참가자 명단"),
+          ),
+          middleDivider(),
+          Padding(padding: EdgeInsets.fromLTRB(30, 5, 0, 10),),
+
+          FutureBuilder(
+            future: getOtherNicks(),
+            builder: (context, AsyncSnapshot snapshot) {
+              if (snapshot.hasData) {
+                List<Widget> otherNicksList = [Row(children: [smallText(host, 15, Colors.black87), tagText(" (방장)")])];
+                for (String oneNick in snapshot.data) {
+                  otherNicksList.add(
+                    cSizedBox(height*0.01, 0),
+                  );
+                  otherNicksList.add(
+                    smallText(oneNick, 15, Colors.black87),
+                  );
+                }
+                return Container(
+                  margin: EdgeInsets.fromLTRB(35, 15, 0, 0),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: otherNicksList
+                  ),
+                );
+              } else {
+                return CircularProgressIndicator();
+              }
+            }),
         ],
       ),
     ));

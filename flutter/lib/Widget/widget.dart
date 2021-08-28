@@ -1,10 +1,7 @@
+import 'package:day_night_time_picker/lib/daynight_timepicker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:usdh/chat/home.dart';
-import 'package:usdh/login/firebase_provider.dart';
-import 'package:validators/validators.dart';
 
 Widget cSizedBox(double h, double w) {
   return SizedBox(
@@ -13,34 +10,40 @@ Widget cSizedBox(double h, double w) {
   );
 }
 
-/* ---------------------- topbar(n) ---------------------- */
-/* n = widget 개수 */
+/* ---------------------- CustomAppBar ---------------------- */
 
-Widget topbar2 (BuildContext context, String text) {
-  final width = MediaQuery.of(context).size.width;
-  final height = MediaQuery.of(context).size.height;
-  return Column(
-    children: [
-      cSizedBox(35, 0),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          IconButton(
-            padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
-            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          cSizedBox(0, width*0.08),
-          Container(width: MediaQuery.of(context).size.width * 0.6,
-            child: headerText(text),),
-        ],
+class CustomAppBar extends StatelessWidget with PreferredSizeWidget {
+  final String title;
+  final List<Widget> widgets;
+
+  @override
+  final Size preferredSize;
+
+  CustomAppBar(this.title, this.widgets, {Key? key}) : preferredSize = Size.fromHeight(kToolbarHeight),
+        super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+    return AppBar(
+      leading: IconButton(
+        padding: EdgeInsets.fromLTRB(width*0.05, 0, 0, 0),
+        icon: Image.asset('assets/images/icon/iconback.png', width: 20, height: 20),
+        onPressed: () {
+          Navigator.pop(context);
+        },
       ),
-      headerDivider(),
-    ],
-  );
+      title: headerText('$title'),
+      actions: widgets,
+      backgroundColor: Colors.white,
+      bottom: PreferredSize(
+        child: headerDivider(),
+        preferredSize: Size.fromHeight(3),
+      ),
+      elevation: 0,
+    );
+  }
 }
 
 Widget profilebar2 (BuildContext context, String nick, String text) {
@@ -69,299 +72,6 @@ Widget profilebar2 (BuildContext context, String nick, String text) {
   );
 }
 
-Widget topbar3 (BuildContext context, String text, Function()? function) {
-  final width = MediaQuery.of(context).size.width;
-  final height = MediaQuery.of(context).size.height;
-  return Column(
-    children: [
-      cSizedBox(35, 0),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          IconButton(
-            padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
-            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          cSizedBox(0, width*0.07),
-          headerText(text),
-          cSizedBox(0, width*0.45),
-          IconButton(
-            icon: Icon(
-              Icons.check,
-              color: Color(0xff639ee1),
-            ),
-            onPressed: function
-          ),
-        ],
-      ),
-      headerDivider(),
-    ],
-  );
-}
-
-Widget topbar5 (BuildContext context, String text, Function()? function, Widget route) {
-  final width = MediaQuery.of(context).size.width;
-  final height = MediaQuery.of(context).size.height;
-  late FirebaseProvider fp = Provider.of<FirebaseProvider>(context);
-  return Column(
-    children: [
-      cSizedBox(35, 0),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          IconButton(
-            padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
-            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              Navigator.pop(context);
-            },
-          ),
-          cSizedBox(0, width*0.07),
-          headerText(text),
-          cSizedBox(0, width*0.3),
-          Wrap(
-            spacing: -7,
-            children: [
-              IconButton(
-                icon: Image.asset('assets/images/icon/icongoboard.png', width: 22, height: 22),
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => route));
-                },
-              ),
-              //새로고침 기능
-              IconButton(
-                icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
-                onPressed: function,
-              ),
-              IconButton(
-                icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                onPressed: () {
-                  var myInfo = fp.getInfo();
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                },
-              ),
-            ],
-          )
-        ],
-      ),
-      headerDivider(),
-    ],
-  );
-}
-
-
-Widget topbar4_nomap (BuildContext context, String text, Function()? function, Key? key,
-    String search, TextEditingController? searchInput, Function()? function2) {
-  final width = MediaQuery.of(context).size.width;
-  final height = MediaQuery.of(context).size.height;
-  late FirebaseProvider fp = Provider.of<FirebaseProvider>(context);
-  return Column(
-    children: [
-      cSizedBox(35, 0),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          IconButton(
-            padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
-            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          cSizedBox(0, width*0.07),
-          headerText(text),
-          cSizedBox(0, width*0.3),
-          Wrap(
-            spacing: -7,
-            children: [
-              //새로고침 기능
-              IconButton(
-                icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
-                onPressed: function,
-              ),
-              //검색 기능 팝업
-              IconButton(
-                icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext con) {
-                        return StatefulBuilder(builder: (con, setS) {
-                          return Form(
-                              key: key,
-                              child: AlertDialog(
-                                content: TextFormField(
-                                  controller: searchInput,
-                                  decoration: InputDecoration(hintText: "검색할 제목을 입력하세요."),
-                                  validator: (text) {
-                                    if (text == null || text.isEmpty) {
-                                      return "검색어를 입력하지 않으셨습니다.";
-                                    }
-                                    return null;
-                                  }
-                                ),
-                                actions: <Widget>[
-                                  TextButton(
-                                      onPressed: function2,
-                                      child: Text("검색")),
-                                  TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(con);
-                                        searchInput!.clear();
-                                      },
-                                      child: Text("취소")),
-                                ],
-                              ));
-                        });
-                      });
-                },
-              ),
-            ],
-          )
-        ],
-      ),
-      headerDivider(),
-    ],
-  );
-}
-
-Widget topbar6_map (BuildContext context, String text, Widget route, Function()? function, Key? key,
-    String search, TextEditingController? searchInput, Function()? function2) {
-  final width = MediaQuery.of(context).size.width;
-  final height = MediaQuery.of(context).size.height;
-  late FirebaseProvider fp = Provider.of<FirebaseProvider>(context);
-  return Column(
-    children: [
-      cSizedBox(35, 0),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          IconButton(
-            padding: EdgeInsets.fromLTRB(width*0.07, 0, 0, 0),
-            icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          cSizedBox(0, width*0.07),
-          headerText(text),
-          cSizedBox(0, width*0.21),
-          Wrap(
-            spacing: -9,
-            children: [
-              IconButton(
-                icon: Image.asset('assets/images/icon/iconmap.png', width: 22, height: 22),
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => route));
-                },
-              ),
-              //새로고침 기능
-              IconButton(
-                icon: Image.asset('assets/images/icon/iconrefresh.png', width: 22, height: 22),
-                onPressed: function,
-              ),
-              //검색 기능 팝업
-              IconButton(
-                icon: Image.asset('assets/images/icon/iconsearch.png', width: 22, height: 22),
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext con) {
-                        return StatefulBuilder(builder: (con, setS) {
-                          return Form(
-                              key: key,
-                              child: AlertDialog(
-                                title: Row(
-                                  children: [
-                                    Theme(
-                                      data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                      child: Radio(
-                                          value: "제목",
-                                          activeColor: Colors.black38,
-                                          groupValue: search,
-                                          onChanged: (String? value) {
-                                            setS(() {
-                                              search = value!;
-                                            });
-                                          }),
-                                    ),
-                                    Text(
-                                      "제목 검색",
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                      ),
-                                    ),
-                                    Theme(
-                                      data: ThemeData(unselectedWidgetColor: Colors.black38),
-                                      child: Radio(
-                                          value: "태그",
-                                          activeColor: Colors.black38,
-                                          groupValue: search,
-                                          onChanged: (String? value) {
-                                            setS(() {
-                                              search = value!;
-                                            });
-                                          }),
-                                    ),
-                                    Text(
-                                      "태그 검색",
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                content: TextFormField(
-                                    controller: searchInput,
-                                    decoration: (search == "제목") ? InputDecoration(hintText: "검색할 제목을 입력하세요.") : InputDecoration(hintText: "검색할 태그를 입력하세요."),
-                                    validator: (text) {
-                                      if (text == null || text.isEmpty) {
-                                        return "검색어를 입력하지 않으셨습니다.";
-                                      }
-                                      return null;
-                                    }),
-                                actions: <Widget>[
-                                  TextButton(
-                                      onPressed: function2,
-                                      child: Text("검색")),
-                                  TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(con);
-                                        searchInput!.clear();
-                                      },
-                                      child: Text("취소")),
-                                ],
-                              ));
-                        });
-                      });
-                },
-              ),
-              IconButton(
-                icon: Image.asset('assets/images/icon/iconmessage.png', width: 22, height: 22),
-                onPressed: () {
-                  var myInfo = fp.getInfo();
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-                },
-              ),
-            ],
-          )
-        ],
-      ),
-      headerDivider(),
-    ],
-  );
-}
-
 
 /* ---------------------- inputNav ---------------------- */
 
@@ -370,12 +80,12 @@ Widget inputNav2(String data, String text) {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Padding(padding: EdgeInsets.fromLTRB(35, 0, 0, 30)),
-      Image(image: AssetImage(data), height: 19, width: 19,),
+      Image(image: AssetImage(data), height: 18, width: 18,),
       Container(
         height: 25,
         child: Text(
           text,
-          style: TextStyle(fontFamily: "SCDream", color: Color(0xff548ee0), fontWeight: FontWeight.w500, fontSize: 17),
+          style: TextStyle(fontFamily: "SCDream", color: Color(0xff548ee0), fontWeight: FontWeight.w500, fontSize: 15),
           textAlign: TextAlign.left,
         ),
       ),
@@ -444,6 +154,13 @@ Widget smallText(String text, double size, Color color) {
   );
 }
 
+Widget small2Text(String text, double size, Color color) {
+  return Text(
+      text,
+      style: TextStyle(fontFamily: "SCDream", color: color, fontWeight: FontWeight.w500, fontSize: size)
+  );
+}
+
 Widget middleText(String text, double size, Color color) {
   return Text(
       text, overflow: TextOverflow.ellipsis,
@@ -456,14 +173,14 @@ Widget statusText(String text) {
   if (text=="모집완료")
     statuscolor = Color(0xffcacaca);
   return Container(
-    width: 60,
-    height: 20,
+    width: 55,
+    height: 18,
     decoration: BoxDecoration(
       color: statuscolor,
       borderRadius: BorderRadius.circular(5)
     ),
     child: Text(text, textAlign: TextAlign.center,
-      style: TextStyle(height: 1.5, fontFamily: "SCDream", color: Colors.white, fontWeight: FontWeight.w500, fontSize: 12.5)
+      style: TextStyle(height: 1.5, fontFamily: "SCDream", color: Colors.white, fontWeight: FontWeight.w500, fontSize: 11)
     )
   );
 }
@@ -471,7 +188,7 @@ Widget statusText(String text) {
 Widget infoText(String text) {
   return Text(
       text,
-      style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 16)
+      style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)
   );
 }
 
@@ -506,26 +223,6 @@ Widget cond2Text(String text) {
 
 /* ---------------------- Text Field ---------------------- */
 
-// Widget tagField(TextEditingController controller, String hint, String valid) {
-//   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
-
-//   return SimpleAutoCompleteTextField(
-//       key: key,
-//       controller: controller,
-//       keyboardType: TextInputType.multiline, 
-//       clearOnSubmit: true,
-//       style: TextStyle(fontFamily: "SCDream", color: Colors.grey[600], fontWeight: FontWeight.w500, fontSize: 14),
-//       decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none),
-//       suggestions: [
-//         "#치킨",
-//         "b",
-//         "c",
-//         "d",
-//         "e",
-//       ],
-//   );
-// }
-
 Widget titleField(TextEditingController controller) {
   return TextFormField(
     controller: controller,
@@ -548,7 +245,9 @@ Widget condField(TextEditingController controller, String hint, String valid) {
   return TextFormField(
     controller: controller,
     style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 13),
-    decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none),
+    decoration: InputDecoration(hintText: hint, border: InputBorder.none, focusedBorder: InputBorder.none,
+      errorStyle: TextStyle(color: Colors.indigo.shade200),
+    ),
     validator: (text) {
       if (text == null || text.isEmpty) {
         return valid;
@@ -574,24 +273,80 @@ Widget ccondField(TextEditingController controller, String hint, String valid) {
   );
 }
 
+
+/* ---------------------- Sign up ---------------------- */
+
+Widget userField(BuildContext context, TextEditingController controller, String hint, valid) {
+  final width = MediaQuery.of(context).size.width;
+  final height = MediaQuery.of(context).size.height;
+  return Container(
+      margin: EdgeInsets.fromLTRB(0, 5, 0, 15),
+      width: width*0.7,
+      height: height*0.1,
+      child: TextFormField(
+          controller: controller,
+          obscureText: true,
+          style: TextStyle(fontFamily: "SCDream", color: Colors.black54, fontWeight: FontWeight.w500, fontSize: 13),
+          decoration: InputDecoration(
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.indigo.shade200, width: 1.5),
+            ),
+            contentPadding: EdgeInsets.fromLTRB(width*0.05, 0, 0, 0),
+            hintText: hint, errorStyle: TextStyle(color: Colors.indigo.shade200),
+          ),
+          validator: valid
+      )
+  );
+}
+
+
+/* ---------------------- Wrap ---------------------- */
+
+
 Widget condWrap(String ctext, TextEditingController controller, String hint, String valid){
   return Wrap(
     spacing: 15,
     crossAxisAlignment: WrapCrossAlignment.center,
     children: [
-      cond2Text(ctext),
+      Container(
+        width: 60,
+        alignment: Alignment(0.0, 0.0),
+        child: cond2Text(ctext),
+      ),
       Container(width: 250,
-          child: condField(controller, hint, valid)
+        child: condField(controller, hint, valid)
       )
     ],
   );
 }
+
+void TimePicker(BuildContext context, TimeOfDay _time, onTimeChanged) {
+  Navigator.of(context).push(
+    showPicker(
+      context: context,
+      value: _time,
+      onChange: onTimeChanged,
+      iosStylePicker: true,
+      accentColor: Color(0xff639ee1),
+      okText: "설정",
+      cancelText: "취소",
+      hourLabel: '시',
+      minuteLabel: '분',
+      is24HrFormat: true,
+    ),
+  );
+}
+
 Widget ccondWrap(String ctext, TextEditingController controller, String hint, String? Function(String?)? function){
   return Wrap(
     spacing: 15,
     crossAxisAlignment: WrapCrossAlignment.center,
     children: [
-      cond2Text(ctext),
+      Container(
+        width: 60,
+        alignment: Alignment(0.0, 0.0),
+        child: cond2Text(ctext),
+      ),
       Container(width: 250,
           child: TextFormField(
             controller: controller,
@@ -615,8 +370,13 @@ Widget ccondWrap(String ctext, TextEditingController controller, String hint, St
 Widget cond2Wrap(String ctext, String ctext2){
   return Wrap(
     spacing: 15,
+    crossAxisAlignment: WrapCrossAlignment.center,
     children: [
-      cond2Text(ctext),
+      Container(
+        width: 50,
+        alignment: Alignment(0.0, 0.0),
+        child: cond2Text(ctext),
+      ),
       condText(ctext2)
     ],
   );
@@ -646,6 +406,20 @@ class CurvePainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) {
     return true;
   }
+}
+
+Widget goButton(Widget widget, Function()? function){
+  return ElevatedButton(
+    style: ElevatedButton.styleFrom(
+      primary: Color(0xff639ee1).withOpacity(0.7),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+    ),
+    onPressed: function,
+    child: widget
+  );
 }
 
 //---profile--//

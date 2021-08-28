@@ -19,7 +19,7 @@ class FullPhoto extends StatelessWidget {
         ),
 
         elevation: 0.0,
-        backgroundColor: Color(0xFFB4C56C).withOpacity(0.0),
+        backgroundColor: Colors.white.withOpacity(0.5),
         centerTitle: true,
       ),
       body: FullPhotoScreen(url: url),
@@ -48,6 +48,8 @@ class FullPhotoScreenState extends State<FullPhotoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(child: PhotoView(imageProvider: NetworkImage(url)));
+    return PhotoView(
+      imageProvider: NetworkImage(url),
+    );
   }
 }
