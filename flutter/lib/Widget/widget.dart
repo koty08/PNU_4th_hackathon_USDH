@@ -31,6 +31,7 @@ class CustomAppBar extends StatelessWidget with PreferredSizeWidget {
         padding: EdgeInsets.fromLTRB(width*0.05, 0, 0, 0),
         icon: Image.asset('assets/images/icon/iconback.png', width: 20, height: 20),
         onPressed: () {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           Navigator.pop(context);
         },
       ),

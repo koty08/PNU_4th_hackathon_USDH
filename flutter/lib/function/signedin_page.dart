@@ -3,8 +3,10 @@ import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:usdh/boards/gonggu_board.dart';
 import 'package:usdh/boards/roommate_board.dart';
 import 'package:usdh/boards/sgroup_board.dart';
+import 'package:usdh/boards/taxi_board.dart';
 import 'package:usdh/boards/teambuild_board.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:usdh/login/firebase_provider.dart';
@@ -66,9 +68,9 @@ class SignedInPageState extends State<SignedInPage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               cSizedBox(0, 15),
-              imageAndText('assets/images/icon/icontaxi.png', "택시", DeliveryMap()),
+              imageAndText('assets/images/icon/icontaxi.png', "택시", TaxiList()),
               imageAndText('assets/images/icon/iconmotorcycle.png', "배달", DeliveryList()),
-              imageAndText('assets/images/icon/iconshopping.png', "공구", ListBoard()),
+              imageAndText('assets/images/icon/iconshopping.png', "공구", GongguList()),
               imageAndText('assets/images/icon/iconcommunity.png', "커뮤니티", CommunityList()),
               cSizedBox(0, 15),
             ],

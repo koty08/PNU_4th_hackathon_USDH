@@ -197,92 +197,101 @@ class DeliveryMapState extends State<DeliveryMap> {
     fp.setInfo();
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-    return Scaffold(
-      appBar: CustomAppBar("배달", [
-        IconButton(
-          icon: Image.asset('assets/images/icon/icongolist.png', width: 20, height: 20),
-          onPressed: () {
-            Navigator.pop(context);
-            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryList()));
-          },
-        ),
-        //새로고침 기능
-        IconButton(
-          icon: Image.asset('assets/images/icon/iconrefresh.png', width: 20, height: 20),
-          onPressed: () {
+    return WillPopScope(
+      child: Scaffold(
+        appBar: CustomAppBar("배달", [
+          IconButton(
+            icon: Image.asset('assets/images/icon/icongolist.png', width: 20, height: 20),
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryList()));
+            },
+          ),
+          //새로고침 기능
+          IconButton(
+            icon: Image.asset('assets/images/icon/iconrefresh.png', width: 20, height: 20),
+            onPressed: () {
+              setState(() {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+              });
+            },
+          ),
+          IconButton(
+            icon: Image.asset('assets/images/icon/iconmessage.png', width: 20, height: 20),
+            onPressed: () {
+              var myInfo = fp.getInfo();
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
+            },
+          ),
+        ]),
+        body: RefreshIndicator(
+          // 당겨서 새로고침
+          onRefresh: () async {
             setState(() {
               colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
             });
           },
-        ),
-        IconButton(
-          icon: Image.asset('assets/images/icon/iconmessage.png', width: 20, height: 20),
-          onPressed: () {
-            var myInfo = fp.getInfo();
-            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(myId: myInfo['email'])));
-          },
-        ),
-      ]),
-      body: RefreshIndicator(
-        // 당겨서 새로고침
-        onRefresh: () async {
-          setState(() {
-            colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
-          });
-        },
-        child: StreamBuilder<QuerySnapshot>(
-            stream: colstream,
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (!snapshot.hasData) {
-                return CircularProgressIndicator();
-              }
-              else {
-                datum = [];
-                snapshot.data!.docs.forEach((doc){
-                  if(isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])){
-                    List tmp = [];
-                    tmp.add(doc.id);
-                    tmp.add(doc.get("latlng")[0]);
-                    tmp.add(doc.get("latlng")[1]);
-                    try{
-                      tmp.add(doc.get("tagList")[0].trim());
-                    } catch(e) {}
-                    datum.add(tmp);
-                  }
-                });
-                _setMarker();
-                print(datum);
+          child: StreamBuilder<QuerySnapshot>(
+              stream: colstream,
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) {
+                  return CircularProgressIndicator();
+                }
+                else {
+                  datum = [];
+                  snapshot.data!.docs.forEach((doc){
+                    if(isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])){
+                      List tmp = [];
+                      tmp.add(doc.id);
+                      tmp.add(doc.get("latlng")[0]);
+                      tmp.add(doc.get("latlng")[1]);
+                      try{
+                        tmp.add(doc.get("tagList")[0].trim());
+                      } catch(e) {}
+                      datum.add(tmp);
+                    }
+                  });
+                  _setMarker();
+                  print(datum);
 
-                return Column(children: [
-                  // ------------------------------ 아래에 지도 추가 ------------------------------
-                  Expanded(
-                      child: Stack(
-                        children: [
-                          GoogleMap(
-                            compassEnabled: false,
-                            mapToolbarEnabled: false,
-                            zoomControlsEnabled: false,
-                            markers: _markers,
-                            mapType: MapType.normal,
-                            initialCameraPosition: _pusanUniversity,
-                            onMapCreated: (GoogleMapController controller) {
-                              _controller.complete(controller);
-                            },
-                            myLocationEnabled: true,
-                            myLocationButtonEnabled: false,
-                          ),
-                        ],
-                      )),
-                ]);
-              }
-            }),
+                  return Column(children: [
+                    // ------------------------------ 아래에 지도 추가 ------------------------------
+                    Expanded(
+                        child: Stack(
+                          children: [
+                            GoogleMap(
+                              compassEnabled: false,
+                              mapToolbarEnabled: false,
+                              zoomControlsEnabled: false,
+                              markers: _markers,
+                              mapType: MapType.normal,
+                              initialCameraPosition: _pusanUniversity,
+                              onMapCreated: (GoogleMapController controller) {
+                                _controller.complete(controller);
+                              },
+                              myLocationEnabled: true,
+                              myLocationButtonEnabled: false,
+                            ),
+                          ],
+                        )),
+                  ]);
+                }
+              }),
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _showAndChangeViewType,
+          label: Text("$_buttonText"),
+          icon: Icon(Icons.my_location),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAndChangeViewType,
-        label: Text("$_buttonText"),
-        icon: Icon(Icons.my_location),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      onWillPop: () async {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        return true;
+      },
     );
   }
 
