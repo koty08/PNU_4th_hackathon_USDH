@@ -328,50 +328,50 @@ class MyPageState extends State<MyPage> {
       )
     );
   }
-    void uploadImage() async {
-      final pickedImg = await _picker.pickImage(source: ImageSource.gallery);
-      var tmp = fp.getInfo();
-      late Reference ref;
+  void uploadImage() async {
+    final pickedImg = await _picker.pickImage(source: ImageSource.gallery);
+    var tmp = fp.getInfo();
+    late Reference ref;
 
-      ref = storage.ref().child('profile/${tmp['name'].toString()}');
-      await ref.putFile(File(pickedImg!.path));
-      String geturl = await ref.getDownloadURL();
+    ref = storage.ref().child('profile/${tmp['name'].toString()}');
+    await ref.putFile(File(pickedImg!.path));
+    String geturl = await ref.getDownloadURL();
 
-      await fs.collection('users').doc(fp.getInfo()['email']).update({
-        'photoUrl' : geturl,
-      });
-    }
+    await fs.collection('users').doc(fp.getInfo()['email']).update({
+      'photoUrl' : geturl,
+    });
+  }
 
-    showMessage(){
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        backgroundColor: Colors.blue[400],
-        duration: Duration(seconds: 10),
-        content: Text(fp.getMessage()),
-        action: SnackBarAction(
-          label: "확인",
-          textColor: Colors.black,
-          onPressed: () {},
-        ),
-      ));
-    }
+  showMessage(){
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Colors.blue[400],
+      duration: Duration(seconds: 10),
+      content: Text(fp.getMessage()),
+      action: SnackBarAction(
+        label: "확인",
+        textColor: Colors.black,
+        onPressed: () {},
+      ),
+    ));
+  }
 
-    showErrorMessage() {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        backgroundColor: Colors.red[400],
-        duration: Duration(seconds: 10),
-        content: Text(fp.getMessage()),
-        action: SnackBarAction(
-          label: "확인",
-          textColor: Colors.white,
-          onPressed: () {},
-        ),
-      ));
-    }
+  showErrorMessage() {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Colors.red[400],
+      duration: Duration(seconds: 10),
+      content: Text(fp.getMessage()),
+      action: SnackBarAction(
+        label: "확인",
+        textColor: Colors.white,
+        onPressed: () {},
+      ),
+    ));
+  }
 
 
-    Widget touchableText(onTap, text) {
+  Widget touchableText(onTap, text) {
       return InkWell(
         onTap: onTap,
         child: info2Text(text),

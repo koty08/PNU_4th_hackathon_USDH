@@ -7,6 +7,7 @@ import 'package:material_tag_editor/tag_editor.dart';
 import 'package:provider/provider.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/login/firebase_provider.dart';
+import 'package:usdh/function/chip.dart';
 
 late PortfolioState pageState;
 
@@ -202,7 +203,7 @@ class PortfolioState extends State<Portfolio> {
                             tagList.add("#" + newValue + " ");
                           });
                         },
-                        tagBuilder: (context, index) => _Chip(
+                        tagBuilder: (context, index) => ChipState(
                           index: index,
                           label: tagList[index],
                           onDeleted: _onDelete,
@@ -246,38 +247,5 @@ class PortfolioState extends State<Portfolio> {
       'portfolio': list,
       'portfolio_tag' : tagList,
     });
-  }
-}
-
-
-
-class _Chip extends StatelessWidget {
-  const _Chip({
-    required this.label,
-    required this.onDeleted,
-    required this.index,
-  });
-
-  final String label;
-  final ValueChanged<int> onDeleted;
-  final int index;
-
-  @override
-  Widget build(BuildContext context) {
-    return Chip(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      labelStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 11),
-      labelPadding: EdgeInsets.only(left: 10),
-      backgroundColor: Colors.grey[350],
-      label: smallText(label, 12, Colors.white),
-      deleteIcon: const Icon(
-        Icons.close,
-        color: Colors.white,
-        size: 13,
-      ),
-      onDeleted: () {
-        onDeleted(index);
-      },
-    );
   }
 }

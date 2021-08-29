@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'firebase_provider.dart';
 import 'package:provider/provider.dart';
 
-late findPWPageState pageState2;
+late FindPWPageState pageState2;
 
-class findPWPage extends StatefulWidget {
+class FindPWPage extends StatefulWidget {
   @override
-  findPWPageState createState() {
-    pageState2 = findPWPageState();
+  FindPWPageState createState() {
+    pageState2 = FindPWPageState();
     return pageState2;
   }
 }
 
-class findPWPageState extends State<findPWPage>{
+class FindPWPageState extends State<FindPWPage>{
   late FirebaseProvider fp;
   TextEditingController emailInput = TextEditingController();
   TextEditingController nameInput = TextEditingController();

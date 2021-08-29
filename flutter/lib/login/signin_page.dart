@@ -197,7 +197,7 @@ class SignInPageState extends State<SignInPage> {
                             ),
                             onPressed: () {
                               Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) => findPWPage()));
+                                  MaterialPageRoute(builder: (context) => FindPWPage()));
                             },
                           ),
 

@@ -1,20 +1,20 @@
 class Place {
   final String? description;
   final String? placeId;
-  final String? main_text;
+  final String? mainText;
 
-  Place({this.description, this.placeId, this.main_text});
+  Place({this.description, this.placeId, this.mainText});
 
   Place.fromJson(Map<String, dynamic> json)
       : this.description = json['description'],
         this.placeId = json['place_id'],
-        this.main_text = json['structured_formatting']['main_text'];
+        this.mainText = json['structured_formatting']['main_text'];
 
   Map<String, dynamic> toMap() {
     return {
       'description': this.description,
       'placeId': this.placeId,
-      'structured_formatting': this.main_text
+      'structured_formatting': this.mainText
     };
   }
 }
