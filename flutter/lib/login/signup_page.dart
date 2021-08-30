@@ -286,7 +286,7 @@ class SignUpPageState extends State<SignUpPage> {
 
   void _signUp() async {
     QuerySnapshot tmp = await fs.collection('users').get();
-    int num = tmp.size;
+    int num = tmp.size+1;
 
     if (!(listBool[0] && listBool[1])) {
       fp.setMessage("not-agree");

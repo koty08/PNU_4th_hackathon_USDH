@@ -550,7 +550,7 @@ class TaxiListState extends State<TaxiList> {
                       itemBuilder: (context, index) {
                         final DocumentSnapshot doc = snapshot.data!.docs[index];
                         String member = doc['currentMember'].toString() + '/' + doc['limitedMember'].toString();
-                        String info = doc['time'].substring(5, 7) + "/" + doc['time'].substring(8, 10) + doc['write_time'].substring(10, 16);
+                        String info = doc['write_time'].substring(5, 7) + "/" + doc['write_time'].substring(8, 10) + doc['write_time'].substring(10, 16);
                         String time = ' | ' + '마감' + doc['time'].substring(10, 16) + ' | ';
                         String writer = doc['writer'];
                         return Column(children: [
