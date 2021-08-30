@@ -90,53 +90,152 @@ class SignedInPageState extends State<SignedInPage> {
           messageBoard('assets/images/icon/iconclock.png', "마감 임박 게시글"),
           Padding(
             padding: EdgeInsets.fromLTRB(70, 20, 55, 0),
-            child: SizedBox(
-              height: 80,
-              child: StreamBuilder<QuerySnapshot>(
-                stream : fs.collection('delivery_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).orderBy('time').limit(1).snapshots(),
-                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
-                  if(!snapshot.hasData){
-                    return Text(
-                      "마감 임박 게시물이 없습니다.",
-                      style: TextStyle(
-                        fontFamily: "SCDream",
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12.5,
-                        color: Color(0xffDD373C44)),
-                    );
-                  }
-                  else{
-                    return ListView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        DocumentSnapshot doc = snapshot.data!.docs[0];
-                        return InkWell(
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(id: doc.id)));
-                            FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views" : doc["views"] + 1});
-                          },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(doc['title'],
-                                style: TextStyle(
-                                    fontFamily: "SCDream",
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 12.5,
-                                    color: Color(0xffDD373C44)),
-                              ),
-                              cSizedBox(15, 0)
-                            ]
-                          )
+            child: Column(
+              children: [
+                SizedBox(
+                  // height: 80,
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream : fs.collection('taxi_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).orderBy('time').limit(1).snapshots(),
+                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+                      if(!snapshot.hasData){
+                        return Text(
+                          "마감 임박 게시물이 없습니다.",
+                          style: TextStyle(
+                            fontFamily: "SCDream",
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12.5,
+                            color: Color(0xffDD373C44)),
                         );
                       }
-                    );
-                  }
-                }
-              )
+                      else{
+                        return ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: snapshot.data!.docs.length,
+                          itemBuilder: (context, index) {
+                            DocumentSnapshot doc = snapshot.data!.docs[0];
+                            return InkWell(
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => TaxiShow(id: doc.id)));
+                                FirebaseFirestore.instance.collection('taxi_board').doc(doc.id).update({"views" : doc["views"] + 1});
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(doc['title'],
+                                    style: TextStyle(
+                                        fontFamily: "SCDream",
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 12.5,
+                                        color: Color(0xffDD373C44)),
+                                  ),
+                                  cSizedBox(15, 0)
+                                ]
+                              )
+                            );
+                          }
+                        );
+                      }
+                    }
+                  )
+                ),
+                SizedBox(
+                  // height: 80,
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream : fs.collection('delivery_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).orderBy('time').limit(1).snapshots(),
+                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+                      if(!snapshot.hasData){
+                        return Text(
+                          "마감 임박 게시물이 없습니다.",
+                          style: TextStyle(
+                            fontFamily: "SCDream",
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12.5,
+                            color: Color(0xffDD373C44)),
+                        );
+                      }
+                      else{
+                        return ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: snapshot.data!.docs.length,
+                          itemBuilder: (context, index) {
+                            DocumentSnapshot doc = snapshot.data!.docs[0];
+                            return InkWell(
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(id: doc.id)));
+                                FirebaseFirestore.instance.collection('delivery_board').doc(doc.id).update({"views" : doc["views"] + 1});
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(doc['title'],
+                                    style: TextStyle(
+                                        fontFamily: "SCDream",
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 12.5,
+                                        color: Color(0xffDD373C44)),
+                                  ),
+                                  cSizedBox(15, 0)
+                                ]
+                              )
+                            );
+                          }
+                        );
+                      }
+                    }
+                  )
+                ),
+                SizedBox(
+                  // height: 80,
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream : fs.collection('gonggu_board').where('time', isGreaterThan: formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss])).orderBy('time').limit(1).snapshots(),
+                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+                      if(!snapshot.hasData){
+                        return Text(
+                          "마감 임박 게시물이 없습니다.",
+                          style: TextStyle(
+                            fontFamily: "SCDream",
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12.5,
+                            color: Color(0xffDD373C44)),
+                        );
+                      }
+                      else{
+                        return ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: snapshot.data!.docs.length,
+                          itemBuilder: (context, index) {
+                            DocumentSnapshot doc = snapshot.data!.docs[0];
+                            return InkWell(
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => GongguShow(id: doc.id)));
+                                FirebaseFirestore.instance.collection('gonggu_board').doc(doc.id).update({"views" : doc["views"] + 1});
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(doc['title'],
+                                    style: TextStyle(
+                                        fontFamily: "SCDream",
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 12.5,
+                                        color: Color(0xffDD373C44)),
+                                  ),
+                                  cSizedBox(15, 0)
+                                ]
+                              )
+                            );
+                          }
+                        );
+                      }
+                    }
+                  )
+                ),
+              ],
             )
+            
           ),
           //실시간 인기 (배달) 게시글 출력
           messageBoard('assets/images/icon/iconfire.png', "실시간 인기 게시글"),
