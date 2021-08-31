@@ -11,8 +11,10 @@ import 'package:usdh/chat/const.dart';
 import 'package:usdh/chat/talkinginfo.dart';
 import 'package:usdh/chat/widget/loading.dart';
 import 'package:usdh/chat/widget/full_photo.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 FirebaseFirestore fs = FirebaseFirestore.instance;
+FirebaseMessaging messaging = FirebaseMessaging.instance;
 
 class Chat extends StatefulWidget {
   final String myId;
@@ -418,7 +420,7 @@ class ChatScreenState extends State<ChatScreen> {
   }
 
   bool isLastMessageLeft(int index) {
-    if ((index > 0 && (listMessage[index - 1].get('idFrom') == myId) || isDiffTimeWithFormer(index)) || isDiffUser(index) || index == 0) {
+    if ((index > 0 && (listMessage[index - 1].get('idFrom') == myId) || isDiffTimeWithPrevious(index)) || isDiffUser(index) || index == 0) {
       return true;
     } else {
       return false;
