@@ -242,7 +242,7 @@ class SignedInPageState extends State<SignedInPage> {
           Padding(
             padding: EdgeInsets.fromLTRB(70, 20, 55, 0),
             child: SizedBox(
-              height: 100,
+              height: 120,
               child: StreamBuilder<QuerySnapshot>(
                 stream : fs.collection('community_board').orderBy('views', descending: true).snapshots(),
                 builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){

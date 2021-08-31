@@ -983,7 +983,7 @@ class CommunityModifyState extends State<CommunityModify> {
                           color: Colors.grey[300]
                       ),
                       margin: EdgeInsets.fromLTRB(0, height * 0.02, 0, 0),
-                      padding: EdgeInsets.fromLTRB(width * 0.07, height * 0.055, width * 0.07, height * 0.04),
+                      padding: EdgeInsets.fromLTRB(width * 0.07, height * 0.055, width * 0.07, 0),
                       child: Column(
                         children: [
                           info2Text("커뮤니티 이용규칙\n"),

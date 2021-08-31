@@ -282,8 +282,9 @@ class DeliveryMapState extends State<DeliveryMap> {
               }),
         ),
         floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: Color(0xff4E94EC),
           onPressed: _showAndChangeViewType,
-          label: Text("$_buttonText"),
+          label: small2Text("$_buttonText", 13, Colors.white),
           icon: Icon(Icons.my_location),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

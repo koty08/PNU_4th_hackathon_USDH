@@ -359,10 +359,10 @@ class ChatScreenState extends State<ChatScreen> {
   }
 
   //년,월,일
-  Text whatDay(DateTime dateTime) {
+  Widget whatDay(DateTime dateTime) {
     String formatted = formatDate(dateTime, [yyyy, '-', mm, '-', dd]);
-    String currentDay = '-------------------------- ' + formatted.substring(0, 4) + '년 ' + int.parse(formatted.substring(5, 7)).toString() + '월 ' + int.parse(formatted.substring(8, 10)).toString() + '일' + ' --------------------------\n';
-    return Text(currentDay);
+    String currentDay = '━━━━━━━━━━ ' + formatted.substring(0, 4) + '년 ' + int.parse(formatted.substring(5, 7)).toString() + '월 ' + int.parse(formatted.substring(8, 10)).toString() + '일' + ' ━━━━━━━━━━\n';
+    return info2Text(currentDay);
   }
 
   //시간(분 단위) 변화?
