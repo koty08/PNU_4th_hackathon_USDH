@@ -187,7 +187,7 @@ class _PlaceAutocompleteState extends State<PlaceAutocomplete> {
                               },
                               itemBuilder: (context, suggestion) {
                                 return ListTile(
-                                  title: condText(suggestion.main_text),
+                                  title: condText(suggestion.mainText),
                                 );
                               },
                               onSuggestionSelected: (suggestion) async {
