@@ -16,17 +16,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<FirebaseProvider>(
-            create: (_) => FirebaseProvider())
-      ],
+      providers: [ChangeNotifierProvider<FirebaseProvider>(create: (_) => FirebaseProvider())],
       child: MaterialApp(
         title: "USDH",
         home: AuthPage(),
         theme: ThemeData(errorColor: Colors.indigo.shade200),
         debugShowCheckedModeBanner: false,
         localizationsDelegates: [
-          GlobalMaterialLocalizations.delegate,        
+          GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
         ],
         supportedLocales: [

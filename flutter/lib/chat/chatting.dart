@@ -191,6 +191,8 @@ class ChatScreenState extends State<ChatScreen> {
 
   ChatScreenState({Key? key, required this.myId, required this.peerIds, required this.peerAvatars, required this.groupChatId, required this.where});
 
+  late final FirebaseMessaging _messaging;
+
   List<QueryDocumentSnapshot> listMessage = new List.from([]);
   int _limit = 20;
   int _limitIncrement = 20;
@@ -203,6 +205,36 @@ class ChatScreenState extends State<ChatScreen> {
   final TextEditingController textEditingController = TextEditingController();
   final ScrollController listScrollController = ScrollController();
   final FocusNode focusNode = FocusNode();
+
+  /* +++++++++++++ 추가 +++++++++++++ */
+
+  void registerNotification() async {
+    _messaging = FirebaseMessaging.instance;
+
+    //for iOS
+    NotificationSettings settings = await _messaging.requestPermission(
+      alert: true,
+      badge: true,
+      provisional: false,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print('User granted permission');
+
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        //Parse the message received
+        PushNotification notification = PushNotification(
+          title: message.notification?.title,
+          body: message.notification?.body,
+        );
+      });
+    } else {
+      print('User has not accepted permission');
+    }
+  }
+
+  /* ++++++++++++++++++++++++++++++++ */
 
   _scrollListener() {
     if (listScrollController.offset >= listScrollController.position.maxScrollExtent && !listScrollController.position.outOfRange) {
@@ -639,14 +671,14 @@ class ChatScreenState extends State<ChatScreen> {
 
               // 메세지 보낸 시간 표시
               isLastMessageLeft(index)
-              ? Container(
-                  child: Text(
-                    whatTime(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
-                    style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
-                  ),
-                  //margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
-                )
-              : SizedBox.shrink()
+                  ? Container(
+                      child: Text(
+                        whatTime(DateTime.fromMillisecondsSinceEpoch(int.parse(document.get('timestamp')))),
+                        style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
+                      ),
+                      //margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
+                    )
+                  : SizedBox.shrink()
             ],
             crossAxisAlignment: CrossAxisAlignment.start,
           ),
@@ -790,4 +822,14 @@ class Choice {
 
   final String title;
   final IconData icon;
+}
+
+class PushNotification {
+  String? title;
+  String? body;
+
+  PushNotification({
+    this.title,
+    this.body,
+  });
 }
