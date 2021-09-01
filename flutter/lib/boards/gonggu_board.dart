@@ -15,7 +15,7 @@ import 'package:date_format/date_format.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:usdh/maps/place_autocomplete.dart';
-import 'package:validators/validators.dart';
+// import 'package:validators/validators.dart';
 import 'package:usdh/function/chip.dart';
 import 'dart:async';
 
@@ -223,7 +223,7 @@ class GongguWriteState extends State<GongguWrite> {
                           hasAddButton: false,
                           resetTextOnSubmitted: true,
                           textStyle: TextStyle(fontFamily: "SCDream", color: Color(0xffa9aaaf), fontWeight: FontWeight.w500, fontSize: 11.5),
-                          inputDecoration: InputDecoration(hintText: "#태그를 입력하세요.(*첫번째 태그는 지도에 표시됩니다.)", hintStyle: TextStyle(color: Color(0xffa9aaaf), fontSize: 11.5), border: InputBorder.none, focusedBorder: InputBorder.none),
+                          inputDecoration: InputDecoration(hintText: "스페이스바로 #태그 입력! (*첫번째 태그는 지도에 표시)", hintStyle: TextStyle(color: Color(0xffa9aaaf), fontSize: 11.5), border: InputBorder.none, focusedBorder: InputBorder.none),
                           onSubmitted: (outstandingValue) {
                             setState(() {
                               tagList.add(outstandingValue);
