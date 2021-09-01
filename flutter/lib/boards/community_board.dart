@@ -184,22 +184,21 @@ class CommunityWriteState extends State<CommunityWrite> {
                   ),
               ),
               Container(
-                height: height*0.29,
-                width: width,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300]
-                ),
-                margin: EdgeInsets.fromLTRB(0, height * 0.02, 0, 0),
-                padding: EdgeInsets.fromLTRB(width * 0.07, height * 0.055, width * 0.07, height * 0.04),
-                child: Column(
-                  children: [
-                    info2Text("커뮤니티 이용규칙\n"),
-                    smallText("유소더하 커뮤니티는 누구나 가볍고 즐겁게 이용할 수 있는\n"
-                        "커뮤니티를 만들기 위해 아래와 같은 게시물 규칙을 기반으로 운영합니다.\n"
-                        "\n1. 정치, 사회 관련 게시물 게시 금지\n2. 혐오성 발언 금지\n3. 성적인 발언 금지\n"
-                        "\n클린한 커뮤니티 조성을 위해 이용규칙을 반드시 지켜주세요.", 10.5, Colors.black54)
-                  ],
-                )
+                  height: height*0.29,
+                  width: width,
+                  decoration: BoxDecoration(
+                      color: Colors.grey[300]
+                  ),
+                  padding: EdgeInsets.fromLTRB(width * 0.07, height * 0.02, width * 0.07, 0),
+                  child: Column(
+                    children: [
+                      info2Text("커뮤니티 이용규칙\n"),
+                      small2Text("유소더하 커뮤니티는 누구나 가볍고 즐겁게 이용할 수 있는\n"
+                          "커뮤니티를 만들기 위해 아래와 같은 게시물 규칙을 기반으로 운영합니다.\n"
+                          "\n1. 정치, 사회 관련 게시물 게시 금지\n2. 혐오성 발언 금지\n3. 성적인 발언 금지\n"
+                          "\n클린한 커뮤니티 조성을 위해 이용규칙을 반드시 지켜주세요.", 10.2, Colors.black54)
+                    ],
+                  )
               ),
             ],
           ),
@@ -982,15 +981,14 @@ class CommunityModifyState extends State<CommunityModify> {
                       decoration: BoxDecoration(
                           color: Colors.grey[300]
                       ),
-                      margin: EdgeInsets.fromLTRB(0, height * 0.02, 0, 0),
-                      padding: EdgeInsets.fromLTRB(width * 0.07, height * 0.055, width * 0.07, 0),
+                      padding: EdgeInsets.fromLTRB(width * 0.07, height * 0.02, width * 0.07, 0),
                       child: Column(
                         children: [
                           info2Text("커뮤니티 이용규칙\n"),
-                          smallText("유소더하 커뮤니티는 누구나 가볍고 즐겁게 이용할 수 있는\n"
+                          small2Text("유소더하 커뮤니티는 누구나 가볍고 즐겁게 이용할 수 있는\n"
                               "커뮤니티를 만들기 위해 아래와 같은 게시물 규칙을 기반으로 운영합니다.\n"
                               "\n1. 정치, 사회 관련 게시물 게시 금지\n2. 혐오성 발언 금지\n3. 성적인 발언 금지\n"
-                              "\n클린한 커뮤니티 조성을 위해 이용규칙을 반드시 지켜주세요.", 10.5, Colors.black54)
+                              "\n클린한 커뮤니티 조성을 위해 이용규칙을 반드시 지켜주세요.", 10.2, Colors.black54)
                         ],
                       )
                     ),
