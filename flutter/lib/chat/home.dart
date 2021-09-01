@@ -158,115 +158,99 @@ class HomeScreenState extends State<HomeScreen> {
 
       return Container(
         child: TextButton(
-          child: Stack(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  FutureBuilder(
-                      future: getPeerAvatar(peerIds),
-                      builder: (BuildContext context, AsyncSnapshot snapshot) {
-                        if (snapshot.hasData) {
-                          return Container(
-                            child: CircleAvatar(radius: 25, backgroundImage: NetworkImage(snapshot.data.toString())),
-                            alignment: Alignment.centerLeft,
-                          );
-                        } else {
-                          return CircularProgressIndicator();
-                        }
-                      }),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FutureBuilder(
-                          future: getPeerNicks(peerIds),
-                          builder: (BuildContext context, AsyncSnapshot snapshot) {
-                            if (snapshot.hasData) {
-                              return Container(
-                                width: width*0.6,
-                                child: smallText(snapshot.data.toString(), 12.5, Colors.black87),
-                                alignment: Alignment.centerLeft,
-                                margin: EdgeInsets.fromLTRB(20.0, 0.0, 0.0, height*0.015),
-                              );
-                            } else {
-                              return CircularProgressIndicator();
-                            }
-                          }
-                      ),
-                      StreamBuilder<DocumentSnapshot>(
-                          stream: streamMessageWith,
-                          builder: (context, AsyncSnapshot<DocumentSnapshot> docSnapshotMW) {
-                            return StreamBuilder<QuerySnapshot>(
-                                stream: streamMessages,
-                                builder: (context, AsyncSnapshot<QuerySnapshot> colSnapshotM) {
-                                  if (!docSnapshotMW.hasData || !colSnapshotM.hasData) {
-                                    return CircularProgressIndicator();
-                                  }
-                                  var myInfo = fp.getInfo();
-                                  QueryDocumentSnapshot lastMessageSnapshot = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1];
-                                  String lastTime;
-                                  String lastMessage = lastMessageSnapshot.get('content').toString();
-                                  String lastTimeSeen = docSnapshotMW.data!.get('lastTimeSeen');
-                                  int unSeenCount;
-                                  var temp = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1].get('timestamp').toString();
-                                  Timestamp timestamp = Timestamp.fromMillisecondsSinceEpoch(int.parse(temp));
-                                  DateTime dateTime = timestamp.toDate();
-                                  String formatedTime = formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
-                                  if (isTomorrow(formatedTime)) {
-                                    lastTime = formatedTime.substring(11, 16);
-                                  } else {
-                                    lastTime = formatedTime.substring(5, 7) + '.' + formatedTime.substring(8, 10);
-                                  }
-                                  Iterable<QueryDocumentSnapshot<Object?>> messages = colSnapshotM.data!.docs.where((element) {
-                                    if (int.parse(element.get('timestamp')) > int.parse(lastTimeSeen) && element.get('idFrom') != myInfo['email']) {
-                                      return true;
-                                    } else {
-                                      return false;
-                                    }
-                                  });
-                                  unSeenCount = messages.length;
-                                  count = unSeenCount;
+          child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                FutureBuilder(
+                    future: getPeerAvatar(peerIds),
+                    builder: (BuildContext context, AsyncSnapshot snapshot) {
+                      if (snapshot.hasData) {
+                        return Container(
+                          child: CircleAvatar(radius: 25, backgroundImage: NetworkImage(snapshot.data.toString())),
+                          alignment: Alignment.centerLeft,
+                        );
+                      } else {
+                        return CircularProgressIndicator();
+                      }
+                    }),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  StreamBuilder<DocumentSnapshot>(
+                      stream: streamMessageWith,
+                      builder: (context, AsyncSnapshot<DocumentSnapshot> docSnapshotMW) {
+                        return StreamBuilder<QuerySnapshot>(
+                            stream: streamMessages,
+                            builder: (context, AsyncSnapshot<QuerySnapshot> colSnapshotM) {
+                              if (!docSnapshotMW.hasData || !colSnapshotM.hasData) {
+                                return CircularProgressIndicator();
+                              }
+                              var myInfo = fp.getInfo();
+                              QueryDocumentSnapshot lastMessageSnapshot = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1];
+                              String lastTime;
+                              String lastMessage = lastMessageSnapshot.get('content').toString();
+                              String lastTimeSeen = docSnapshotMW.data!.get('lastTimeSeen');
+                              int unSeenCount;
+                              var temp = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1].get('timestamp').toString();
+                              Timestamp timestamp = Timestamp.fromMillisecondsSinceEpoch(int.parse(temp));
+                              DateTime dateTime = timestamp.toDate();
+                              String formatedTime = formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
+                              if (isTomorrow(formatedTime)) {
+                                lastTime = formatedTime.substring(11, 16);
+                              } else {
+                                lastTime = formatedTime.substring(5, 7) + '.' + formatedTime.substring(8, 10);
+                              }
+                              Iterable<QueryDocumentSnapshot<Object?>> messages = colSnapshotM.data!.docs.where((element) {
+                                if (int.parse(element.get('timestamp')) > int.parse(lastTimeSeen) && element.get('idFrom') != myInfo['email']) {
+                                  return true;
+                                } else {
+                                  return false;
+                                }
+                              });
+                              unSeenCount = messages.length;
+                              count = unSeenCount;
 
-                                  return Row(
-                                    children: <Widget>[
-                                      Container(
-                                        width: width * 0.45,
-                                        child:
-                                          (unSeenCount>0)
-                                          ? smallText(lastMessage, 11.5, Color(0xff639ee1))
-                                          : smallText(lastMessage, 11.5, Colors.grey),
-                                        alignment: Alignment.centerLeft,
-                                        margin: EdgeInsets.fromLTRB(20.0, 0.0, 0.0, 0),
-                                      ),
-                                      cSizedBox(0, width*0.15),
-                                      Container(
-                                        width: width * 0.1,
-                                        child: smallText(lastTime, 11.5, Colors.grey.shade600),
-                                      ),
-                                    ],
-                                  );
-                                });
-                          }),
-                  ]),
-                ],
-              ),
-              Positioned(
-                right: 0,
-                top: -10,
-                child: RawMaterialButton(
-                  onPressed: () {},
-                  elevation: 0,
-                  fillColor:
-                  (count>0)
-                    ? Color(0xff639ee1)
-                    : Colors.grey.shade400,
-                  child: smallText(count.toString(), 11, Colors.white),
-                  shape: CircleBorder(),
-                  constraints: BoxConstraints.expand(width: width*0.05, height: height*0.05),
-                )
-              )
-            ]
-          ),
+                              return Row(
+                                children: <Widget>[
+                                  Column(children: [
+                                    FutureBuilder(
+                                      future: getPeerNicks(peerIds),
+                                      builder: (BuildContext context, AsyncSnapshot snapshot) {
+                                        if (snapshot.hasData) {
+                                          return Container(
+                                            width: width * 0.6,
+                                            child: smallText(snapshot.data.toString(), 12.5, Colors.black87),
+                                            alignment: Alignment.centerLeft,
+                                            margin: EdgeInsets.fromLTRB(20.0, 0.0, 0.0, height * 0.015),
+                                          );
+                                        } else {
+                                          return CircularProgressIndicator();
+                                        }
+                                      }),
+                                    Container(
+                                      width: width * 0.55,
+                                      child: (unSeenCount > 0) ? smallText(lastMessage, 11.5, Color(0xff639ee1)) : smallText(lastMessage, 11.5, Colors.grey),
+                                      alignment: Alignment.centerLeft,
+                                      margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0),
+                                    ),
+                                  ]),
+                                  Column(children: [
+                                    Container(
+                                      width: width * 0.1,
+                                      child: (unSeenCount > 0) ? smallText(unSeenCount.toString(), 11.5, Color(0xff639ee1)) : smallText(unSeenCount.toString(), 11.5, Colors.grey),
+                                      alignment: Alignment.centerRight,
+                                    ),
+                                    Container(
+                                      width: width * 0.1,
+                                      child: smallText(lastTime, 11.5, Colors.grey.shade600),
+                                      alignment: Alignment.centerRight,
+                                    ),
+                                  ]),
+                                ],
+                              );
+                            });
+                      }),
+                ]),
+              ],
+            ),
           onPressed: () async {
             Navigator.push(
               context,
@@ -281,7 +265,7 @@ class HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
-        margin: EdgeInsets.fromLTRB(5, height*0.02, 5, 0),
+        margin: EdgeInsets.fromLTRB(5, height * 0.02, 5, 0),
       );
     } else {
       return SizedBox.shrink();
