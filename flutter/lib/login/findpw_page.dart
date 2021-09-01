@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:usdh/Widget/widget.dart';
 import 'firebase_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -28,7 +29,7 @@ class FindPWPageState extends State<FindPWPage>{
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     return Scaffold(
-      appBar: AppBar(title: Text("비밀번호 찾기 페이지")),
+      appBar: CustomAppBar("비밀번호 찾기 페이지", []),
       body: ListView(
         children: <Widget>[
           Container(
@@ -38,67 +39,49 @@ class FindPWPageState extends State<FindPWPage>{
                 Container(
                   height: 50,
                   child: Center(
-                    child: Text(
-                      "이메일과 이름을 입력하면 해당 이메일로 비밀번호 재설정 메세지를 보내드립니다.",
-                      style: TextStyle(
-                          color: Colors.blueGrey,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold),
-                    ),
+                    child: info2Text("이메일과 이름을 입력하면\n해당 이메일로 비밀번호 재설정 메세지를 보내드립니다.",),
                   ),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.amber, width: 1),
+                cSizedBox(10, 0),
+                Divider(thickness: 2,),
+                cSizedBox(20, 0),
+                Form(
+                  key: _formKey,
+                  child: Column(children: [
+                    // 입력
+                    // 1) email
+                    inputNav(Icons.email, "  웹메일"),
+                    userField(context, emailInput, "웹메일(학교 이메일)", (text) {
+                      if (text == null || text.isEmpty) {
+                        return "이메일은 필수 입력 사항입니다.";
+                      } else if (!text.contains("@")) {
+                        return "부산대학교 웹메일을 사용하셔야 합니다.";
+                      } else if (text.contains("@") &&
+                          text.split("@")[1] != "pusan.ac.kr") {
+                        return "부산대학교 웹메일을 사용하셔야 합니다.";
+                      }
+                      return null;
+                    }),
+                    // name
+                    inputNav(Icons.arrow_forward, "  이름(실명)"),
+                    userField(context, nameInput, "이름", (text){
+                      if(text == null || text.isEmpty){
+                        return "이름은 필수 입력 사항입니다.";
+                      }
+                      return null;
+                    }),
+                  ]
                   ),
-                  child: Form(
-                    key: _formKey,
-                    child:
-                      Column(
-                      children: <Widget>[
-                        TextFormField(
-                          controller: emailInput,
-                          decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.mail),
-                            hintText: "이메일",
-                          ),
-                          validator : (text){
-                            if(text == null || text.isEmpty){
-                              return "이메일은 필수 입력 사항입니다.";
-                            }
-                            return null;
-                          }
-                        ),
-                        TextFormField(
-                          controller: nameInput,
-                          decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.people),
-                            hintText: "이름",
-                          ),
-                          validator : (text){
-                            if(text == null || text.isEmpty){
-                              return "이름은 필수 입력 사항입니다.";
-                            }
-                            return null;
-                          }
-                        ),
-                      ].map((c) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 10),
-                          child: c,
-                        );
-                      }).toList(),
-                    ),
-                  )
                 )
               ],
             ),
           ),
+          cSizedBox(10, 0),
+          Divider(thickness: 2,),
+          cSizedBox(20, 0),
           TextButton(
-            child: Text(
+            child: infoText(
               "비밀번호 변경 이메일 보내기",
-              style: TextStyle(color: Colors.blue, fontSize: 16),
             ),
             onPressed: () {
               FocusScope.of(context).requestFocus(new FocusNode());
@@ -141,15 +124,16 @@ class FindPWPageState extends State<FindPWPage>{
       ),
     ));
   }
+
   showMessage(){
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: Colors.blue[400],
+      backgroundColor: Colors.indigo.shade200,
       duration: Duration(seconds: 10),
       content: Text(fp.getMessage()),
       action: SnackBarAction(
         label: "확인",
-        textColor: Colors.black,
+        textColor: Colors.white,
         onPressed: () {},
       ),
     ));

@@ -272,11 +272,30 @@ class SignInPageState extends State<SignInPage> {
   void _signIn() async {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      duration: Duration(seconds: 10),
-      content: Row(
-        children: <Widget>[CircularProgressIndicator(), Text("   로그인 중...")],
-      ),
-    ));
+        backgroundColor: Colors.indigo.shade200,
+        duration: Duration(seconds: 10),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        content: Container(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                height: 17,
+                width: 17,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation(Colors.white),
+                  backgroundColor: Colors.indigo.shade200,
+                ),
+              ),
+              SizedBox(width: 15),
+              Text("로그인 중..."),
+            ],
+          ),
+        )),
+    );
     bool result = await fp.signIn(emailInput.text, pwdInput.text);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     if (result == false) showMessage();
@@ -310,7 +329,7 @@ class SignInPageState extends State<SignInPage> {
   showMessage() {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: Colors.red[400],
+      backgroundColor: Colors.indigo.shade200,
       duration: Duration(seconds: 10),
       content: Text(fp.getMessage()),
       action: SnackBarAction(

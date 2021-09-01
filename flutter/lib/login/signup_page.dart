@@ -120,7 +120,7 @@ class SignUpPageState extends State<SignUpPage> {
 
                         // pwd
                         inputNav(Icons.lock, "  비밀번호"),
-                        userField(context, repwdInput, "비밀번호(6자 이상)", (text){
+                        userField2(context, pwdInput, "비밀번호(6자 이상)", (text){
                           if(text == null || text.isEmpty){
                             return "비밀번호는 필수 입력 사항입니다.";
                           }
@@ -132,7 +132,7 @@ class SignUpPageState extends State<SignUpPage> {
 
                         // confirm pwd
                         inputNav(Icons.lock, "  비밀번호 확인"),
-                        userField(context, repwdInput, "비밀번호 확인", (text){
+                        userField2(context, repwdInput, "비밀번호 확인", (text){
                           if(text == null || text.isEmpty){
                             return "비밀번호를 한번 더 입력 해주세요.";
                           }
@@ -244,20 +244,6 @@ class SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                 ]))));
-  }
-
-  Widget inputNav(IconData data, String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        cSizedBox(0, 45),
-        Icon(data, color: Color(0xffFF576FBA), size: 19),
-        Container(
-          height: 25,
-          child: smallText(text, 15, Colors.indigo.shade300),
-        ),
-      ],
-    );
   }
 
   Widget tos(String text, int num) {
