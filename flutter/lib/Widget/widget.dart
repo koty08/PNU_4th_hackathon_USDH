@@ -277,7 +277,44 @@ Widget ccondField(TextEditingController controller, String hint, String valid) {
 
 /* ---------------------- Sign up ---------------------- */
 
+Widget inputNav(IconData data, String text) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      cSizedBox(0, 45),
+      Icon(data, color: Color(0xffFF576FBA), size: 19),
+      Container(
+        height: 25,
+        child: smallText(text, 15, Colors.indigo.shade300),
+      ),
+    ],
+  );
+}
+
+
 Widget userField(BuildContext context, TextEditingController controller, String hint, valid) {
+  final width = MediaQuery.of(context).size.width;
+  final height = MediaQuery.of(context).size.height;
+  return Container(
+      margin: EdgeInsets.fromLTRB(0, 5, 0, 15),
+      width: width*0.7,
+      height: height*0.1,
+      child: TextFormField(
+          controller: controller,
+          style: TextStyle(fontFamily: "SCDream", color: Colors.black54, fontWeight: FontWeight.w500, fontSize: 13),
+          decoration: InputDecoration(
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.indigo.shade200, width: 1.5),
+            ),
+            contentPadding: EdgeInsets.fromLTRB(width*0.05, 0, 0, 0),
+            hintText: hint, errorStyle: TextStyle(color: Colors.indigo.shade200),
+          ),
+          validator: valid
+      )
+  );
+}
+
+Widget userField2(BuildContext context, TextEditingController controller, String hint, valid) {
   final width = MediaQuery.of(context).size.width;
   final height = MediaQuery.of(context).size.height;
   return Container(

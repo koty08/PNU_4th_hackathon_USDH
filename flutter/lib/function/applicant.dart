@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:usdh/Widget/widget.dart';
 import 'package:usdh/boards/delivery_board.dart';
+import 'package:usdh/boards/gonggu_board.dart';
 import 'package:usdh/boards/roommate_board.dart';
 import 'package:usdh/boards/sgroup_board.dart';
+import 'package:usdh/boards/taxi_board.dart';
 import 'package:usdh/boards/teambuild_board.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'package:usdh/chat/chatting.dart';
@@ -100,6 +102,8 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
                                             child: Padding(
                                                 padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
                                                 child: Row(children: [
+                                                  if (where == 'taxi_board') showBoard('assets/images/icon/icontaxi.png', TaxiShow(id: doc.id)),
+                                                  if (where == 'gonggu_board') showBoard('assets/images/icon/iconshopping.png', GongguShow(id: doc.id)),
                                                   if (where == 'delivery_board') showBoard('assets/images/icon/iconmotorcycle.png', DeliveryShow(id: doc.id)),
                                                   if (where == 'teambuild_board') showBoard('assets/images/icon/iconteam.png', TeambuildShow(doc.id)),
                                                   if (where == 'sgroup_board') showBoard('assets/images/icon/iconplay.png', SgroupShow(doc.id)),
@@ -632,6 +636,8 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                         InkWell(
                             onTap: () {
                               if (where != 'deleted'){
+                                if (where == 'taxi_board') navigate2Board(where, TaxiShow(id: doc.id), doc);
+                                if (where == 'gonggu_board') navigate2Board(where, GongguShow(id: doc.id), doc);
                                 if (where == 'delivery_board') navigate2Board(where, DeliveryShow(id: doc.id), doc);
                                 if (where == 'teambuild_board') navigate2Board(where, TeambuildShow(doc.id), doc);
                                 if (where == 'sgroup_board') navigate2Board(where, SgroupShow(doc.id), doc);
@@ -644,6 +650,8 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                                     padding: EdgeInsets.fromLTRB(width * 0.05, 15, width * 0.05, 15),
                                     child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
                                       if (where == 'deleted') Image(image: AssetImage('assets/images/icon/iconx.png'), height: 22, width: 22,),
+                                      if (where == 'taxi_board') Image(image: AssetImage('assets/images/icon/icontaxi.png'), height: 22, width: 22,),
+                                      if (where == 'gonggu_board') Image(image: AssetImage('assets/images/icon/iconshopping.png'), height: 22, width: 22,),
                                       if (where == 'delivery_board') Image(image: AssetImage('assets/images/icon/iconmotorcycle.png'), height: 22, width: 22,),
                                       if (where == 'teambuild_board') Image(image: AssetImage('assets/images/icon/iconteam.png'), height: 22, width: 22,),
                                       if (where == 'sgroup_board') Image(image: AssetImage('assets/images/icon/iconplay.png'), height: 22, width: 22,),
@@ -660,16 +668,18 @@ class MyApplicationListBoardState extends State<MyApplicationListBoard> {
                                                     spacing: 8,
                                                     children: [
                                                       Container(
-                                                        width: MediaQuery.of(context).size.width * 0.52,
-                                                        child: smallText(snapshot.data[0], 15, Colors.black87),
+                                                        width: MediaQuery.of(context).size.width * 0.48,
+                                                        child: smallText(snapshot.data[0], 13, Colors.black87),
                                                       ),
                                                       smallText(snapshot.data[1] + snapshot.data[2] + snapshot.data[3], 10, Color(0xffa9aaaf)),
                                                     ],
                                                   ),
-                                                  cSizedBox(0, width*0.03),
-                                                  if (!doc['isJoined'] && !doc['isRejected']) smallText('요청중', 13, Color(0xff548ee0)),
-                                                  if (doc['isJoined']) smallText('승인됨', 13, Color(0xff548ee0)),
-                                                  if (doc['isRejected']) smallText('거절됨', 13, Colors.grey),
+                                                  if (!doc['isJoined'] && !doc['isRejected']) Container(width: width*0.1, margin: EdgeInsets.fromLTRB(width * 0.05, 0, 0, 0),
+                                                      child: smallText('요청중', 13, Color(0xff548ee0))),
+                                                  if (doc['isJoined'])  Container(width: width*0.1, margin: EdgeInsets.fromLTRB(width * 0.05, 0, 0, 0),
+                                                      child: smallText('승인됨', 13, Color(0xff548ee0))),
+                                                  if (doc['isRejected']) Container(width: width*0.1, margin: EdgeInsets.fromLTRB(width * 0.05, 0, 0, 0),
+                                                      child: smallText('거절됨', 13, Colors.grey)),
                                                 ],
                                               );
                                             } else {
