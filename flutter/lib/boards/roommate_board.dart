@@ -295,6 +295,7 @@ class RoommateWriteState extends State<RoommateWrite> {
       'isFineForMembers': [],
       'messages': [],
       'members': [],
+      'write_time' : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
     });
     fp.updateIntInfo('postcount', 1);
   }

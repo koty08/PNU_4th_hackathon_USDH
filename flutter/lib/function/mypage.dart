@@ -123,13 +123,23 @@ class MyPageState extends State<MyPage> {
                                                       }
                                                   ),
                                                   actions: <Widget>[
-                                                    TextButton(onPressed: () {
+                                                    TextButton(onPressed: () async {
                                                       if(_formKey.currentState!.validate()){
-                                                        setState(() {
-                                                          fs.collection('users').doc(fp.getUser()!.email).update({
-                                                            'nick' : nickInput.text
-                                                          });
+                                                        await fs.collection('users').doc(fp.getUser()!.email).update({
+                                                          'nick' : nickInput.text
                                                         });
+                                                        try{
+                                                          await fs.collection('users').doc(fp.getUser()!.email).collection('applicants').get().then((QuerySnapshot snap){
+                                                            snap.docs.forEach((DocumentSnapshot doc) {
+                                                              fs.collection(doc['where']).doc(doc.id).update({
+                                                                'writer' : nickInput.text,
+                                                              });
+                                                            });
+                                                          });
+                                                        } catch (e){
+                                                          print("해당문서 없음");
+                                                        }
+
                                                         Navigator.pop(con);
                                                         fp.setMessage("nick");
                                                         ScaffoldMessenger.of(context).hideCurrentSnackBar();

@@ -19,7 +19,7 @@ class FirebaseProvider with ChangeNotifier {
 
   // 생성자
   FirebaseProvider() {
-    logger.d("initializing...");
+    // logger.d("initializing...");
     setUser(authIns.currentUser);
   }
 

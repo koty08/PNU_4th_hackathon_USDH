@@ -295,6 +295,7 @@ class TeambuildWriteState extends State<TeambuildWrite> {
       'isFineForMembers': [],
       'messages': [],
       'members': [],
+      'write_time' : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
     });
     fp.updateIntInfo('postcount', 1);
   }

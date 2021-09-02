@@ -44,6 +44,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
     colstream = fs.collection('users').doc(myId).collection('applicants').snapshots();
+    // colstream = fs.collection('users').doc(myId).collection('applicants').orderBy('write_time', descending: true).snapshots();
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
@@ -52,6 +53,7 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
             onRefresh: () async {
               setState(() {
                 colstream = fs.collection('users').doc(myId).collection('applicants').snapshots();
+                // colstream = fs.collection('users').doc(myId).collection('applicants').orderBy('write_time', descending: true).snapshots();
               });
             },
             child: StreamBuilder<QuerySnapshot>(

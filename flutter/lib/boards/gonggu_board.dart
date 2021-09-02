@@ -291,6 +291,7 @@ class GongguWriteState extends State<GongguWrite> {
       'title': titleInput.text,
       'isFineForMembers': [],
       'members': [],
+      'write_time' : formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]),
     });
     fp.updateIntInfo('postcount', 1);
   }

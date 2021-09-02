@@ -67,12 +67,14 @@ class CommunityWriteState extends State<CommunityWrite> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
   final _picker = ImagePicker();
   List urlList = [];
+  bool funcCalled = false;
 
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
 
   @override
   void initState() {
+    funcCalled = false;
     super.initState();
   }
 
@@ -100,8 +102,17 @@ class CommunityWriteState extends State<CommunityWrite> {
             onPressed: () {
               FocusScope.of(context).requestFocus(new FocusNode());
               if (_formKey.currentState!.validate()) {
-                uploadOnFS();
-                Navigator.pop(context);
+                if(funcCalled == true && urlList.isNotEmpty){
+                  uploadOnFS();
+                  Navigator.pop(context);
+                }
+                else if(funcCalled == false){
+                  uploadOnFS();
+                  Navigator.pop(context);
+                }
+                else{
+                  print("ㄱㄷ");
+                }
               }
             }
         )]),
@@ -207,7 +218,7 @@ class CommunityWriteState extends State<CommunityWrite> {
 
   void addImage() async {
     final pickedImgList = await _picker.pickMultiImage();
-
+    funcCalled = true;
     List<String> pickUrlList = [];
 
     var tmp = fp.getInfo();
