@@ -13,7 +13,7 @@ import 'package:usdh/boards/community_board.dart';
 import 'package:usdh/chat/home.dart';
 import 'package:usdh/login/firebase_provider.dart';
 import 'package:usdh/function/mypage.dart';
-import 'package:usdh/maps/delivery.dart';
+import 'package:usdh/maps/delivery_map.dart';
 
 late SignedInPageState pageState;
 

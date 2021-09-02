@@ -1,5 +1,4 @@
 import 'dart:async';
-// import 'dart:html';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
@@ -8,13 +7,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:provider/provider.dart';
 import 'package:usdh/Widget/widget.dart';
-import 'package:usdh/boards/delivery_board.dart';
+import 'package:usdh/boards/gonggu_board.dart';
 import 'package:usdh/chat/home.dart';
-// import 'package:usdh/chat/home.dart';
 import 'package:usdh/login/firebase_provider.dart';
 
 
-late DeliveryMapState pageState1;
+late GongguMapState pageState1;
 
 bool isAvailable(String time, int n1, int n2) {
   if (n1 >= n2) {
@@ -31,16 +29,16 @@ bool isAvailable(String time, int n1, int n2) {
   }
 }
 
-class DeliveryMap extends StatefulWidget {
+class GongguMap extends StatefulWidget {
   @override
-  DeliveryMapState createState() {
-    pageState1 = DeliveryMapState();
+  GongguMapState createState() {
+    pageState1 = GongguMapState();
     return pageState1;
   }
 }
 
-class DeliveryMapState extends State<DeliveryMap> {
-  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('delivery_board').orderBy("write_time", descending: true).snapshots();
+class GongguMapState extends State<GongguMap> {
+  Stream<QuerySnapshot> colstream = FirebaseFirestore.instance.collection('gonggu_board').orderBy("write_time", descending: true).snapshots();
   late FirebaseProvider fp;
   Completer<GoogleMapController> _controller = Completer();
 
@@ -55,8 +53,8 @@ class DeliveryMapState extends State<DeliveryMap> {
 
   // 초기 위치 : 부산대학교 정문
   final CameraPosition _pusanUniversity = CameraPosition(
-    target: LatLng(35.23159301295487, 129.08395882267462),
-    zoom: 16.2
+      target: LatLng(35.23159301295487, 129.08395882267462),
+      zoom: 16.2
   );
 
   @override
@@ -94,95 +92,95 @@ class DeliveryMapState extends State<DeliveryMap> {
 
         _markers.add(
           Marker(
-            markerId: MarkerId(datum[i][0]),
-            position: LatLng(
-                datum[i][1], datum[i][2]
-            ),
-            infoWindow: InfoWindow(
-                title: infoText
-            ),
-            onTap: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: Colors.white.withOpacity(0.9),
-                  duration: Duration(seconds: 20),
-                  content:
-                  StreamBuilder(
-                    stream: FirebaseFirestore.instance.collection('delivery_board').doc(datum[i][0]).snapshots(),
-                    builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot){
-                      final width = MediaQuery.of(context).size.width;
-                      final height = MediaQuery.of(context).size.height;
-                      if(!snapshot.hasData){
-                        return CircularProgressIndicator();
-                      }
-                      else{
-                        String info = snapshot.data!['write_time'].substring(5, 7) + "/" + snapshot.data!['write_time'].substring(8, 10) + snapshot.data!['write_time'].substring(10, 16) + ' | ';
-                        String time = snapshot.data!['time'].substring(11, 16);
-                        String writer = snapshot.data!['writer'];
-                        return SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(width*0.05, height*0.02, width*0.05, height*0.02),
-                                  child: Wrap(direction: Axis.vertical, spacing: 10, children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: MediaQuery.of(context).size.width * 0.8,
-                                          child: tagText(snapshot.data!['tagList'].join(' ')),
-                                        ),
-
-                                      ],
-                                    ),
-                                    Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
-                                    smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
-                                  ])),
-                              Divider(color: Color(0xffe9e9e9), thickness: 1,),
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(width*0.05, height*0.01, width*0.05, height*0.03),
-                                  child: Wrap(
-                                    direction: Axis.vertical,
-                                    spacing: 10,
+              markerId: MarkerId(datum[i][0]),
+              position: LatLng(
+                  datum[i][1], datum[i][2]
+              ),
+              infoWindow: InfoWindow(
+                  title: infoText
+              ),
+              onTap: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Colors.white.withOpacity(0.9),
+                      duration: Duration(seconds: 20),
+                      content:
+                      StreamBuilder(
+                          stream: FirebaseFirestore.instance.collection('gonggu_board').doc(datum[i][0]).snapshots(),
+                          builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot){
+                            final width = MediaQuery.of(context).size.width;
+                            final height = MediaQuery.of(context).size.height;
+                            if(!snapshot.hasData){
+                              return CircularProgressIndicator();
+                            }
+                            else{
+                              String info = snapshot.data!['write_time'].substring(5, 7) + "/" + snapshot.data!['write_time'].substring(8, 10) + snapshot.data!['write_time'].substring(10, 16) + ' | ';
+                              String time = snapshot.data!['time'].substring(11, 16);
+                              String writer = snapshot.data!['writer'];
+                              return SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
-                                          IconButton(
-                                            icon: Image.asset('assets/images/icon/icongoboard.png', width: 20, height: 20),
-                                            onPressed: () {
-                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryShow(id : datum[i][0])));
-                                            },
-                                          ),
-                                        ],
-                                      ),
                                       Padding(
-                                          padding: EdgeInsets.fromLTRB(7, 0, 0, 0),
-                                          child: Wrap(
-                                            direction: Axis.vertical,
-                                            spacing: 15,
-                                            children: [
-                                              cond2Wrap("모집기간", time),
-                                              cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
-                                              cond2Wrap("음식종류", snapshot.data!['food']),
-                                              cond2Wrap("배분위치", snapshot.data!['location']),
-                                            ],
-                                          ))
+                                          padding: EdgeInsets.fromLTRB(width*0.05, height*0.02, width*0.05, height*0.02),
+                                          child: Wrap(direction: Axis.vertical, spacing: 10, children: [
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  width: MediaQuery.of(context).size.width * 0.8,
+                                                  child: tagText(snapshot.data!['tagList'].join(' ')),
+                                                ),
+
+                                              ],
+                                            ),
+                                            Container(width: MediaQuery.of(context).size.width * 0.8, child: titleText(snapshot.data!['title'])),
+                                            smallText("등록일 " + info + "마감 " + time + ' | ' + "작성자 " + writer, 11.5, Color(0xffa9aaaf))
+                                          ])),
+                                      Divider(color: Color(0xffe9e9e9), thickness: 1,),
+                                      Padding(
+                                        padding: EdgeInsets.fromLTRB(width*0.05, height*0.01, width*0.05, height*0.03),
+                                        child: Wrap(
+                                          direction: Axis.vertical,
+                                          spacing: 10,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text("모집조건", style: TextStyle(fontFamily: "SCDream", color: Color(0xff639ee1), fontWeight: FontWeight.w600, fontSize: 15)),
+                                                IconButton(
+                                                  icon: Image.asset('assets/images/icon/icongoboard.png', width: 20, height: 20),
+                                                  onPressed: () {
+                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                    Navigator.push(context, MaterialPageRoute(builder: (context) => GongguShow(id : datum[i][0])));
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                            Padding(
+                                                padding: EdgeInsets.fromLTRB(7, 0, 0, 0),
+                                                child: Wrap(
+                                                  direction: Axis.vertical,
+                                                  spacing: 15,
+                                                  children: [
+                                                    cond2Wrap("모집기간", time),
+                                                    cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
+                                                    cond2Wrap("음식종류", snapshot.data!['food']),
+                                                    cond2Wrap("배분위치", snapshot.data!['location']),
+                                                  ],
+                                                ))
+                                          ],
+                                        ),
+                                      ),
                                     ],
-                                  ),
-                              ),
-                            ],
-                          )
-                        ); 
-                      }
-                    }
-                  ),
-              )
-              );
-            }
+                                  )
+                              );
+                            }
+                          }
+                      ),
+                    )
+                );
+              }
           ),
         );
       }
@@ -199,13 +197,13 @@ class DeliveryMapState extends State<DeliveryMap> {
 
     return WillPopScope(
       child: Scaffold(
-        appBar: CustomAppBar("배달", [
+        appBar: CustomAppBar("공구", [
           IconButton(
             icon: Image.asset('assets/images/icon/icongolist.png', width: 20, height: 20),
             onPressed: () {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
               Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryList()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => GongguList()));
             },
           ),
           //새로고침 기능
@@ -214,7 +212,7 @@ class DeliveryMapState extends State<DeliveryMap> {
             onPressed: () {
               setState(() {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+                colstream = FirebaseFirestore.instance.collection('gonggu_board').snapshots();
               });
             },
           ),
@@ -231,7 +229,7 @@ class DeliveryMapState extends State<DeliveryMap> {
           // 당겨서 새로고침
           onRefresh: () async {
             setState(() {
-              colstream = FirebaseFirestore.instance.collection('delivery_board').snapshots();
+              colstream = FirebaseFirestore.instance.collection('gonggu_board').snapshots();
             });
           },
           child: StreamBuilder<QuerySnapshot>(
