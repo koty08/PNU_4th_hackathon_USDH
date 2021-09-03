@@ -216,7 +216,7 @@ Widget condText(String text) {
 
 Widget cond2Text(String text) {
   return Text(
-      text,
+      text, overflow: TextOverflow.ellipsis,
       style: TextStyle(fontFamily: "SCDream", color: Colors.black87, fontWeight: FontWeight.w700, fontSize: 13)
   );
 }

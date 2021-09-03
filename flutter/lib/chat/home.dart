@@ -151,7 +151,6 @@ class HomeScreenState extends State<HomeScreen> {
     if (document != null) {
       List<dynamic> peerIds = document['chatMembers'];
       String where = document.get('where');
-      int count = 0;
 
       Stream<DocumentSnapshot> streamMessageWith = FirebaseFirestore.instance.collection('users').doc(peerIds[0]).collection('messageWith').doc(document.id).snapshots();
       Stream<QuerySnapshot> streamMessages = FirebaseFirestore.instance.collection('users').doc(peerIds[0]).collection('messageWith').doc(document.id).collection('messages').snapshots();
@@ -168,87 +167,99 @@ class HomeScreenState extends State<HomeScreen> {
                         return Container(
                           child: CircleAvatar(radius: 25, backgroundImage: NetworkImage(snapshot.data.toString())),
                           alignment: Alignment.centerLeft,
+                          margin: EdgeInsets.fromLTRB(width*0.02, 0, width*0.06, 0),
                         );
                       } else {
                         return CircularProgressIndicator();
                       }
                     }),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  StreamBuilder<DocumentSnapshot>(
-                      stream: streamMessageWith,
-                      builder: (context, AsyncSnapshot<DocumentSnapshot> docSnapshotMW) {
-                        return StreamBuilder<QuerySnapshot>(
-                            stream: streamMessages,
-                            builder: (context, AsyncSnapshot<QuerySnapshot> colSnapshotM) {
-                              if (!docSnapshotMW.hasData || !colSnapshotM.hasData) {
-                                return CircularProgressIndicator();
-                              }
-                              var myInfo = fp.getInfo();
-                              QueryDocumentSnapshot lastMessageSnapshot = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1];
-                              String lastTime;
-                              String lastMessage = lastMessageSnapshot.get('content').toString();
-                              String lastTimeSeen = docSnapshotMW.data!.get('lastTimeSeen');
-                              int unSeenCount;
-                              var temp = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1].get('timestamp').toString();
-                              Timestamp timestamp = Timestamp.fromMillisecondsSinceEpoch(int.parse(temp));
-                              DateTime dateTime = timestamp.toDate();
-                              String formatedTime = formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
-                              if (isTomorrow(formatedTime)) {
-                                lastTime = formatedTime.substring(11, 16);
+                StreamBuilder<DocumentSnapshot>(
+                    stream: streamMessageWith,
+                    builder: (context, AsyncSnapshot<DocumentSnapshot> docSnapshotMW) {
+                      return StreamBuilder<QuerySnapshot>(
+                          stream: streamMessages,
+                          builder: (context, AsyncSnapshot<QuerySnapshot> colSnapshotM) {
+                            if (!docSnapshotMW.hasData || !colSnapshotM.hasData) {
+                              return CircularProgressIndicator();
+                            }
+                            var myInfo = fp.getInfo();
+                            QueryDocumentSnapshot lastMessageSnapshot = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1];
+                            String lastTime;
+                            String lastMessage = lastMessageSnapshot.get('content').toString();
+                            String lastTimeSeen = docSnapshotMW.data!.get('lastTimeSeen');
+                            int unSeenCount;
+                            var temp = colSnapshotM.data!.docs[colSnapshotM.data!.docs.length - 1].get('timestamp').toString();
+                            Timestamp timestamp = Timestamp.fromMillisecondsSinceEpoch(int.parse(temp));
+                            DateTime dateTime = timestamp.toDate();
+                            String formatedTime = formatDate(dateTime, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
+                            if (isTomorrow(formatedTime)) {
+                              lastTime = formatedTime.substring(11, 16);
+                            } else {
+                              lastTime = formatedTime.substring(5, 7) + '.' + formatedTime.substring(8, 10);
+                            }
+                            Iterable<QueryDocumentSnapshot<Object?>> messages = colSnapshotM.data!.docs.where((element) {
+                              if (int.parse(element.get('timestamp')) > int.parse(lastTimeSeen) && element.get('idFrom') != myInfo['email']) {
+                                return true;
                               } else {
-                                lastTime = formatedTime.substring(5, 7) + '.' + formatedTime.substring(8, 10);
+                                return false;
                               }
-                              Iterable<QueryDocumentSnapshot<Object?>> messages = colSnapshotM.data!.docs.where((element) {
-                                if (int.parse(element.get('timestamp')) > int.parse(lastTimeSeen) && element.get('idFrom') != myInfo['email']) {
-                                  return true;
-                                } else {
-                                  return false;
-                                }
-                              });
-                              unSeenCount = messages.length;
-                              count = unSeenCount;
+                            });
+                            unSeenCount = messages.length;
 
-                              return Row(
-                                children: <Widget>[
-                                  Column(children: [
+                            return Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.start,
+                                  direction: Axis.vertical,
+                                  spacing: height*0.02,
+                                  children: [
                                     FutureBuilder(
                                       future: getPeerNicks(peerIds),
                                       builder: (BuildContext context, AsyncSnapshot snapshot) {
                                         if (snapshot.hasData) {
                                           return Container(
-                                            width: width * 0.6,
+                                            width: width * 0.5,
                                             child: smallText(snapshot.data.toString(), 12.5, Colors.black87),
                                             alignment: Alignment.centerLeft,
-                                            margin: EdgeInsets.fromLTRB(20.0, 0.0, 0.0, height * 0.015),
                                           );
                                         } else {
                                           return CircularProgressIndicator();
                                         }
                                       }),
                                     Container(
-                                      width: width * 0.55,
+                                      width: width * 0.5,
                                       child: (unSeenCount > 0) ? smallText(lastMessage, 11.5, Color(0xff639ee1)) : smallText(lastMessage, 11.5, Colors.grey),
                                       alignment: Alignment.centerLeft,
-                                      margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0),
                                     ),
+                                ]),
+                                Container(
+                                  margin: EdgeInsets.fromLTRB(width*0.06, 0, 0, height*0.015),
+                                  child: Wrap(
+                                    direction: Axis.vertical,
+                                    children: [
+                                      RawMaterialButton(
+                                        onPressed: () {},
+                                        elevation: 0,
+                                        fillColor:
+                                        (unSeenCount>0)
+                                          ? Color(0xff639ee1)
+                                          : Colors.grey.shade400,
+                                        child: smallText(unSeenCount.toString(), 11.5, Colors.white),
+                                        shape: CircleBorder(),
+                                        constraints: BoxConstraints.expand(width: width*0.05, height: height*0.05),
+                                      ),
+                                      Container(
+                                        width: width * 0.1,
+                                        child: smallText(lastTime, 11.5, Colors.grey.shade600),
+                                        alignment: Alignment.centerRight,
+                                      ),
                                   ]),
-                                  Column(children: [
-                                    Container(
-                                      width: width * 0.1,
-                                      child: (unSeenCount > 0) ? smallText(unSeenCount.toString(), 11.5, Color(0xff639ee1)) : smallText(unSeenCount.toString(), 11.5, Colors.grey),
-                                      alignment: Alignment.centerRight,
-                                    ),
-                                    Container(
-                                      width: width * 0.1,
-                                      child: smallText(lastTime, 11.5, Colors.grey.shade600),
-                                      alignment: Alignment.centerRight,
-                                    ),
-                                  ]),
-                                ],
-                              );
-                            });
-                      }),
-                ]),
+                                )
+                              ],
+                            );
+                          });
+                    }),
               ],
             ),
           onPressed: () async {
@@ -265,7 +276,6 @@ class HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
-        margin: EdgeInsets.fromLTRB(5, height * 0.02, 5, 0),
       );
     } else {
       return SizedBox.shrink();
