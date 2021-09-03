@@ -155,7 +155,7 @@ class HomeScreenState extends State<HomeScreen> {
       Stream<DocumentSnapshot> streamMessageWith = FirebaseFirestore.instance.collection('users').doc(peerIds[0]).collection('messageWith').doc(document.id).snapshots();
       Stream<QuerySnapshot> streamMessages = FirebaseFirestore.instance.collection('users').doc(peerIds[0]).collection('messageWith').doc(document.id).collection('messages').snapshots();
 
-      return Container(
+      return FittedBox(
         child: TextButton(
           child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -167,7 +167,7 @@ class HomeScreenState extends State<HomeScreen> {
                         return Container(
                           child: CircleAvatar(radius: 25, backgroundImage: NetworkImage(snapshot.data.toString())),
                           alignment: Alignment.centerLeft,
-                          margin: EdgeInsets.fromLTRB(width*0.02, 0, width*0.06, 0),
+                          margin: EdgeInsets.fromLTRB(0, 0, width*0.05, 0),
                         );
                       } else {
                         return CircularProgressIndicator();
@@ -209,32 +209,34 @@ class HomeScreenState extends State<HomeScreen> {
                             return Wrap(
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
-                                Wrap(
-                                  crossAxisAlignment: WrapCrossAlignment.start,
-                                  direction: Axis.vertical,
-                                  spacing: height*0.02,
-                                  children: [
-                                    FutureBuilder(
-                                      future: getPeerNicks(peerIds),
-                                      builder: (BuildContext context, AsyncSnapshot snapshot) {
-                                        if (snapshot.hasData) {
-                                          return Container(
-                                            width: width * 0.5,
-                                            child: smallText(snapshot.data.toString(), 12.5, Colors.black87),
-                                            alignment: Alignment.centerLeft,
-                                          );
-                                        } else {
-                                          return CircularProgressIndicator();
-                                        }
-                                      }),
-                                    Container(
-                                      width: width * 0.5,
-                                      child: (unSeenCount > 0) ? smallText(lastMessage, 11.5, Color(0xff639ee1)) : smallText(lastMessage, 11.5, Colors.grey),
-                                      alignment: Alignment.centerLeft,
-                                    ),
-                                ]),
+                                FittedBox(
+                                  child: Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.start,
+                                    direction: Axis.vertical,
+                                    spacing: height*0.02,
+                                    children: [
+                                      FutureBuilder(
+                                        future: getPeerNicks(peerIds),
+                                        builder: (BuildContext context, AsyncSnapshot snapshot) {
+                                          if (snapshot.hasData) {
+                                            return Container(
+                                              width: width * 0.5,
+                                              child: smallText(snapshot.data.toString(), 12.5, Colors.black87),
+                                              alignment: Alignment.centerLeft,
+                                            );
+                                          } else {
+                                            return CircularProgressIndicator();
+                                          }
+                                        }),
+                                      Container(
+                                        width: width * 0.5,
+                                        child: (unSeenCount > 0) ? smallText(lastMessage, 11.5, Color(0xff639ee1)) : smallText(lastMessage, 11.5, Colors.grey),
+                                        alignment: Alignment.centerLeft,
+                                      ),
+                                  ]),
+                                ),
                                 Container(
-                                  margin: EdgeInsets.fromLTRB(width*0.06, 0, 0, height*0.015),
+                                  margin: EdgeInsets.fromLTRB(width*0.05, 0, 0, height*0.015),
                                   child: Wrap(
                                     direction: Axis.vertical,
                                     children: [
