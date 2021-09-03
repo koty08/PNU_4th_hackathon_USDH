@@ -43,8 +43,8 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
   Widget build(BuildContext context) {
     fp = Provider.of<FirebaseProvider>(context);
     fp.setInfo();
-    colstream = fs.collection('users').doc(myId).collection('applicants').snapshots();
-    // colstream = fs.collection('users').doc(myId).collection('applicants').orderBy('write_time', descending: true).snapshots();
+    // colstream = fs.collection('users').doc(myId).collection('applicants').snapshots();
+    colstream = fs.collection('users').doc(myId).collection('applicants').orderBy('write_time', descending: true).snapshots();
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
@@ -52,8 +52,8 @@ class ApplicantListBoardState extends State<ApplicantListBoard> {
         body: RefreshIndicator(
             onRefresh: () async {
               setState(() {
-                colstream = fs.collection('users').doc(myId).collection('applicants').snapshots();
-                // colstream = fs.collection('users').doc(myId).collection('applicants').orderBy('write_time', descending: true).snapshots();
+                // colstream = fs.collection('users').doc(myId).collection('applicants').snapshots();
+                colstream = fs.collection('users').doc(myId).collection('applicants').orderBy('write_time', descending: true).snapshots();
               });
             },
             child: StreamBuilder<QuerySnapshot>(

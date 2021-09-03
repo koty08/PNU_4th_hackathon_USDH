@@ -165,8 +165,8 @@ class TaxiMapState extends State<TaxiMap> {
                                                   children: [
                                                     cond2Wrap("모집기간", time),
                                                     cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
-                                                    cond2Wrap("음식종류", snapshot.data!['food']),
-                                                    cond2Wrap("배분위치", snapshot.data!['location']),
+                                                    cond2Wrap("출발위치", snapshot.data!['start']),
+                                                    cond2Wrap("도착위치", snapshot.data!['dest']),
                                                   ],
                                                 ))
                                           ],
@@ -244,8 +244,8 @@ class TaxiMapState extends State<TaxiMap> {
                     if(isAvailable(doc['time'], doc['currentMember'], doc['limitedMember'])){
                       List tmp = [];
                       tmp.add(doc.id);
-                      tmp.add(doc.get("latlng")[0]);
-                      tmp.add(doc.get("latlng")[1]);
+                      tmp.add(doc.get("latlng1")[0]);
+                      tmp.add(doc.get("latlng1")[1]);
                       try{
                         tmp.add(doc.get("tagList")[0].trim());
                       } catch(e) {}

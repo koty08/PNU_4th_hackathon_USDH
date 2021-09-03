@@ -165,7 +165,7 @@ class GongguMapState extends State<GongguMap> {
                                                   children: [
                                                     cond2Wrap("모집기간", time),
                                                     cond2Wrap("모집인원", snapshot.data!['currentMember'].toString() + "/" + snapshot.data!['limitedMember'].toString()),
-                                                    cond2Wrap("음식종류", snapshot.data!['food']),
+                                                    cond2Wrap("구매물품", snapshot.data!['goods']),
                                                     cond2Wrap("배분위치", snapshot.data!['location']),
                                                   ],
                                                 ))
