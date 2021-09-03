@@ -118,7 +118,7 @@ class ChatState extends State<Chat> {
               padding: EdgeInsets.fromLTRB(width * 0.07, 0, 0, 0),
               icon: Image.asset('assets/images/icon/iconback.png', width: 22, height: 22),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.popUntil(context, ModalRoute.withName("/"));
               },
             ),
             cSizedBox(0, width * 0.07),
